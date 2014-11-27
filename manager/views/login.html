@@ -1,0 +1,37 @@
+<div class="row">
+          <div class="col-sm-6">
+            <h1 class="text-center login-title">Sign in to access your account</h1>
+            <div class="account-wall">
+                <img class="profile-img" src="https://lh5.googleusercontent.com/-b0-k99FZlyE/AAAAAAAAAAI/AAAAAAAAAAA/eu7opA4byxI/photo.jpg?sz=120"
+                    alt="">
+                <form class="form-signin">
+                <input ng-model="userid" type="text" class="form-control" placeholder="User id" required autofocus>
+                <input ng-model="password" type="password" class="form-control" placeholder="Password" required>
+                <button class="btn btn-lg btn-primary btn-block" type="button" ng-click="auth()">
+                    Sign in</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-sm-6">
+          <div ng-if="msg">
+            <div class="status{{msgstatus}}">{{msg}}</div>
+          </div>
+          <h1 class="text-center login-title">Register for a new account</h1>
+          <div class="account-wall">
+            <form class="form-register form-signin">
+              <input ng-model="userid" type="text" class="form-control" placeholder="User id" required autofocus>
+              <input ng-model="email" type="email" class="form-control" placeholder="Email" required>
+              <input ng-model="firstname" type="text" class="form-control" placeholder="First name" required>
+              <input ng-model="lastname" type="text" class="form-control" placeholder="Last name" required>
+              <textarea ng-model="address" class="form-control" placeholder="Address" required autofocus></textarea>
+              <input ng-model="lab" type="text" class="form-control" placeholder="Research unit, lab, ..." required>
+              <input ng-model="responsible" type="text" class="form-control" placeholder="Responsable authority" required>
+              <input ng-model="group" type="text" class="form-control" placeholder="User group: umrXXX, dogs, ..." required>
+              <label for="ip">IP Address</label>
+              <input ng-model="ip" type="text" id="ip" class="form-control" placeholder="IP Address" required>
+              <input type="checkbox" ng-model="agree" required>I agree with the <a target="_blank" href="/doc/terms_of_use.txt">terms of use</a> of the GenOuest platform</input>
+              <button type="button" class="btn btn-lg btn-primary btn-block" ng-click="register();">Register</button>
+            </form>
+          </div>
+        </div>
+</div>
