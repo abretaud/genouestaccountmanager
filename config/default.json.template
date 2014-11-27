@@ -13,9 +13,9 @@
     "host": "mailtrap.io",
     "port": 25,
     "secure": false,
-    "user": "14807c0c9ba3a63a5",
-    "password": "266a4487543b84",
-    "origin": "olivier.sallou@irisa.fr"
+    "user": "",
+    "password": "",
+    "origin": ""
   }
 
 }
