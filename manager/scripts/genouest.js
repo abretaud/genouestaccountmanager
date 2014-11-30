@@ -10,7 +10,7 @@ config(['$routeProvider','$logProvider',
             templateUrl: 'views/main.html',
             controller: 'mainCtrl'
         });
-        $routeProvider.when('/', {
+        $routeProvider.when('/login', {
             templateUrl: 'views/login.html',
             controller: 'loginCtrl'
         });
@@ -54,6 +54,12 @@ angular.module('genouest').controller('userCtrl',
       });
     };
 
+    $rootScope.$on('loginCtrl.login', function (event) {
+      $scope.user = Auth.getUser();
+      $scope.is_logged = true;
+    });
+
+
 
 });
 
@@ -92,13 +98,14 @@ angular.module('genouest').controller('loginCtrl',
     $scope.auth = function() {
       User.authenticate({name: $scope.userid}, {password: $scope.password}).$promise.then(function(data) {
         if(data.user !== undefined && data.user !== null) {
-
+          Auth.setUser(data.user);
+          $rootScope.$broadcast('loginCtrl.login');
+          $location.path('/');
         }
         else {
           $scope.msg = data.msg;
           $scope.status = ERROR;
         }
-        $log.info('TODO manage auth');
       });
     }
 });

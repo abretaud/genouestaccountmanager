@@ -5,6 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var http = require('http');
+var session = require('express-session');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
@@ -26,6 +27,12 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(session({
+  secret: CONFIG.general.secret,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { maxAge: 3600*24 }
+}))
 app.use('/manager', express.static(path.join(__dirname, 'manager')));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -35,6 +42,7 @@ app.get('/user', users);
 app.post('/user/:id', users);
 app.put('/user/:id', users);
 app.get('/user/:id', users);
+app.get('/user/:id/confirm', users);
 
 app.get('/auth', auth);
 app.post('/auth/:id', auth);

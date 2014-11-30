@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var cookieParser = require('cookie-parser');
+var session = require('express-session');
 
 var CONFIG = require('config');
 var GENERAL_CONFIG = CONFIG.general;
@@ -15,16 +16,29 @@ var monk = require('monk'),
     users_db = db.get('users');
 
 
+var ldap_manager = {
+  auth: function(uid, password) {
+    if(MAIL_CONFIG.ldap.host == 'fake') {
+      return true;
+    }
+    return false;
+  }
+}
+
+
 router.get('/logout', function(req, res) {
-  res.cookie('gomngr',null, { maxAge: 900000, httpOnly: true });
-  res.send({});
+  req.session.destroy();
+  //res.cookie('gomngr',null, { maxAge: 900000, httpOnly: true });
 });
 
 
 router.get('/auth', function(req, res) {
-  if(req.cookies.gomngr !== undefined) {
+  var sess = req.session;
+  if(sess.gomngr) {
+  //if(req.cookies.gomngr !== undefined) {
     // Authenticated
-    users_db.findOne({_id: req.param('id')}, function(err, user){
+    //users_db.findOne({_id: req.cookies.gomngr}, function(err, user){
+    users_db.findOne({_id: sess.gomngr}, function(err, user){
       if(user.status == STATUS_PENDING_EMAIL){
         res.send({user: null, msg: 'Your account is waiting for email approval, check your mail inbox'});
         return;
@@ -58,9 +72,17 @@ router.post('/auth/:id', function(req, res) {
       return;
     }
     // Check bind with ldap
-    res.status(401).send('Not yet implemented');
-    //res.cookie('gomngr',req.param('id'), { maxAge: 900000 });
-    return;
+    var sess = req.session;
+    session.gomngr = user._id;
+    if(GENERAL_CONFIG.admin.indexOf(user.uid) >= 0) {
+      user.is_admin = true;
+    }
+    else {
+      user.is_admin = false;
+    }
+    //res.cookie('gomngr',user._id, { maxAge: 900000 });
+    res.send({ user: user, msg: 'Fake auth, LDAP not yet implemented'});
+    res.end();
   });
 });
 

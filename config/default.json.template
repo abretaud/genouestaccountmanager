@@ -3,7 +3,8 @@
     "db": "gomngr",
     "url": "http://localhost:3000/",
     "admin": [ "osallou" ],
-    "support": "support@genouest.org"
+    "support": "support@genouest.org",
+    "secret": ""
  },
  "mongo": {
     "host": "localhost",

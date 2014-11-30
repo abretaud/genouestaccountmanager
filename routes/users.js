@@ -6,13 +6,17 @@ var CONFIG = require('config');
 var GENERAL_CONFIG = CONFIG.general;
 
 var nodemailer = require('nodemailer');
+var smtpTransport = require('nodemailer-smtp-transport');
 
-var MAIL_CONFIG = require('config').mail;
+var cookieParser = require('cookie-parser');
+
+var MAIL_CONFIG = CONFIG.mail;
 var transport = null;
 
 
-if(MAIL_CONFIG.host!='fake') {
-  transport = nodemailer.createTransport('SMTP', {
+if(MAIL_CONFIG.host !== 'fake') {
+  if(MAIL_CONFIG.user !== undefined && MAIL_CONFIG.user !== '') {
+  transport = nodemailer.createTransport(smtpTransport({
     host: MAIL_CONFIG.host, // hostname
     secureConnection: MAIL_CONFIG.secure, // use SSL
     port: MAIL_CONFIG.port, // port for secure SMTP
@@ -20,7 +24,16 @@ if(MAIL_CONFIG.host!='fake') {
         user: MAIL_CONFIG.user,
         pass: MAIL_CONFIG.password
     }
-  });
+  }));
+  }
+  else {
+  transport = nodemailer.createTransport(smtpTransport({
+    host: MAIL_CONFIG.host, // hostname
+    secureConnection: MAIL_CONFIG.secure, // use SSL
+    port: MAIL_CONFIG.port, // port for secure SMTP
+  }));
+
+  }
 }
 
 
@@ -34,16 +47,90 @@ var STATUS_PENDING_APPROVAL = 'Waiting for admin approval';
 var STATUS_ACTIVE = 'Active';
 var STATUS_EXPIRED = 'Expired';
 
-/* GET users listing. */
-router.get('/', function(req, res) {
-  res.send('respond with a resource');
+// Get users listing - for admin
+router.get('/user', function(req, res) {
+  if(req.cookies.gomngr === undefined || req.cookies.gomngr == '') {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({uid: req.cookies.gomngr}, function(err, user){
+    if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
+      res.status(401).send('Not authorized');
+      return;
+    }
+    users_db.find({}, function(err, users){
+      res.json(users);
+    });
+  });
 });
 
+// Get user - for logged user or admin
 router.get('/user/:id', function(req, res) {
-  res.send('respond with a resource');
+  if(req.cookies.gomngr === undefined || req.cookies.gomngr == '') {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({uid: req.cookies.gomngr}, function(err, user){
+    if(req.cookies.gomngr === req.param('id') || GENERAL_CONFIG.admin.indexOf(user.uid) >= 0){
+      res.json(user);
+    }
+    else {
+      res.status(401).send('Not authorized');
+      return;
+    }
+
+  });
 });
 
-//Register
+// Registration mail confirmation
+router.get('/user/:id/confirm', function(req, res) {
+  var uid = req.param('id');
+  var regkey = req.param('regkey');
+  users_db.findOne({uid: uid}, function(err, user) {
+    if(! user) {
+      res.status(401).send('Invalid user');
+      return;
+    }
+    else {
+        if(user.regkey == regkey) {
+          var account_event = {action: 'email_confirm', date: new Date().getTime()};
+          users_db.update({ _id: user._id},
+                          { $set: {status: STATUS_PENDING_APPROVAL},
+                            $push: {history: account_event}
+                          }, function(err) {});
+          var mailOptions = {
+            from: MAIL_CONFIG.origin, // sender address
+            to: GENERAL_CONFIG.support, // list of receivers
+            subject: 'Genouest account registration', // Subject line
+            text: 'New account registration waiting for approval: '+uid, // plaintext body
+            html: 'New account registration waiting for approval: '+uid // html body
+          };
+          if(transport!==null) {
+            transport.sendMail(mailOptions, function(error, response){
+              if(error){
+                console.log(error);
+              }
+              res.redirect(GENERAL_CONFIG.url+'/index.html#/login');
+              res.end();
+              return;
+            });
+          }
+          else {
+            res.redirect(GENERAL_CONFIG.url+'/#/login');
+            res.end();
+          }
+        }
+        else {
+          res.status(401).send('Invalid registration key');
+          return;
+        }
+    }
+  });
+});
+
+
+
+// Register
 router.post('/user/:id', function(req, res) {
   console.log('New register request for '+req.param('id'));
   if(req.param('ip').split('.').length != 4) {
@@ -51,7 +138,7 @@ router.post('/user/:id', function(req, res) {
     return;
   }
 
-  users_db.findOne({_id: req.param('id')}, function(err, user){
+  users_db.findOne({uid: req.param('id')}, function(err, user){
       if(user){
         res.send({'status': 1, 'msg': 'User id already exists'});
         //res.status(401).send('User id already exists');
@@ -70,15 +157,17 @@ router.post('/user/:id', function(req, res) {
         responsible: req.param('responsible'),
         group: req.param('group'),
         ip: req.param('ip'),
-        regkey: regkey
+        regkey: regkey,
+        is_genouest: false,
+        history: [{action: 'register', date: new Date().getTime()}]
       }
       var uid = req.param('id');
       users_db.insert(user);
         var link = GENERAL_CONFIG.url +
-                  encodeURI('user/+'+uid+'/confirm?regkey='+regkey);
+                  encodeURI('user/'+uid+'/confirm?regkey='+regkey);
       var mailOptions = {
         from: MAIL_CONFIG.origin, // sender address
-        to: login, // list of receivers
+        to: user.email, // list of receivers
         subject: 'Genouest account registration', // Subject line
         text: 'You have created an account on GenOuest platform,' +
               'please confirm your subscription at the following link: '+
@@ -99,7 +188,7 @@ router.post('/user/:id', function(req, res) {
   });
 });
 
-//Update user info
+// Update user info
 router.put('/user/:id', function(req, res) {
   res.send('respond with a resource');
 });
