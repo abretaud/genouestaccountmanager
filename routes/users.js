@@ -49,11 +49,16 @@ var STATUS_EXPIRED = 'Expired';
 
 // Get users listing - for admin
 router.get('/user', function(req, res) {
-  if(req.cookies.gomngr === undefined || req.cookies.gomngr == '') {
+  var sess = req.session;
+  if(! sess.gomngr) {
     res.status(401).send('Not authorized');
     return;
   }
-  users_db.findOne({uid: req.cookies.gomngr}, function(err, user){
+  users_db.findOne({_id: sess.gomngr}, function(err, user){
+    if(err || user == null){
+      res.status(404).send('User not found');
+      return;
+    }
     if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
       res.status(401).send('Not authorized');
       return;
@@ -64,14 +69,30 @@ router.get('/user', function(req, res) {
   });
 });
 
+// activate user
+router.get('/user/:id/activate', function(req, res) {
+  
+});
+
 // Get user - for logged user or admin
 router.get('/user/:id', function(req, res) {
-  if(req.cookies.gomngr === undefined || req.cookies.gomngr == '') {
+  var sess = req.session;
+  if(! sess.gomngr) {
     res.status(401).send('Not authorized');
     return;
   }
-  users_db.findOne({uid: req.cookies.gomngr}, function(err, user){
-    if(req.cookies.gomngr === req.param('id') || GENERAL_CONFIG.admin.indexOf(user.uid) >= 0){
+  users_db.findOne({_id: sess.gomngr}, function(err, user){
+    if(err){
+      res.status(404).send('User not found');
+      return;
+    }
+    if(GENERAL_CONFIG.admin.indexOf(user.uid) >= 0) {
+      user.is_admin = true;
+    }
+    else {
+      user.is_admin = false;
+    }
+    if(sess.gomngr === req.param('id') || GENERAL_CONFIG.admin.indexOf(user.uid) >= 0){
       res.json(user);
     }
     else {

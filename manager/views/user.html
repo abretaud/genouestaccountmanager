@@ -1,0 +1,75 @@
+<div class="row">
+  <h2>{{user.uid}}</h2>
+</div>
+<div class="row">
+  <div class="col-sm-6">
+    <h2>Information</h2>
+    <form class="form inline-form">
+      <div class="form-group">
+      <label for="firstname">First name</label>
+      <input type="text" id="firstname" ng-model="user.firstname"></input>
+      </div>
+      <div class="form-group">
+        <label for="lastname">Last name</label>
+        <input type="text" id="lastname" ng-model="user.lastname"></input>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" ng-model="user.email"></input>
+      </div>
+      <div class="form-group">
+        <label for="address">Address</label>
+        <textarea id="address" ng-model="user.address"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="lab">Laboratory</label>
+        <input type="text" id="lab" ng-model="user.lab"></input>
+      </div>
+      <div class="form-group">
+        <label for="responsible">Responsible</label>
+        <input type="text" id="responsible" ng-model="user.responsible"></input>
+      </div>
+      <div ng-if="user.is_admin">
+        <div class="form-group">
+          <label for="group">Group</label>
+          <input type="text" id="group" ng-model="user.group"></input>
+        </div>
+        <div class="form-group">
+          <label for="ip">IP address</label>
+          <input type="text" id="ip" ng-model="user.ip"></input>
+        </div>
+        <div class="form-group">
+          <div class="checkbox">
+            <label>
+              <input ng-model="user.is_genouest" type="checkbox"> GenOuest member
+            </label>
+          </div>
+        </div>
+      </div>
+      <div ng-if="! user.is_admin">
+        <div class="form-group">
+          <label for="group">Group</label>
+          <input type="text" id="group" ng-model="user.group" disabled></input>
+        </div>
+        <div class="form-group">
+          <label for="ip">IP address</label>
+          <input type="text" id="ip" ng-model="user.ip" disabled></input>
+        </div>
+      </div>
+
+    </form>
+  </div>
+  <div class="col-sm-6">
+    <div>
+      <div ng-if="user.is_admin && user.status == STATUS_PENDING_APPROVAL">
+        <button class="btn" ng-click="activate(user)">Activate</button>
+      </div>
+    </div>
+    <div>
+      <h2>History</h2>
+      <div ng-repeat="hist in user.history">
+        <span>{{hist.date}}:  {{hist.action}}</span>
+      </div>
+    </div>
+  </div>
+</div>

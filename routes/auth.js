@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
+var goldap = require('../routes/goldap.js');
 
 var CONFIG = require('config');
 var GENERAL_CONFIG = CONFIG.general;
@@ -28,6 +29,7 @@ var ldap_manager = {
 
 router.get('/logout', function(req, res) {
   req.session.destroy();
+  res.send({});
   //res.cookie('gomngr',null, { maxAge: 900000, httpOnly: true });
 });
 
@@ -39,23 +41,23 @@ router.get('/auth', function(req, res) {
     // Authenticated
     //users_db.findOne({_id: req.cookies.gomngr}, function(err, user){
     users_db.findOne({_id: sess.gomngr}, function(err, user){
-      if(user.status == STATUS_PENDING_EMAIL){
-        res.send({user: null, msg: 'Your account is waiting for email approval, check your mail inbox'});
-        return;
-      }
-      if(user.status == STATUS_PENDING_APPROVAL){
-        res.send({user: null, msg: 'Your account is waiting for admin approval'});
-        return;
-      }
-      if(user.status == STATUS_EXPIRED){
-        res.send({user: null, msg: 'Your account is expired, please contact the support for reactivation at '+GENERAL_CONFIG.support});
-        return;
-      }
       if(GENERAL_CONFIG.admin.indexOf(user.uid) >= 0) {
         user.is_admin = true;
       }
       else {
         user.is_admin = false;
+      }
+      if(user.status == STATUS_PENDING_EMAIL){
+        res.send({user: user, msg: 'Your account is waiting for email approval, check your mail inbox'});
+        return;
+      }
+      if(user.status == STATUS_PENDING_APPROVAL){
+        res.send({user: user, msg: 'Your account is waiting for admin approval'});
+        return;
+      }
+      if(user.status == STATUS_EXPIRED){
+        res.send({user: user, msg: 'Your account is expired, please contact the support for reactivation at '+GENERAL_CONFIG.support});
+        return;
       }
       res.send({user: user, msg: ''});
     });
@@ -73,16 +75,24 @@ router.post('/auth/:id', function(req, res) {
     }
     // Check bind with ldap
     var sess = req.session;
-    session.gomngr = user._id;
+    sess.gomngr = user._id;
     if(GENERAL_CONFIG.admin.indexOf(user.uid) >= 0) {
       user.is_admin = true;
     }
     else {
       user.is_admin = false;
     }
+    goldap.bind(user.uid, req.param('password'), function(err) {
+      if(err) {
+        res.send({ user: null, msg: err.message});
+        res.end();
+        return;
+      }
+      res.send({ user: user, msg: 'Fake auth, LDAP not yet implemented'});
+      res.end();
+    });
     //res.cookie('gomngr',user._id, { maxAge: 900000 });
-    res.send({ user: user, msg: 'Fake auth, LDAP not yet implemented'});
-    res.end();
+
   });
 });
 

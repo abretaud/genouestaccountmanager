@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "LDAP": "^1.2.1",
     "bcryptjs": "^2.1.0",
     "body-parser": "~1.8.1",
     "config": "^1.8.1",

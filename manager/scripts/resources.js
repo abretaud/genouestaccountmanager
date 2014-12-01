@@ -45,7 +45,13 @@
               method: 'POST',
               isArray: false,
               cache: false
-            }
+            },
+            activate: {
+              url: '/user/:name/activate',
+              method: 'GET',
+              isArray: false,
+              cache: false
+            },
           });
       }
 

@@ -14,6 +14,14 @@ config(['$routeProvider','$logProvider',
             templateUrl: 'views/login.html',
             controller: 'loginCtrl'
         });
+        $routeProvider.when('/user', {
+            templateUrl: 'views/users.html',
+            controller: 'usersmngrCtrl'
+        });
+        $routeProvider.when('/user/:id', {
+            templateUrl: 'views/user.html',
+            controller: 'usermngrCtrl'
+        });
         $routeProvider.otherwise({
             redirectTo: '/'
         });
@@ -28,20 +36,43 @@ angular.module('genouest').controller('genouestCtrl',
         };
     });
 
+
+angular.module('genouest').controller('usersmngrCtrl',
+  function($scope, $rootScope, $routeParams, $log, $location, User, Auth) {
+    User.list().$promise.then(function(data) {
+      $scope.users = data;
+    });
+
+});
+
+angular.module('genouest').controller('usermngrCtrl',
+  function($scope, $rootScope, $routeParams, $log, $location, User, Auth) {
+    $scope.user = Auth.getUser();
+    $scope.STATUS_PENDING_EMAIL = 'Waiting for email approval';
+    $scope.STATUS_PENDING_APPROVAL = 'Waiting for admin approval';
+    $scope.STATUS_ACTIVE = 'Active';
+    $scope.STATUS_EXPIRED = 'Expired';
+
+});
+
 angular.module('genouest').controller('userCtrl',
   function($scope, $rootScope, $routeParams, $log, $location, User, Auth, Logout) {
 
     $scope.is_logged = false;
-    if(! $scope.is_logged) {
-       $location.path('/login');
-    }
+
+    $scope.activate = function(user) {
+      User.activate({name: user.uid});
+    };
 
     User.is_authenticated().$promise.then(function(data) {
       if(data.user !== undefined && data.user !== null) {
          $scope.user = data.user;
-         $scope.user['is_admin'] = data.is_admin;
+         //$scope.user['is_admin'] = data.is_admin;
          $scope.is_logged = true;
          Auth.setUser($scope.user);
+      }
+      else {
+        $location.path('/login');
       }
     });
 

@@ -42,6 +42,7 @@ app.get('/user', users);
 app.post('/user/:id', users);
 app.put('/user/:id', users);
 app.get('/user/:id', users);
+app.get('/user/:id/activate', users);
 app.get('/user/:id/confirm', users);
 
 app.get('/auth', auth);
