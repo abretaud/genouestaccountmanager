@@ -1,12 +1,23 @@
 <div class="well">
-  <h2>{{user.uid}}</h2>
-  <div ng-if="session_user.is_admin && user.status == STATUS_PENDING_APPROVAL">
-    <button class="btn btn-primary" ng-click="activate()">Activate</button>
-  </div>
-  <div ng-if="session_user.is_admin && user.status == STATUS_ACTIVE">
-    <button class="btn btn-primary" ng-click="expire()">Expire</button>
+  <div class="row">
+    <div class="col-sm-6">
+      <h2>{{user.uid}}</h2>
+      <div>Support available at <a href="mailto:support@genouest.org">support@genouest.org</a></div>
+    </div>
+    <div class="col-sm-6">
+      <div ng-if="session_user.is_admin && user.status == STATUS_PENDING_APPROVAL">
+        <button class="btn btn-primary" ng-click="activate()">Activate</button>
+      </div>
+      <div ng-if="session_user.is_admin && user.status == STATUS_ACTIVE">
+        <button class="btn btn-primary" ng-click="expire()">Expire</button>
+      </div>
+      <div ng-if="session_user.is_admin && user.status == STATUS_EXPIRED">
+        <button class="btn btn-primary" ng-click="renew()">Renews</button>
+      </div>
+    </div>
   </div>
 </div>
+
 <div class="row">
   <div class="col-sm-6">
     <h2>Information</h2>
@@ -74,6 +85,47 @@
     </form>
   </div>
   <div class="col-sm-6">
+    <div class="row">
+        <div class="col-lg-6 col-md-6">
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+              <div class="row">
+                <div class="col-xs-3">
+                  <i class="glyphicon glyphicon-user icon-5x"></i>
+                </div>
+                <div class="col-xs-9 text-right">
+                  <div class="huge">{{disk_home}}</div>
+                      <div>Home</div>
+                </div>
+              </div>
+            </div>
+            <div class="panel-footer">
+                <span class="pull-left">{{home_date}}</span>
+                <div class="clearfix"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 col-md-6">
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+              <div class="row">
+                <div class="col-xs-3">
+                  <i class="glyphicon glyphicon-user icon-5x"></i>
+                </div>
+                <div class="col-xs-9 text-right">
+                  <div class="huge">{{disk_omaha}}</div>
+                      <div>Omaha</div>
+                </div>
+              </div>
+            </div>
+            <div class="panel-footer">
+                <span class="pull-left">{{omaha_date}}</span>
+                <div class="clearfix"></div>
+            </div>
+          </div>
+        </div>
+
+    </div>
     <div>
       <h2>History</h2>
       <div ng-repeat="hist in user.history">

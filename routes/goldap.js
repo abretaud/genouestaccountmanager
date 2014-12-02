@@ -89,6 +89,8 @@ module.exports = {
       }
       user_ldif += "replace: homedirectory\n";
       user_ldif += 'homedirectory: /home/'+user.group+'/'+user.uid+"\n";
+      user_ldif += "replace: gidnumber\n";
+      user_ldif += "mail: "+user.gidnumber+"\n";
     }
     user_ldif += "replace: givenname\n";
     user_ldif += "givenname: "+user.firstname+"\n";
@@ -96,6 +98,18 @@ module.exports = {
     user_ldif += "mail: "+user.email+"\n";
     user_ldif += "loginShell: mail\n";
     user_ldif += "loginShell: /bin/bash\n";
+
+    if(is_admin && user.oldgroup != user.group) {
+      // Group membership modification
+      user_ldif += "\ndn: cn="+user.group+",ou=groups,"+CONFIG.ldap.dn+"\n";
+      user_ldif += "changetype: modify\n";
+      user_ldif += "delete: memberUid\n";
+      user_ldif += "memberUid: "+user.uid+"\n\n"
+      user_ldif += "dn: cn="+user.group+",ou=groups,"+CONFIG.ldap.dn+"\n";
+      user_ldif += "changetype: modify\n";
+      user_ldif += "add: memberUid\n";
+      user_ldif += "memberUid: "+user.uid+"\n"
+    }
 
     fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+".ldif", user_ldif, function(err) {
       users_db.update({_id: user._id}, user, function(err){
@@ -130,21 +144,20 @@ module.exports = {
     user_ldif += "objectClass: inetOrgPerson\n\n";
 
     groups_db.findOne({'name': user.group}, function(err, group){
-      console.log('add, group='+group);
       if(err || group == null || group == undefined) {
         user_ldif += "dn: cn="+user.group+",ou=groups,"+CONFIG.ldap.dn+"\n";
-        user_ldif += "objectclass: groupofnames\n";
+        user_ldif += "objectClass: top\n";
+        user_ldif += "objectClass: posixGroup\n";
+        //user_ldif += "objectclass: groupofnames\n";
+        user_ldif += "gidNumber: "+user.gidnumber+"\n";
         user_ldif += "cn: "+user.group+"\n";
         user_ldif += "description: group for "+user.group+"\n";
-        user_ldif += "member: uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\n";
         user_ldif += "\n";
       }
-      else {
-        group_ldif += "dn: cn="+user.group+",ou=groups,"+CONFIG.ldap.dn+"\n";
-        group_ldif += "changetype: modify\n";
-        group_ldif += "add: memberUid\n";
-        group_ldif += "memberUid: "+user.uid+"\n"
-      }
+      group_ldif += "dn: cn="+user.group+",ou=groups,"+CONFIG.ldap.dn+"\n";
+      group_ldif += "changetype: modify\n";
+      group_ldif += "add: memberUid\n";
+      group_ldif += "memberUid: "+user.uid+"\n"
 
       fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+".ldif", user_ldif, function(err) {
         if(err) {

@@ -5,7 +5,8 @@
     "admin": [ "osallou" ],
     "support": "support@genouest.org",
     "secret": "",
-    "admin_ip": [ "127.0.0.1" ]
+    "admin_ip": [ "127.0.0.1" ],
+    "usage_directory": "/omaha-beach/admin/storage"
  },
  "mongo": {
     "host": "localhost",
@@ -24,6 +25,10 @@
     "dn": "dc=nodomain",
     "admin_dn": "dc=nodomain",
     "admin_password": ""
+  },
+  "mailchimp": {
+    "apikey": "",
+    "list": ""
   }
 
 }

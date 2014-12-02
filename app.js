@@ -10,6 +10,7 @@ var session = require('express-session');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var auth = require('./routes/auth');
+var disks = require('./routes/disks');
 
 var CONFIG = require('config');
 
@@ -38,9 +39,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.get('/', routes);
+app.post('/message', users);
 app.get('/group', users);
 app.get('/user', users);
 app.post('/user/:id', users);
+app.get('/disk/:id', disks);
 app.put('/user/:id', users);
 app.get('/user/:id', users);
 app.get('/user/:id/activate', users);

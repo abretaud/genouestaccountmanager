@@ -12,6 +12,7 @@ var smtpTransport = require('nodemailer-smtp-transport');
 var cookieParser = require('cookie-parser');
 
 var goldap = require('../routes/goldap.js');
+var notif = require('../routes/notif.js');
 
 var MAIL_CONFIG = CONFIG.mail;
 var transport = null;
@@ -72,6 +73,12 @@ router.get('/group', function(req, res){
   });
 });
 
+router.post('/message', function(req, res){
+  notif.send(req.param('subject'), req.param('message'), function() {
+    res.send(null);
+  });
+});
+
 // Get users listing - for admin
 router.get('/user', function(req, res) {
   var sess = req.session;
@@ -117,7 +124,7 @@ router.get('/user/:id/activate', function(req, res) {
         user.gidnumber = mingid;
         goldap.add(user, function(err) {
           if(!err){
-            users_db.update({uid: req.param('id')},{'$set': { status: STATUS_ACTIVE}}, function(err){
+            users_db.update({uid: req.param('id')},{'$set': { status: STATUS_ACTIVE}, '$push': { history: {action: 'validation', date: new Date().getTime()}} }, function(err){
               groups_db.update({'name': user.group}, {'$set': { 'gid': user.gidnumber}}, {upsert:true}, function(err){
                 var script = "#!/bin/bash\n";
                 script += "set -e \n"
@@ -129,8 +136,12 @@ router.get('/user/:id/activate', function(req, res) {
                 script += "mkdir -p /omaha-beach/"+user.uid+"\n";
                 script += "chown -R "+user.uid+" /home/"+user.group+'/'+user.uid+"\n";
                 script += "chown -R "+user.uid+" /omaha-beach/"+user.uid+"\n";
-                fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+".update", script, function(err) {
-                  res.send({msg: 'Activation in progress'});
+                var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
+                fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update", script, function(err) {
+                  fs.chmodSync(script_file,0755);
+                  notif.add(user.email, function(){
+                    res.send({msg: 'Activation in progress'});
+                  });
                 });
               });
             });
@@ -316,6 +327,7 @@ router.put('/user/:id', function(req, res) {
 
     user.firstname = req.param('firstname');
     user.lastname = req.param('lastname');
+    user.oldemail = user.email;
     user.email = req.param('email');
     user.address = req.param('address');
     user.lab = req.param('lab');
@@ -326,6 +338,8 @@ router.put('/user/:id', function(req, res) {
     }
 
     if(is_admin){
+      user.oldgroup = user.group;
+      user.oldgidnumber = user.gidnumber;
       user.group = req.param('group'); // TODO manage ldap group membership modif
       user.ip = req.param('ip');
       user.is_genouest = req.param('is_genouest');
@@ -340,8 +354,17 @@ router.put('/user/:id', function(req, res) {
           var script = "#!/bin/bash\n";
           script += "set -e \n"
           script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D cn=admin,dc=nodomain -f "+CONFIG.general.script_dir+"/"+user.uid+".ldif\n";
-          fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+".update", script, function(err) {
+          var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
+          fs.writeFile(script_file, script, function(err) {
+            fs.chmodSync(script_file,0755);
+            if(user.oldemail!=user.email) {
+              notif.modify(user.oldemail, user.email, function() {
+                res.send(user);
+              });
+            }
+            else {
             res.send(user);
+          }
           });
         });
       }

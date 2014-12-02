@@ -1,0 +1,11 @@
+<div class="row">
+  <h2>Send message to all users</h2>
+</div>
+<div class="well">{{msg}}</div>
+<div class="row">
+  <form class="form">
+  <input class="form-control" placeholder="Subject" id="subject" type="text" ng-model="subject"></input>
+  <textarea class="form-control" ng-model="message" rows="20" cols="100"></textarea>
+</form>
+  <button type="button" class="btn btn-primary btn-lg" ng-click="send()">Send</button>
+</div>

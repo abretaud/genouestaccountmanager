@@ -25,13 +25,24 @@
           });
       }
 
+      function Disk($resource) {
+        return $resource('/disk', {}, {
+            get: {
+              url: '/disk/:name',
+              method: 'GET',
+              isArray: false,
+              cache: true
+            }
+          });
+      }
+
       function User($resource) {
         return $resource('/user', {}, {
             list: {
               url: '/user',
               method: 'GET',
               isArray: true,
-              cache: true
+              cache: false
             },
             update: {
               url: '/user/:name',
@@ -69,6 +80,12 @@
               isArray: false,
               cache: false
             },
+            sendMessage: {
+              url: '/message',
+              method: 'POST',
+              isArray: false,
+              cache:  false
+            }
           });
       }
 
@@ -80,6 +97,7 @@
 
   angular.module('genouest.resources', ['ngResource'])
   .factory('Group', Group)
+  .factory('Disk', Disk)
   .factory('User', User)
   .factory('Logout', Logout)
   .factory('IP', IP);

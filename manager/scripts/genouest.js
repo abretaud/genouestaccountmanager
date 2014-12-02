@@ -10,6 +10,10 @@ config(['$routeProvider','$logProvider',
             templateUrl: 'views/main.html',
             controller: 'mainCtrl'
         });
+        $routeProvider.when('/message', {
+            templateUrl: 'views/message.html',
+            controller: 'messageCtrl'
+        });
         $routeProvider.when('/login', {
             templateUrl: 'views/login.html',
             controller: 'loginCtrl'
@@ -36,6 +40,19 @@ angular.module('genouest').controller('genouestCtrl',
         };
     });
 
+angular.module('genouest').controller('messageCtrl',
+    function ($scope, $rootScope, User, Auth) {
+      $scope.msg = '';
+      $scope.session_user = Auth.getUser();
+      $scope.message = '';
+      $scope.subject = '';
+      $scope.send = function() {
+        User.sendMessage({},{message: $scope.message, subject: $scope.subject}).$promise.then(function(data){
+          $scope.msg = 'Message sent';
+        });
+      }
+    });
+
 
 angular.module('genouest').controller('usersmngrCtrl',
   function($scope, $rootScope, $routeParams, $log, $location, User, Auth) {
@@ -46,8 +63,14 @@ angular.module('genouest').controller('usersmngrCtrl',
 });
 
 angular.module('genouest').controller('usermngrCtrl',
-  function($scope, $rootScope, $routeParams, $log, $location, User, Group, Auth) {
+  function($scope, $rootScope, $routeParams, $log, $location, User, Group, Disk, Auth) {
     $scope.session_user = Auth.getUser();
+    Disk.get({name: $routeParams.id}).$promise.then(function(data){
+      $scope.disk_home = data.home;
+      $scope.disk_omaha = data.omaha;
+      $scope.home_date = data.home_date;
+      $scope.omaha_date = data.omaha_date;
+    });
     User.get({name: $routeParams.id}).$promise.then(function(user){
       Group.list().$promise.then(function(data) {
         $scope.groups = data;
