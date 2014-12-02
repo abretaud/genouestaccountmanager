@@ -27,6 +27,11 @@
               <input ng-model="lab" type="text" class="form-control" placeholder="Research unit, lab, ..." required>
               <input ng-model="responsible" type="text" class="form-control" placeholder="Responsable authority" required>
               <input ng-model="group" type="text" class="form-control" placeholder="User group: umrXXX, dogs, ..." required>
+              <select ng-model="duration" class="form-control" required>
+                <option value="1">1 year</option>
+                <option value="2">2 years</option>
+                <option value="3">3 years</option>
+              </select>
               <label for="ip">IP Address</label>
               <input ng-model="ip" type="text" id="ip" class="form-control" placeholder="IP Address" required>
               <input type="checkbox" ng-model="agree" required>I agree with the <a target="_blank" href="/doc/terms_of_use.txt">terms of use</a> of the GenOuest platform</input>

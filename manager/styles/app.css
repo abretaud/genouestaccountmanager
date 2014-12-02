@@ -1,5 +1,9 @@
 body { padding-top: 70px; }
 
+.user-form label {
+  width: 150px;
+}
+
 .form-register input {
   margin-bottom: 10px !important;
 }

@@ -31,13 +31,14 @@ app.use(session({
   secret: CONFIG.general.secret,
   resave: false,
   saveUninitialized: true,
-  cookie: { maxAge: 3600*24 }
+  cookie: { maxAge: 3600*1000}
 }))
 app.use('/manager', express.static(path.join(__dirname, 'manager')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.get('/', routes);
+app.get('/group', users);
 app.get('/user', users);
 app.post('/user/:id', users);
 app.put('/user/:id', users);

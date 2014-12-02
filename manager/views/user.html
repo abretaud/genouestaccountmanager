@@ -1,10 +1,16 @@
-<div class="row">
+<div class="well">
   <h2>{{user.uid}}</h2>
+  <div ng-if="session_user.is_admin && user.status == STATUS_PENDING_APPROVAL">
+    <button class="btn btn-primary" ng-click="activate()">Activate</button>
+  </div>
+  <div ng-if="session_user.is_admin && user.status == STATUS_ACTIVE">
+    <button class="btn btn-primary" ng-click="expire()">Expire</button>
+  </div>
 </div>
 <div class="row">
   <div class="col-sm-6">
     <h2>Information</h2>
-    <form class="form inline-form">
+    <form role="form" class="user-form form-horizontal form-register">
       <div class="form-group">
       <label for="firstname">First name</label>
       <input type="text" id="firstname" ng-model="user.firstname"></input>
@@ -29,14 +35,20 @@
         <label for="responsible">Responsible</label>
         <input type="text" id="responsible" ng-model="user.responsible"></input>
       </div>
-      <div ng-if="user.is_admin">
+      <div ng-if="session_user.is_admin">
         <div class="form-group">
           <label for="group">Group</label>
-          <input type="text" id="group" ng-model="user.group"></input>
+          <select ng-model="user.group">
+            <option ng-repeat="group in groups">{{group.name}}</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="ip">IP address</label>
           <input type="text" id="ip" ng-model="user.ip"></input>
+        </div>
+        <div class="form-group">
+          <label for="loginShell">Shell</label>
+          <input type="text" id="loginShell" ng-model="user.loginShell"></input>
         </div>
         <div class="form-group">
           <div class="checkbox">
@@ -46,7 +58,7 @@
           </div>
         </div>
       </div>
-      <div ng-if="! user.is_admin">
+      <div ng-if="! session_user.is_admin">
         <div class="form-group">
           <label for="group">Group</label>
           <input type="text" id="group" ng-model="user.group" disabled></input>
@@ -56,19 +68,16 @@
           <input type="text" id="ip" ng-model="user.ip" disabled></input>
         </div>
       </div>
-
+      <div class="form-group">
+        <button type="button" class="btn btn-primary btn-lg" ng-click="update_info()">Update info</button>
+      </div>
     </form>
   </div>
   <div class="col-sm-6">
     <div>
-      <div ng-if="user.is_admin && user.status == STATUS_PENDING_APPROVAL">
-        <button class="btn" ng-click="activate(user)">Activate</button>
-      </div>
-    </div>
-    <div>
       <h2>History</h2>
       <div ng-repeat="hist in user.history">
-        <span>{{hist.date}}:  {{hist.action}}</span>
+        <span>{{date_convert(hist.date)}}:  {{hist.action}}</span>
       </div>
     </div>
   </div>

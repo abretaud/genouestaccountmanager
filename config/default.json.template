@@ -4,7 +4,8 @@
     "url": "http://localhost:3000/",
     "admin": [ "osallou" ],
     "support": "support@genouest.org",
-    "secret": ""
+    "secret": "",
+    "admin_ip": [ "127.0.0.1" ]
  },
  "mongo": {
     "host": "localhost",
@@ -17,6 +18,12 @@
     "user": "",
     "password": "",
     "origin": ""
+  },
+  "ldap": {
+    "host": "localhost",
+    "dn": "dc=nodomain",
+    "admin_dn": "dc=nodomain",
+    "admin_password": ""
   }
 
 }

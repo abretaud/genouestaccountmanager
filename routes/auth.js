@@ -41,6 +41,9 @@ router.get('/auth', function(req, res) {
     // Authenticated
     //users_db.findOne({_id: req.cookies.gomngr}, function(err, user){
     users_db.findOne({_id: sess.gomngr}, function(err, user){
+      if(user==null || err) {
+        res.send({user: null, msg: err});
+      }
       if(GENERAL_CONFIG.admin.indexOf(user.uid) >= 0) {
         user.is_admin = true;
       }
@@ -82,15 +85,26 @@ router.post('/auth/:id', function(req, res) {
     else {
       user.is_admin = false;
     }
-    goldap.bind(user.uid, req.param('password'), function(err) {
-      if(err) {
-        res.send({ user: null, msg: err.message});
-        res.end();
-        return;
-      }
-      res.send({ user: user, msg: 'Fake auth, LDAP not yet implemented'});
+    var ip = req.headers['x-forwarded-for'] ||
+     req.connection.remoteAddress ||
+     req.socket.remoteAddress ||
+     req.connection.socket.remoteAddress;
+    if(user.is_admin && GENERAL_CONFIG.admin_ip.indexOf(ip) >= 0) {
+      // Skip auth
+      res.send({ user: user, msg: ''});
       res.end();
-    });
+    }
+    else {
+      goldap.bind(user.uid, req.param('password'), function(err) {
+        if(err) {
+          res.send({ user: null, msg: err.message});
+          res.end();
+          return;
+        }
+        res.send({ user: user, msg: ''});
+        res.end();
+      });
+    }
     //res.cookie('gomngr',user._id, { maxAge: 900000 });
 
   });

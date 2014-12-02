@@ -14,6 +14,17 @@
         });
       }
 
+      function Group($resource) {
+        return $resource('/group', {}, {
+            list: {
+              url: '/group',
+              method: 'GET',
+              isArray: true,
+              cache: true
+            }
+          });
+      }
+
       function User($resource) {
         return $resource('/user', {}, {
             list: {
@@ -22,11 +33,17 @@
               isArray: true,
               cache: true
             },
+            update: {
+              url: '/user/:name',
+              method: 'PUT',
+              isArray: false,
+              cache: false
+            },
             get: {
               url: '/user/:name',
               method: 'GET',
               isArray: false,
-              cache: true
+              cache: false
             },
             is_authenticated: {
               url: '/auth',
@@ -62,6 +79,7 @@
 
 
   angular.module('genouest.resources', ['ngResource'])
+  .factory('Group', Group)
   .factory('User', User)
   .factory('Logout', Logout)
   .factory('IP', IP);

@@ -46,12 +46,57 @@ angular.module('genouest').controller('usersmngrCtrl',
 });
 
 angular.module('genouest').controller('usermngrCtrl',
-  function($scope, $rootScope, $routeParams, $log, $location, User, Auth) {
-    $scope.user = Auth.getUser();
+  function($scope, $rootScope, $routeParams, $log, $location, User, Group, Auth) {
+    $scope.session_user = Auth.getUser();
+    User.get({name: $routeParams.id}).$promise.then(function(user){
+      Group.list().$promise.then(function(data) {
+        $scope.groups = data;
+        var found = false;
+        for(var i=0;i<$scope.groups.length;i++){
+          if($scope.groups[i].name == user.group) {
+            found = true;
+            break;
+          }
+        }
+        if(!found) { $scope.groups.push({name: user.group})}
+        $scope.user = user;
+      });
+    });
     $scope.STATUS_PENDING_EMAIL = 'Waiting for email approval';
     $scope.STATUS_PENDING_APPROVAL = 'Waiting for admin approval';
     $scope.STATUS_ACTIVE = 'Active';
     $scope.STATUS_EXPIRED = 'Expired';
+
+    $scope.date_convert = function timeConverter(tsp){
+      var a = new Date(tsp);
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var year = a.getFullYear();
+      var month = months[a.getMonth()];
+      var date = a.getDate();
+      var hour = a.getHours();
+      var min = a.getMinutes();
+      var sec = a.getSeconds();
+      var time = date + ',' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+      return time;
+    }
+
+    $scope.expire = function() {
+      console.log('not yet implemented');
+    };
+    $scope.renew = function() {
+      console.log('not yet implemented');
+    };
+
+    $scope.activate = function() {
+      User.activate({name: $scope.user.uid});
+      $scope.user.status = $scope.STATUS_ACTIVE;
+    };
+
+    $scope.update_info = function() {
+      User.update({name: $scope.user.uid}, $scope.user).$promise.then(function(data) {
+        $scope.user = data;
+      });
+    };
 
 });
 
@@ -59,10 +104,6 @@ angular.module('genouest').controller('userCtrl',
   function($scope, $rootScope, $routeParams, $log, $location, User, Auth, Logout) {
 
     $scope.is_logged = false;
-
-    $scope.activate = function(user) {
-      User.activate({name: user.uid});
-    };
 
     User.is_authenticated().$promise.then(function(data) {
       if(data.user !== undefined && data.user !== null) {
@@ -100,6 +141,8 @@ angular.module('genouest').controller('loginCtrl',
     var SUCCESS = 0;
     var ERROR = 1;
 
+    $scope.duration = 1;
+
     IP.get().$promise.then(function(data) {
       $scope.ip = data.ip;
     });
@@ -119,7 +162,8 @@ angular.module('genouest').controller('loginCtrl',
         responsible: $scope.responsible,
         group: $scope.group,
         email: $scope.email,
-        ip: $scope.ip
+        ip: $scope.ip,
+        duration: $scope.duration
       }).$promise.then(function(data){
         $scope.msg = data.msg;
         $scope.msgstatus = data.status;
