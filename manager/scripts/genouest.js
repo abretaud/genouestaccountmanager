@@ -3,7 +3,7 @@
 'use strict';
 
 // Declare app level module which depends on filters, and services
-angular.module('genouest', ['genouest.resources', 'ngSanitize', 'ngCookies', 'ngRoute']).
+angular.module('genouest', ['genouest.resources', 'ngSanitize', 'ngCookies', 'ngRoute', 'datatables']).
 config(['$routeProvider','$logProvider',
     function ($routeProvider) {
         $routeProvider.when('/', {
@@ -59,12 +59,26 @@ angular.module('genouest').controller('usersmngrCtrl',
     User.list().$promise.then(function(data) {
       $scope.users = data;
     });
+    $scope.date_convert = function timeConverter(tsp){
+      var a = new Date(tsp);
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var year = a.getFullYear();
+      var month = months[a.getMonth()];
+      var date = a.getDate();
+      var hour = a.getHours();
+      var min = a.getMinutes();
+      var sec = a.getSeconds();
+      var time = date + ',' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+      return time;
+    }
 
 });
 
 angular.module('genouest').controller('usermngrCtrl',
   function($scope, $rootScope, $routeParams, $log, $location, User, Group, Disk, Auth) {
     $scope.session_user = Auth.getUser();
+    $scope.maingroups = ['genouest', 'irisa', 'symbiose'];
+
     Disk.get({name: $routeParams.id}).$promise.then(function(data){
       $scope.disk_home = data.home;
       $scope.disk_omaha = data.omaha;
@@ -101,6 +115,16 @@ angular.module('genouest').controller('usermngrCtrl',
       var sec = a.getSeconds();
       var time = date + ',' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
       return time;
+    }
+
+    $scope.database = "";
+
+    $scope.database_delete = function(){
+      console.log('not yet implemented');
+    }
+
+    $scope.database_create = function(){
+      console.log('not yet implemented');
     }
 
     $scope.expire = function() {
@@ -169,6 +193,13 @@ angular.module('genouest').controller('loginCtrl',
     IP.get().$promise.then(function(data) {
       $scope.ip = data.ip;
     });
+
+    $scope.update_userid = function() {
+      if($scope.firstname && $scope.lastname) {
+        $scope.userid = $scope.firstname.charAt(0).toLowerCase()+$scope.lastname.toLowerCase().replace(' ','').substring(0,7);
+      }
+    }
+
     $scope.register = function() {
       $scope.msg = "";
       $scope.msgstatus = 0;
@@ -209,8 +240,9 @@ angular.module('genouest').controller('loginCtrl',
 });
 
 angular.module('genouest').controller('mainCtrl',
-    function () {
-
+    function ($rootScope, $scope, $location, Auth) {
+      var user = Auth.getUser();
+      $location.path('/user/'+user.uid);
 });
 
 angular.module('genouest').service('Auth', function() {

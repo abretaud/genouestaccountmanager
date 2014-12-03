@@ -132,15 +132,35 @@ router.get('/user/:id/activate', function(req, res) {
                 script += "if [ -e "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+".ldif"+"]; then\n"
                 script += "\tldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D cn=admin,dc=nodomain -f "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+".ldif\n";
                 script += "fi\n"
-                script += "mkdir -p /home/"+user.group+'/'+user.uid+"\n";
+                script += "mkdir -p /home/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
                 script += "mkdir -p /omaha-beach/"+user.uid+"\n";
-                script += "chown -R "+user.uid+" /home/"+user.group+'/'+user.uid+"\n";
+                script += "chown -R "+user.uid+" /home"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
                 script += "chown -R "+user.uid+" /omaha-beach/"+user.uid+"\n";
                 var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
                 fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update", script, function(err) {
                   fs.chmodSync(script_file,0755);
                   notif.add(user.email, function(){
-                    res.send({msg: 'Activation in progress'});
+                    var msg_activ = CONFIG.general.message.activation.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+CONFIG.general.message.footer.join("\n");
+                    var mailOptions = {
+                      from: MAIL_CONFIG.origin, // sender address
+                      to: user.email, // list of receivers
+                      subject: 'Genouest account activation', // Subject line
+                      text: msg_activ, // plaintext body
+                      html: msg_activ // html body
+                    };
+                    if(transport!==null) {
+                      transport.sendMail(mailOptions, function(error, response){
+                        if(error){
+                          console.log(error);
+                        }
+                        res.send({msg: 'Activation in progress'});
+                        res.end();
+                        return;
+                      });
+                    }
+                    else {
+                      res.send({msg: 'Activation in progress'});
+                    }
                   });
                 });
               });
@@ -268,6 +288,7 @@ router.post('/user/:id', function(req, res) {
         lab: req.param('lab'),
         responsible: req.param('responsible'),
         group: req.param('group'),
+        maingroup: 'genouest',
         ip: req.param('ip'),
         regkey: regkey,
         is_genouest: false,
@@ -276,7 +297,8 @@ router.post('/user/:id', function(req, res) {
         duration: req.param('duration'),
         expiration: new Date().getTime() + 1000*3600*24*365*req.param('duration'),
         loginShell: '/bin/bash',
-        history: [{action: 'register', date: new Date().getTime()}]
+        history: [{action: 'register', date: new Date().getTime()}],
+        databases: []
       }
       var uid = req.param('id');
       users_db.insert(user);
@@ -340,41 +362,55 @@ router.put('/user/:id', function(req, res) {
     if(is_admin){
       user.oldgroup = user.group;
       user.oldgidnumber = user.gidnumber;
+      user.oldmaingroup = user.oldmaingroup;
       user.group = req.param('group'); // TODO manage ldap group membership modif
       user.ip = req.param('ip');
       user.is_genouest = req.param('is_genouest');
+      user.maingroup = req.param('maingroup');
     }
+
     user.history.push({'action': 'update info', date: new Date().getTime()})
 
-      if(is_admin) {
-        user.is_admin = true;
-      }
-      if(user.status == STATUS_ACTIVE){
-        goldap.modify(user, function(err){
-          var script = "#!/bin/bash\n";
-          script += "set -e \n"
-          script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D cn=admin,dc=nodomain -f "+CONFIG.general.script_dir+"/"+user.uid+".ldif\n";
-          var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
-          fs.writeFile(script_file, script, function(err) {
-            fs.chmodSync(script_file,0755);
-            if(user.oldemail!=user.email) {
-              notif.modify(user.oldemail, user.email, function() {
-                res.send(user);
-              });
-            }
-            else {
-            res.send(user);
-          }
-          });
-        });
-      }
-      else {
-        res.send(user);
-      }
 
+    if(user.status == STATUS_ACTIVE){
+      users_db.update({_id: user._id}, user, function(err){
+        if(is_admin) {
+          user.is_admin = true;
+        }
+        goldap.modify(user, function(err){
+            var script = "#!/bin/bash\n";
+            script += "set -e \n"
+            script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D cn=admin,dc=nodomain -f "+CONFIG.general.script_dir+"/"+user.uid+".ldif\n";
+            if(user.oldgroup != user.group) {
+              // If group modification, change home location
+              script += "if [ ! -e /home/"+user.maingroup+"/"+user.group+" ]; then\n"
+              script += "\tmkdir -p /home/"+user.maingroup+"/"+user.group+"\n";
+              script += "fi\n";
+              script += "mv /home/"+user.oldmaingroup+"/"+user.oldgroup+"/"+user.uid+" /home/"+user.maingroup+"/"+user.group+"/\n";
+              script += "chown -R "+user.uid+":"+user.group+" /home/"+user.maingroup+"/"+user.group+"\n";
+            }
+            var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
+            fs.writeFile(script_file, script, function(err) {
+              fs.chmodSync(script_file,0755);
+              if(user.oldemail!=user.email) {
+                notif.modify(user.oldemail, user.email, function() {
+                  res.send(user);
+                });
+              }
+              else {
+              res.send(user);
+              }
+            });
+        });
+      });
+    }
+    else {
+      users_db.update({_id: user._id}, user, function(err){
+        res.send(user);
+      });
+    }
 
   });
-
 
 });
 

@@ -20,7 +20,7 @@ router.get('/disk/:id', function(req, res) {
     }
     fs.readFile(CONFIG.general.usage_directory+'/omaha_'+req.param('id')+'.txt', {encoding: 'utf-8'}, function(err, odata){
       var lines = [];
-      if(odata) { odata.split("\n"); }
+      if(odata) { lines = odata.split("\n"); }
       for(var i=0;i<lines.length;i++){
         if(lines[i].indexOf('Total size') == 0) {
           odisk = lines[i];
@@ -28,7 +28,6 @@ router.get('/disk/:id', function(req, res) {
         }
       }
       fs.stat(CONFIG.general.usage_directory+'/home_'+req.param('id')+'.txt', function(err,hstats){
-        console.log(hstats);
         fs.stat(CONFIG.general.usage_directory+'/omaha_'+req.param('id')+'.txt', function(err,ostats){
           var hmtime = new Date().getTime();
           var omtime = new Date().getTime();

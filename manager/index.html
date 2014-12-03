@@ -16,6 +16,8 @@
     <!-- build:css styles/vendor.css -->
     <!-- bower:css -->
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="bower_components/angular-datatables/dist/datatables.bootstrap.css"/>
+
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css({.tmp,app}) styles/app.css -->
@@ -53,7 +55,7 @@
                     </li>
                     <li ng-if="user.is_admin">
                       <div class="dropdown">
-                        <button class="btn  dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+                        <button class="btn btn-primay dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
                           Admin
                           <span class="caret"></span>
                         </button>
@@ -98,6 +100,8 @@
     <script src="bower_components/angular-cookies/angular-cookies.js"></script>
     <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
     <script src="bower_components/angular-route/angular-route.js"></script>
+    <script src="bower_components/datatables/media/js/jquery.dataTables.js"></script>
+    <script src="bower_components/angular-datatables/dist/angular-datatables.js"></script>
     <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
