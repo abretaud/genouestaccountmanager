@@ -56,6 +56,12 @@
               isArray: false,
               cache: false
             },
+            changeowner: {
+              url: '/database/:name/owner/:old/:new',
+              method: 'PUT',
+              isArray: false,
+              cache: false
+            }
           });
       }
 
@@ -79,6 +85,12 @@
               isArray: false,
               cache: false
             },
+            changeowner: {
+              url: '/web/:name/owner/:old/:new',
+              method: 'PUT',
+              isArray: false,
+              cache: false
+            }
           });
       }
 

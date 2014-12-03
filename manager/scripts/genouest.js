@@ -71,17 +71,47 @@ angular.module('genouest').controller('genouestCtrl',
 
 angular.module('genouest').controller('databasesmngrCtrl',
     function ($scope, $rootScope, User, Auth, Database) {
+      $scope.user = Auth.getUser();
+
       Database.list().$promise.then(function(data){
         $scope.databases = data;
       });
+      User.list().$promise.then(function(data) {
+        $scope.users = data;
+      });
+
+      $scope.changeOwner = function(db, oldowner, newowner){
+        $scope.msg = '';
+        Database.changeowner({name: db, old: oldowner, new: newowner},{}).$promise.then(function(data){
+          $scope.msg = data.message;
+          Database.list().$promise.then(function(data){
+            $scope.databases = data;
+          });
+        });
+      };
 
     });
 
 angular.module('genouest').controller('webmngrCtrl',
     function ($scope, $rootScope, User, Auth, Web) {
+      $scope.user = Auth.getUser();
+
       Web.list().$promise.then(function(data){
         $scope.websites = data;
       });
+      User.list().$promise.then(function(data) {
+        $scope.users = data;
+      });
+
+      $scope.changeOwner = function(db, oldowner, newowner){
+        $scope.msg = '';
+        Web.changeowner({name: db, old: oldowner, new: newowner},{}).$promise.then(function(data){
+          $scope.msg = data.message;
+          Web.list().$promise.then(function(data){
+            $scope.databases = data;
+          });
+        });
+      };
 
     });
 

@@ -1,13 +1,13 @@
 <div class="row">
   <table datatable="ng" class="table table-striped">
     <thead>
-      <th>Name</th><th>Owner</th><th></th>
+      <th>Name</th><th>Owner</th><th>Change Owner</th>
     </thead>
     <tbody>
       <tr ng-repeat="database in databases">
         <td>{{database.name}}</td>
         <td><a ng-href="#/user/{{database.owner}}">{{database.owner}}</a></td>
-        <td></td>
+        <td><select ng-model="database.newowner" ng-options="user.uid for user in users" ng-change="changeOwner(database.name, database.owner, database.newowner.uid)"></select></td>
       </tr>
     </tbody>
   </table>
