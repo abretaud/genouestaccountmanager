@@ -45,6 +45,33 @@ if(MAIL_CONFIG.host !== 'fake') {
   }
 }
 
+/**
+* Change owner
+*/
+router.put('/database/:id/owner/:old/:new', function(req, res) {
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+    if(CONFIG.general.admin.indexOf(session_user.uid) >= 0) {
+      session_user.is_admin = true;
+    }
+    else {
+      session_user.is_admin = false;
+    }
+    if(!session_user.is_admin) {
+      res.status(401).send('Not authorized');
+      return;
+    }
+    databases_db.update({name: req.param('id')},{'$set': {owner: req.param('new')}}, function(err){
+      res.send({message: 'Owner changed from '+req.param('old')+' to '+req.param('new')})
+    });
+  });
+});
+
+
 router.get('/database', function(req, res) {
   var sess = req.session;
   if(! sess.gomngr) {
