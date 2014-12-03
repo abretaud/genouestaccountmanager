@@ -1,0 +1,14 @@
+<div class="row">
+  <table datatable="ng" class="table table-striped">
+    <thead>
+      <th>Name</th><th>Owner</th><th></th>
+    </thead>
+    <tbody>
+      <tr ng-repeat="database in databases">
+        <td>{{database.name}}</td>
+        <td><a ng-href="#/user/{{database.owner}}">{{database.owner}}</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>

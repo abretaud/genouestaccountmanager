@@ -297,8 +297,7 @@ router.post('/user/:id', function(req, res) {
         duration: req.param('duration'),
         expiration: new Date().getTime() + 1000*3600*24*365*req.param('duration'),
         loginShell: '/bin/bash',
-        history: [{action: 'register', date: new Date().getTime()}],
-        databases: []
+        history: [{action: 'register', date: new Date().getTime()}]
       }
       var uid = req.param('id');
       users_db.insert(user);

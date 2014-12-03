@@ -29,6 +29,44 @@
   "mailchimp": {
     "apikey": "",
     "list": ""
+  },
+  "message": {
+    "activation": [
+      "Your're account has been activated, you will be able to connect within one day.",
+      "Your credentials are:",
+      "Login: #UID#",
+      "Password: #PASSWORD#",
+      "Your declared IP address is: #IP#",
+      "",
+      "Notes:",
+      "- You should change your password at your first connection, with the command 'passwd'",
+      "- You can consult the README file in your home directory for more information.",
+      "",
+      "Citations, aknowledgements  :",
+      "The services proposed by the GenOuest platform to the BioGenOuest commmunity have no financial compensations: in the case where studies made within the platform environment lead to a publication, we ask you to cite or thanks the GenOuest bioinformatics platform with something like:",
+      "Study/Work made with the help of the GenOuest bioinformatics platform team (http://www.genouest.org).",
+      "",
+      "*------------------------- Cluster description---------------------*",
+      "Cluster2:",
+      "Base station and Cluster under Linux CentOS 6",
+      "architecture 64 Bits, 64 GB RAM, 8 Processors 2.8GHZ Intel Xeon",
+      "To connect:",
+      "ssh  #UID#@genocluster2.irisa.fr [IP controlled access]",
+      "or ssh #UID#@genossh.genouest.org [SSH key access]",
+      "To setup an environment, one should execute:",
+      "source /local/env/envXXX",
+      "or XXX = name of a software with a version number (when available).",
+      "Example for java: source /local/env/envjava",
+      "or source /local/env/envjava-1.6.0_05",
+      "A number of data banks are available and automatically udpated in directory /db.",
+      "The list of data banks with their location and format are available at http://banks.genouest.org/BmajWatcher"
+    ],
+    "footer": [
+      "GenOuest BioInformatics Platform - support at support@genouest.org",
+      "Campus de Beaulieu",
+      "Avenue du General Leclerc",
+      "35000 RENNES"
+    ]
   }
 
 }

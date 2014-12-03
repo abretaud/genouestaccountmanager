@@ -11,6 +11,8 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 var auth = require('./routes/auth');
 var disks = require('./routes/disks');
+var database = require('./routes/database');
+var web = require('./routes/web');
 
 var CONFIG = require('config');
 
@@ -42,6 +44,12 @@ app.get('/', routes);
 app.post('/message', users);
 app.get('/group', users);
 app.get('/user', users);
+app.get('/database', database);
+app.post('/database/:id', database);
+app.delete('/database/:id', database);
+app.get('/web', web);
+app.post('/web/:id', web);
+app.delete('/web/:id', web);
 app.post('/user/:id', users);
 app.get('/disk/:id', disks);
 app.put('/user/:id', users);

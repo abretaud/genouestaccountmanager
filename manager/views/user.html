@@ -136,12 +136,13 @@
       </div>
       <div class="panel-body">
         <div>
+          <div class="label label-warning">{{dbmsg}}</div>
           <form role="form" class="user-form form-inline">
             <div class="form-group">
               <input placeholder="Database name (no space or accent)" type="text" ng-model="database"/>
             </div>
             <div class="form-group">
-              <button type="button" class="btn btn-primary">Create</button>
+              <button type="button" class="btn btn-primary" ng-click="database_add()">Create</button>
             </div>
           </form>
         </div>
@@ -151,9 +152,44 @@
               <th>Name</th><th></th>
             </thead>
             <tbody>
-              <tr ng-repeat="db in user.databases">
-                <td>{{db}}</td>
-                <td><span class="glyphicon glyphicon-trash" ng-click="database_delete()"> </span></td>
+              <tr ng-repeat="db in databases">
+                <td>{{db.name}}</td>
+                <td><span class="glyphicon glyphicon-trash" ng-click="database_delete(db.name)"> </span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Web sites</h3>
+      </div>
+      <div class="panel-body">
+        <div>
+          <div class="label">{{webmsg}}</div>
+          <form role="form" class="form-register form-signin">
+            <div class="form-group">
+              <input placeholder="Web site name (no space)" type="text" ng-model="website"/>
+              <input placeholder="Web site url" type="text" ng-model="website_url"/>
+              <input placeholder="Web site short description" type="text" ng-model="website_description"/>
+            </div>
+            <div class="form-group">
+              <button type="button" class="btn btn-primary" ng-click="web_add()">Create</button>
+            </div>
+          </form>
+        </div>
+        <div>
+          <table class="table table-striped">
+            <thead>
+              <th>Name</th><th>Url</th><th>Description</th><th></th>
+            </thead>
+            <tbody>
+              <tr ng-repeat="site in websites">
+                <td>{{site.name}}</td>
+                <td>{{site.url}}</td>
+                <td>{{site.description}}</td>
+                <td><span class="glyphicon glyphicon-trash" ng-click="web_delete(site.name)"> </span></td>
               </tr>
             </tbody>
           </table>

@@ -1,0 +1,16 @@
+<div class="row">
+  <table datatable="ng" class="table table-striped">
+    <thead>
+      <th>Name</th><th>URL</th><th>Description</th><th>Owner</th><th></th>
+    </thead>
+    <tbody>
+      <tr ng-repeat="web in websites">
+        <td>{{web.name}}</td>
+        <td>{{web.url}}</td>
+        <td>{{web.description}}</td>
+        <td><a ng-href="#/user/{{web.owner}}">{{web.owner}}</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>

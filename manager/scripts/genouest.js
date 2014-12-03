@@ -22,6 +22,14 @@ config(['$routeProvider','$logProvider',
             templateUrl: 'views/users.html',
             controller: 'usersmngrCtrl'
         });
+        $routeProvider.when('/database', {
+            templateUrl: 'views/databases.html',
+            controller: 'databasesmngrCtrl'
+        });
+        $routeProvider.when('/web', {
+            templateUrl: 'views/web.html',
+            controller: 'webmngrCtrl'
+        });
         $routeProvider.when('/user/:id', {
             templateUrl: 'views/user.html',
             controller: 'usermngrCtrl'
@@ -39,6 +47,23 @@ angular.module('genouest').controller('genouestCtrl',
             $rootScope.alerts.splice(index, 1);
         };
     });
+
+angular.module('genouest').controller('databasesmngrCtrl',
+    function ($scope, $rootScope, User, Auth, Database) {
+      Database.list().$promise.then(function(data){
+        $scope.databases = data;
+      });
+
+    });
+
+angular.module('genouest').controller('webmngrCtrl',
+    function ($scope, $rootScope, User, Auth, Web) {
+      Web.list().$promise.then(function(data){
+        $scope.websites = data;
+      });
+
+    });
+
 
 angular.module('genouest').controller('messageCtrl',
     function ($scope, $rootScope, User, Auth) {
@@ -75,7 +100,7 @@ angular.module('genouest').controller('usersmngrCtrl',
 });
 
 angular.module('genouest').controller('usermngrCtrl',
-  function($scope, $rootScope, $routeParams, $log, $location, User, Group, Disk, Auth) {
+  function($scope, $rootScope, $routeParams, $log, $location, User, Group, Disk, Database, Web, Auth) {
     $scope.session_user = Auth.getUser();
     $scope.maingroups = ['genouest', 'irisa', 'symbiose'];
 
@@ -118,13 +143,54 @@ angular.module('genouest').controller('usermngrCtrl',
     }
 
     $scope.database = "";
+    $scope.website = "";
+    $scope.website_url = "";
+    $scope.website_description = "";
 
-    $scope.database_delete = function(){
-      console.log('not yet implemented');
+    Database.list().$promise.then(function(data){
+      $scope.databases = data;
+    });
+
+    Web.list().$promise.then(function(data){
+      $scope.websites = data;
+    });
+
+    $scope.database_delete = function(db){
+      $scope.dbmsg = '';
+      Database.delete({name: db}).$promise.then(function(data){
+        Database.list().$promise.then(function(data){
+          $scope.databases = data;
+        });
+      });
     }
 
-    $scope.database_create = function(){
-      console.log('not yet implemented');
+    $scope.web_delete = function(site){
+      $scope.webmsg = '';
+      Web.delete({name: site}).$promise.then(function(data){
+        Web.list().$promise.then(function(data){
+          $scope.websites = data;
+        });
+      });
+    }
+
+    $scope.database_add = function(){
+      $scope.dbmsg = '';
+      Database.add({name: $scope.database},{}).$promise.then(function(data){
+        $scope.dbmsg = data.message;
+        Database.list().$promise.then(function(data){
+          $scope.databases = data;
+        });
+      });
+    }
+
+    $scope.web_add = function(){
+      $scope.webmsg = '';
+      Web.add({name: $scope.website},{url: $scope.website_url, description: $scope.website_description}).$promise.then(function(data){
+        $scope.webmsg = data.message;
+        Web.list().$promise.then(function(data){
+          $scope.websites = data;
+        });
+      });
     }
 
     $scope.expire = function() {
