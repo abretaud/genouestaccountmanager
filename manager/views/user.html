@@ -154,7 +154,7 @@
             <tbody>
               <tr ng-repeat="db in databases">
                 <td>{{db.name}}</td>
-                <td><span class="glyphicon glyphicon-trash" ng-click="database_delete(db.name)"> </span></td>
+                <td><div confirm-delete on-confirm="database_delete(db.name)"></div></td>
               </tr>
             </tbody>
           </table>

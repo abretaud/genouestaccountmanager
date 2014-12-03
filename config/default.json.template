@@ -26,6 +26,11 @@
     "admin_dn": "dc=nodomain",
     "admin_password": ""
   },
+  "mysql": {
+    "host": "localhost",
+    "user": "root",
+    "password": "XXX"
+  },
   "mailchimp": {
     "apikey": "",
     "list": ""

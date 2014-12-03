@@ -3,8 +3,29 @@
 'use strict';
 
 // Declare app level module which depends on filters, and services
-angular.module('genouest', ['genouest.resources', 'ngSanitize', 'ngCookies', 'ngRoute', 'datatables']).
-config(['$routeProvider','$logProvider',
+angular.module('genouest', ['genouest.resources', 'ngSanitize', 'ngCookies', 'ngRoute', 'datatables'])
+.directive('confirmDelete', function(){
+    return {
+      replace: true,
+      templateUrl: 'templates/deleteConfirmation.html',
+      scope: {
+        onConfirm: '&'
+      },
+      controller: function($scope) {
+        $scope.isDeleting = false;
+        $scope.startDelete = function(){
+          $scope.isDeleting = true;
+        }
+        $scope.cancel = function() {
+          $scope.isDeleting = false;
+        }
+        $scope.confirm = function() {
+          $scope.onConfirm();
+        }
+        }
+    }
+  })
+.config(['$routeProvider','$logProvider',
     function ($routeProvider) {
         $routeProvider.when('/', {
             templateUrl: 'views/main.html',
