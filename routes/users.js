@@ -204,12 +204,13 @@ router.get('/user/:id/activate', function(req, res) {
                   fs.chmodSync(script_file,0755);
                   notif.add(user.email, function(){
                     var msg_activ = CONFIG.message.activation.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
+                    var msg_activ_html = CONFIG.message.activation.join("<br/>").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"<br/>"+CONFIG.message.footer.join("<br/>");
                     var mailOptions = {
                       from: MAIL_CONFIG.origin, // sender address
                       to: user.email, // list of receivers
                       subject: 'Genouest account activation', // Subject line
                       text: msg_activ, // plaintext body
-                      html: msg_activ // html body
+                      html: msg_activ_html // html body
                     };
                     if(transport!==null) {
                       transport.sendMail(mailOptions, function(error, response){
@@ -483,7 +484,7 @@ router.get('/user/:id/passwordreset', function(req, res){
                 encodeURI('/user/'+req.param('id')+'/passwordreset/'+key);
       var html_link = "<a href=\""+link+"\">"+link+"</a>";
       var msg = CONFIG.message.password_reset_request.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+link+"\n"+CONFIG.message.footer.join("\n");
-      var html_msg = CONFIG.message.password_reset_request.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+html_link+"\n"+CONFIG.message.footer.join("\n");
+      var html_msg = CONFIG.message.password_reset_request.join("<br/>").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"<br/>"+html_link+"<br/>"+CONFIG.message.footer.join("<br/>");
       var mailOptions = {
         from: MAIL_CONFIG.origin, // sender address
         to: user.email, // list of receivers
@@ -534,12 +535,13 @@ router.get('/user/:id/passwordreset/:key', function(req, res){
               fs.chmodSync(script_file,0755);
               // Now send email
               var msg = CONFIG.message.password_reset.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
+              var msg_html = CONFIG.message.password_reset.join("<br/>").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"<br/>"+CONFIG.message.footer.join("<br/>");
               var mailOptions = {
                 from: MAIL_CONFIG.origin, // sender address
                 to: user.email, // list of receivers
                 subject: 'GenOuest account password reset',
                 text: msg,
-                html: msg
+                html: msg_html
               };
               if(transport!==null) {
                 transport.sendMail(mailOptions, function(error, response){
@@ -603,13 +605,14 @@ router.get('/user/:id/renew', function(req, res){
                 fs.chmodSync(script_file,0755);
                 notif.add(user.email, function(){
                   var msg_activ = CONFIG.message.reactivation.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
+                  var msg_activ_html = CONFIG.message.reactivation.join("<br/>").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"<br/>"+CONFIG.message.footer.join("<br/>");
 
                   var mailOptions = {
                     from: MAIL_CONFIG.origin, // sender address
                     to: user.email, // list of receivers
                     subject: 'Genouest account reactivation', // Subject line
                     text: msg_activ, // plaintext body
-                    html: msg_activ // html body
+                    html: msg_activ_html // html body
                   };
                   if(transport!==null) {
                     transport.sendMail(mailOptions, function(error, response){
