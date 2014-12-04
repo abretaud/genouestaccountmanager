@@ -137,7 +137,7 @@ router.delete('/user/:id', function(req, res){
         var script = "#!/bin/bash\n";
         script += "set -e \n"
         script += "ldapdelete -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn +" \"uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\"\n";
-        script += "rm -rf /home/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
+        script += "rm -rf "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
         var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
         fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update", script, function(err) {
           fs.chmodSync(script_file,0755);
@@ -195,9 +195,9 @@ router.get('/user/:id/activate', function(req, res) {
                 script += "if [ -e "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+".ldif"+"]; then\n"
                 script += "\tldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+".ldif\n";
                 script += "fi\n"
-                script += "mkdir -p /home/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
+                script += "mkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
                 script += "mkdir -p /omaha-beach/"+user.uid+"\n";
-                script += "chown -R "+user.uid+" /home"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
+                script += "chown -R "+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
                 script += "chown -R "+user.uid+" /omaha-beach/"+user.uid+"\n";
                 var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
                 fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update", script, function(err) {
@@ -704,11 +704,11 @@ router.put('/user/:id', function(req, res) {
             script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+".ldif\n";
             if(user.oldgroup != user.group) {
               // If group modification, change home location
-              script += "if [ ! -e /home/"+user.maingroup+"/"+user.group+" ]; then\n"
-              script += "\tmkdir -p /home/"+user.maingroup+"/"+user.group+"\n";
+              script += "if [ ! -e "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+" ]; then\n"
+              script += "\tmkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
               script += "fi\n";
-              script += "mv /home/"+user.oldmaingroup+"/"+user.oldgroup+"/"+user.uid+" /home/"+user.maingroup+"/"+user.group+"/\n";
-              script += "chown -R "+user.uid+":"+user.group+" /home/"+user.maingroup+"/"+user.group+"\n";
+              script += "mv "+CONFIG.general.home+"/"+user.oldmaingroup+"/"+user.oldgroup+"/"+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/\n";
+              script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
             }
             var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
             fs.writeFile(script_file, script, function(err) {

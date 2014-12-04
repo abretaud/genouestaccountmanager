@@ -99,7 +99,7 @@ module.exports = {
       user_ldif += "ou: \n";
       }
       user_ldif += "replace: homedirectory\n";
-      user_ldif += 'homedirectory: /home/'+user.maingroup+'/'+user.group+'/'+user.uid+"\n";
+      user_ldif += 'homedirectory: '+CONFIG.general.home+'/'+user.maingroup+'/'+user.group+'/'+user.uid+"\n";
       user_ldif += "replace: gidnumber\n";
       user_ldif += "mail: "+user.gidnumber+"\n";
     }
@@ -143,7 +143,7 @@ module.exports = {
     }
     user_ldif += "givenname: "+user.firstname+"\n";
     user_ldif += "mail: "+user.email+"\n";
-    user_ldif += 'homedirectory: /home/'+user.maingroup+'/'+user.group+'/'+user.uid+"\n";
+    user_ldif += 'homedirectory: '+CONFIG.general.home+'/'+user.maingroup+'/'+user.group+'/'+user.uid+"\n";
     user_ldif += "loginShell: /bin/bash\n";
     user_ldif += "userpassword: "+user.password+"\n";
     user_ldif += "uidnumber: "+user.uidnumber+"\n";

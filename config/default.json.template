@@ -6,7 +6,9 @@
     "support": "support@genouest.org",
     "secret": "",
     "admin_ip": [ "127.0.0.1" ],
-    "usage_directory": "/omaha-beach/admin/storage"
+    "usage_directory": "/omaha-beach/admin/storage",
+    "home": "/home",
+    "main_groups": []
  },
  "mongo": {
     "host": "localhost",

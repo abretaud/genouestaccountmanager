@@ -3,6 +3,9 @@
 (function () {
   'use strict';
 
+      // Server URL prefix
+      var prefix = '';
+
       function IP($resource) {
         return $resource('http://jsonip.com', {}, {
             get: {
@@ -15,9 +18,9 @@
       }
 
       function Group($resource) {
-        return $resource('/group', {}, {
+        return $resource(prefix+'/group', {}, {
             list: {
-              url: '/group',
+              url: prefix+'/group',
               method: 'GET',
               isArray: true,
               cache: true
@@ -26,9 +29,9 @@
       }
 
       function Disk($resource) {
-        return $resource('/disk', {}, {
+        return $resource(prefix+'/disk', {}, {
             get: {
-              url: '/disk/:name',
+              url: prefix+'/disk/:name',
               method: 'GET',
               isArray: false,
               cache: true
@@ -37,27 +40,27 @@
       }
 
       function Database($resource) {
-        return $resource('/database', {}, {
+        return $resource(prefix+'/database', {}, {
             list: {
-              url: '/database',
+              url: prefix+'/database',
               method: 'GET',
               isArray: true,
               cache: false
             },
             add: {
-              url: '/database/:name',
+              url: prefix+'/database/:name',
               method: 'POST',
               isArray: false,
               cache: false
             },
             delete: {
-              url: '/database/:name',
+              url: prefix+'/database/:name',
               method: 'DELETE',
               isArray: false,
               cache: false
             },
             changeowner: {
-              url: '/database/:name/owner/:old/:new',
+              url: prefix+'/database/:name/owner/:old/:new',
               method: 'PUT',
               isArray: false,
               cache: false
@@ -66,27 +69,27 @@
       }
 
       function Web($resource) {
-        return $resource('/web', {}, {
+        return $resource(prefix+'/web', {}, {
             list: {
-              url: '/web',
+              url: prefix+'/web',
               method: 'GET',
               isArray: true,
               cache: false
             },
             add: {
-              url: '/web/:name',
+              url: prefix+'/web/:name',
               method: 'POST',
               isArray: false,
               cache: false
             },
             delete: {
-              url: '/web/:name',
+              url: prefix+'/web/:name',
               method: 'DELETE',
               isArray: false,
               cache: false
             },
             changeowner: {
-              url: '/web/:name/owner/:old/:new',
+              url: prefix+'/web/:name/owner/:old/:new',
               method: 'PUT',
               isArray: false,
               cache: false
@@ -95,75 +98,75 @@
       }
 
       function User($resource) {
-        return $resource('/user', {}, {
+        return $resource(prefix+'/user', {}, {
             list: {
-              url: '/user',
+              url: prefix+'/user',
               method: 'GET',
               isArray: true,
               cache: false
             },
             update: {
-              url: '/user/:name',
+              url: prefix+'/user/:name',
               method: 'PUT',
               isArray: false,
               cache: false
             },
             delete: {
-              url: '/user/:name',
+              url: prefix+'/user/:name',
               method: 'DELETE',
               isArray: false,
               cache: false
             },
             get: {
-              url: '/user/:name',
+              url: prefix+'/user/:name',
               method: 'GET',
               isArray: false,
               cache: false
             },
             is_authenticated: {
-              url: '/auth',
+              url: prefix+'/auth',
               method: 'GET',
               isArray: false,
               cache: false
             },
             authenticate: {
-              url: '/auth/:name',
+              url: prefix+'/auth/:name',
               method: 'POST',
               isArray: false,
               cache: false
             },
             register: {
-              url: '/user/:name',
+              url: prefix+'/user/:name',
               method: 'POST',
               isArray: false,
               cache: false
             },
             activate: {
-              url: '/user/:name/activate',
+              url: prefix+'/user/:name/activate',
               method: 'GET',
               isArray: false,
               cache: false
             },
             sendMessage: {
-              url: '/message',
+              url: prefix+'/message',
               method: 'POST',
               isArray: false,
               cache:  false
             },
             expire: {
-              url: '/user/:name/expire',
+              url: prefix+'/user/:name/expire',
               method: 'GET',
               isArray: false,
               cache: false
             },
             renew: {
-              url: '/user/:name/renew',
+              url: prefix+'/user/:name/renew',
               method: 'GET',
               isArray: false,
               cache: false
             },
             password_reset_request: {
-              url: '/user/:name/passwordreset',
+              url: prefix+'/user/:name/passwordreset',
               method: 'GET',
               isArray: false,
               cache: false
