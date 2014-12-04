@@ -466,7 +466,12 @@ router.get('/user/:id/passwordreset', function(req, res){
       res.end();
       return;
     }
-    users_db.update({uid: req.param('id')},{regkey: key}, function(err){
+    if(user.status != STATUS_ACTIVE){
+      res.status(401).send("You're account is not active");
+      res.end();
+      return;
+    }
+    users_db.update({uid: req.param('id')},{'$set': {regkey: key}}, function(err){
       if(err) {
         res.status(404).send('User cannot be updated');
         res.end();
@@ -475,14 +480,15 @@ router.get('/user/:id/passwordreset', function(req, res){
       user.password='';
       // Now send email
       var link = CONFIG.general.url +
-                encodeURI('/user/'+req.param('id')+'/passwordreset/'+regkey);
+                encodeURI('/user/'+req.param('id')+'/passwordreset/'+key);
       var html_link = "<a href=\""+link+"\">"+link+"</a>";
       var msg = CONFIG.message.password_reset_request.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+link+"\n"+CONFIG.message.footer.join("\n");
       var html_msg = CONFIG.message.password_reset_request.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+html_link+"\n"+CONFIG.message.footer.join("\n");
       var mailOptions = {
         from: MAIL_CONFIG.origin, // sender address
         to: user.email, // list of receivers
-        subject: msg,
+        subject: 'GenOuest account password reset request',
+        text: msg,
         html: html_msg
       };
       if(transport!==null) {
@@ -531,7 +537,8 @@ router.get('/user/:id/passwordreset/:key', function(req, res){
               var mailOptions = {
                 from: MAIL_CONFIG.origin, // sender address
                 to: user.email, // list of receivers
-                subject: msg,
+                subject: 'GenOuest account password reset',
+                text: msg,
                 html: msg
               };
               if(transport!==null) {

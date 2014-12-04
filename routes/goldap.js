@@ -171,8 +171,6 @@ module.exports = {
       fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+".ldif", user_ldif, function(err) {
         if(err) {
             console.log(err);
-        } else {
-            console.log("The file was saved!");
         }
         if(group_ldif != "") {
           fs.writeFile(CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+".ldif", group_ldif, function(err) {
