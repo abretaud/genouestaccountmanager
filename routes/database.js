@@ -91,6 +91,7 @@ router.get('/database', function(req, res) {
     }
     databases_db.find(filter, function(err, databases){
       res.send(databases);
+      return;
     });
   });
 });
@@ -153,6 +154,7 @@ router.post('/database/:id', function(req, res) {
                         console.log(error);
                       }
                       res.send({message:''});
+                      return;
                     });
                   }
                 });

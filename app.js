@@ -56,8 +56,11 @@ app.post('/user/:id', users);
 app.get('/disk/:id', disks);
 app.put('/user/:id', users);
 app.get('/user/:id', users);
+app.get('/user/:id/expire', users);
+app.get('/user/:id/renew', users);
 app.get('/user/:id/activate', users);
 app.get('/user/:id/confirm', users);
+app.delete('/user/:id', users);
 
 app.get('/auth', auth);
 app.post('/auth/:id', auth);

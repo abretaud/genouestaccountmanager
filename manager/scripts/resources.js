@@ -108,6 +108,12 @@
               isArray: false,
               cache: false
             },
+            delete: {
+              url: '/user/:name',
+              method: 'DELETE',
+              isArray: false,
+              cache: false
+            },
             get: {
               url: '/user/:name',
               method: 'GET',
@@ -143,6 +149,18 @@
               method: 'POST',
               isArray: false,
               cache:  false
+            },
+            expire: {
+              url: '/user/:name/expire',
+              method: 'GET',
+              isArray: false,
+              cache: false
+            },
+            renew: {
+              url: '/user/:name/renew',
+              method: 'GET',
+              isArray: false,
+              cache: false
             }
           });
       }

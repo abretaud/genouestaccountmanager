@@ -44,6 +44,8 @@ if(MAIL_CONFIG.host !== 'fake') {
 var monk = require('monk'),
     db = monk(CONFIG.mongo.host+':'+CONFIG.mongo.port+'/'+GENERAL_CONFIG.db),
     groups_db = db.get('groups'),
+    databases_db = db.get('databases'),
+    web_db = db.get('web'),
     users_db = db.get('users');
 
 
@@ -68,7 +70,8 @@ router.get('/group', function(req, res){
       return;
     }
     groups_db.find({}, function(err, groups){
-      res.json(groups);
+      res.send(groups);
+      return;
     });
   });
 });
@@ -99,6 +102,68 @@ router.get('/user', function(req, res) {
       res.json(users);
     });
   });
+});
+
+router.delete('/user/:id', function(req, res){
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, user){
+    if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
+      res.status(401).send('Not authorized');
+      return;
+    }
+
+    var uid = req.param('id');
+    // Must check if user has databases and sites
+    // Do not remove in this case, owners must be changed before
+    databases_db.find({owner: uid}, function(err, databases){
+      if(databases && databases.length>0) {
+        res.send({message: 'User owns some databases, please change owner first!'});
+        res.end();
+        return;
+      }
+      web_db.find({owner: uid}, function(err, websites){
+        if(websites && websites.length>0) {
+          res.send({message: 'User owns some web sites, please change owner first!'});
+          res.end();
+          return;
+        }
+        // Now remove from mailing list
+        notif.remove(user.email, function(err){
+          // remove from ldap
+          // delete home
+          var script = "#!/bin/bash\n";
+          script += "set -e \n"
+          script += "ldapdelete -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D cn=admin,dc=nodomain \"uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\"\n";
+          script += "rm -rf /home/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
+          var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
+          fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update", script, function(err) {
+            fs.chmodSync(script_file,0755);
+            // This is fine now, delete user
+            users_db.remove({uid: uid}, function(err){
+              if(err){
+                res.send({message: 'Could not delete '+req.param('id')});
+                res.end();
+                return;
+              }
+
+              res.send({message: 'User deleted'});
+              res.end();
+              return;
+            });
+
+          });
+        });
+
+      });
+
+    });
+
+  });
+
 });
 
 // activate user
@@ -140,7 +205,7 @@ router.get('/user/:id/activate', function(req, res) {
                 fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update", script, function(err) {
                   fs.chmodSync(script_file,0755);
                   notif.add(user.email, function(){
-                    var msg_activ = CONFIG.general.message.activation.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+CONFIG.general.message.footer.join("\n");
+                    var msg_activ = CONFIG.message.activation.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
                     var mailOptions = {
                       from: MAIL_CONFIG.origin, // sender address
                       to: user.email, // list of receivers
@@ -160,6 +225,8 @@ router.get('/user/:id/activate', function(req, res) {
                     }
                     else {
                       res.send({msg: 'Activation in progress'});
+                      res.end();
+                      return;
                     }
                   });
                 });
@@ -203,6 +270,7 @@ router.get('/user/:id', function(req, res) {
       }
       if(sess.gomngr === user._id || GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0){
         res.json(user);
+        return;
       }
       else {
         res.status(401).send('Not authorized');
@@ -326,6 +394,140 @@ router.post('/user/:id', function(req, res) {
   });
 });
 
+router.get('/user/:id/expire', function(req, res){
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+    users_db.findOne({uid: req.param('id')}, function(err, user){
+      if(err){
+        res.status(404).send('User not found');
+        return;
+      }
+      if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
+        session_user.is_admin = true;
+      }
+      else {
+        session_user.is_admin = false;
+      }
+      if(session_user.is_admin){
+        var new_password = Math.random().toString(36).substring(7);
+        user.new_password = new_password;
+        goldap.reset_password(user, function(err) {
+          if(err){
+            res.send({message: 'Error during operation'});
+            return;
+          }
+          else {
+            user.history.push({'action': 'expire', date: new Date().getTime()});
+            users_db.update({uid: user.uid},{'$set': {status: STATUS_EXPIRED, expiration: new Date().getTime() + 1000*3600*24*365*user.duration, history: user.history}}, function(err){
+              var script = "#!/bin/bash\n";
+              script += "set -e \n"
+              script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D cn=admin,dc=nodomain -f "+CONFIG.general.script_dir+"/"+user.uid+".ldif\n";
+              var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
+              fs.writeFile(script_file, script, function(err) {
+                fs.chmodSync(script_file,0755);
+                res.send({message: 'Operation in progress'});
+                return;
+              });
+
+              return;
+            });
+          }
+        });
+
+      }
+      else {
+        res.status(401).send('Not authorized');
+        return;
+      }
+
+    });
+  });
+
+});
+
+router.get('/user/:id/renew', function(req, res){
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+    users_db.findOne({uid: req.param('id')}, function(err, user){
+      if(err){
+        res.status(404).send('User not found');
+        return;
+      }
+      if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
+        session_user.is_admin = true;
+      }
+      else {
+        session_user.is_admin = false;
+      }
+      if(session_user.is_admin){
+        var new_password = Math.random().toString(36).substring(7);
+        user.password = new_password;
+        goldap.reset_password(user, function(err) {
+          if(err){
+            res.send({message: 'Error during operation'});
+            return;
+          }
+          else {
+            user.history.push({'action': 'reactivate', date: new Date().getTime()});
+            users_db.update({uid: user.uid},{'$set': {status: STATUS_ACTIVE, expiration: new Date().getTime(), history: user.history}}, function(err){
+              var script = "#!/bin/bash\n";
+              script += "set -e \n"
+              script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D cn=admin,dc=nodomain -f "+CONFIG.general.script_dir+"/"+user.uid+".ldif\n";
+              var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
+              fs.writeFile(script_file, script, function(err) {
+                fs.chmodSync(script_file,0755);
+
+                var msg_activ = CONFIG.message.reactivation.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
+
+                var mailOptions = {
+                  from: MAIL_CONFIG.origin, // sender address
+                  to: user.email, // list of receivers
+                  subject: 'Genouest account reactivation', // Subject line
+                  text: msg_activ, // plaintext body
+                  html: msg_activ // html body
+                };
+                if(transport!==null) {
+                  transport.sendMail(mailOptions, function(error, response){
+                    if(error){
+                      console.log(error);
+                    }
+                    res.send({msg: 'Activation in progress'});
+                    res.end();
+                    return;
+                  });
+                }
+                else {
+                  res.send({msg: 'Activation in progress'});
+                  res.end();
+                  return;
+                }
+
+              });
+
+              return;
+            });
+          }
+        });
+
+      }
+      else {
+        res.status(401).send('Not authorized');
+        return;
+      }
+
+    });
+  });
+
+});
+
 // Update user info
 router.put('/user/:id', function(req, res) {
   /*
@@ -368,7 +570,7 @@ router.put('/user/:id', function(req, res) {
       user.maingroup = req.param('maingroup');
     }
 
-    user.history.push({'action': 'update info', date: new Date().getTime()})
+    user.history.push({'action': 'update info', date: new Date().getTime()});
 
 
     if(user.status == STATUS_ACTIVE){

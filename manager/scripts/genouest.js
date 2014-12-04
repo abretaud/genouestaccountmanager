@@ -245,10 +245,24 @@ angular.module('genouest').controller('usermngrCtrl',
     }
 
     $scope.expire = function() {
-      console.log('not yet implemented');
+      User.expire({name: $scope.user.uid},{}).$promise.then(function(data){
+        $scope.msg = data.message;
+        $scope.user.status = $scope.STATUS_EXPIRED;
+      });
     };
+
+    $scope.delete = function() {
+      User.delete({name: $scope.user.uid},{}).$promise.then(function(data){
+        $location.path('/user');
+
+      });
+    };
+
     $scope.renew = function() {
-      console.log('not yet implemented');
+      User.renew({name: $scope.user.uid},{}).$promise.then(function(data){
+        $scope.msg = data.message;
+        $scope.user.status = $scope.STATUS_ACTIVE;
+      });
     };
 
     $scope.activate = function() {

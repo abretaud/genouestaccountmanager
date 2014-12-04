@@ -20,6 +20,19 @@ var options = {
 
 module.exports = {
 
+  reset_password: function(user, callback){
+
+    var user_ldif = "";
+    user_ldif += "dn: uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\n";
+    user_ldif += "changetype: modify\n";
+    user_ldif += "replace: password\n";
+    user_ldif += "password: "+user.password+"\n";
+
+    fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+".ldif", user_ldif, function(err) {
+      callback(err);
+    });
+  },
+
   bind: function(uid, password, callback) {
     var bind_options = {
       binddn: 'uid='+uid+'ou=people,'+CONFIG.ldap.dn,
@@ -49,9 +62,7 @@ module.exports = {
     });
   },
 
-  reset_password: function(user, callback) {
 
-  },
   modify: function(user, callback) {
     /* Modify contact info
     dn: cn=Modify Me,dc=example,dc=com

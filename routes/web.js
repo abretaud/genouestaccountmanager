@@ -52,6 +52,7 @@ router.get('/web', function(req, res) {
     }
     web_db.find(filter, function(err, databases){
       res.send(databases);
+      return;
     });
   });
 });
