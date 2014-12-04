@@ -387,7 +387,9 @@ angular.module('genouest').controller('loginCtrl',
 angular.module('genouest').controller('mainCtrl',
     function ($rootScope, $scope, $location, Auth) {
       var user = Auth.getUser();
+      if(user) {
       $location.path('/user/'+user.uid);
+      }
 });
 
 angular.module('genouest').service('Auth', function() {
