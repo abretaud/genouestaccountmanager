@@ -325,6 +325,20 @@ angular.module('genouest').controller('loginCtrl',
       $scope.ip = data.ip;
     });
 
+    $scope.password_reset_request = function() {
+      $scope.msgstatus = 0;
+      $scope.msg = "";
+      if($scope.userid == null || $scope.userid == "") {
+        $scope.msgstatus = 1;
+        $scope.msg = "Please enter your used id!";
+      }
+      else {
+        User.password_reset_request({name: $scope.userid}).$promise.then(function(data){
+          $scope.msg = data.message;
+        });
+      }
+    }
+
     $scope.update_userid = function() {
       if($scope.firstname && $scope.lastname) {
         $scope.userid = $scope.firstname.charAt(0).toLowerCase()+$scope.lastname.toLowerCase().replace(' ','').substring(0,7);

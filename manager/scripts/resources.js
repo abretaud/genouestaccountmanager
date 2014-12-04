@@ -161,6 +161,12 @@
               method: 'GET',
               isArray: false,
               cache: false
+            },
+            password_reset_request: {
+              url: '/user/:name/passwordreset',
+              method: 'GET',
+              isArray: false,
+              cache: false
             }
           });
       }

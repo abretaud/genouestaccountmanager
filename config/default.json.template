@@ -70,6 +70,16 @@
       "Your account (#UID#) has been reactivated. Your password has been reset to #PASSWORD#",
       "Activation should be effective in the next hour."
     ],
+    "password_reset_request": [
+      "A password reset has been request for your account #UID# on the GenOuest platform.",
+      "If this is an error or an abuse, simply trash this email, you're password will be untouched.",
+      "If you really want to reset you password, click on the following link, a confirmation email will be sent afterward:",
+      ""
+    ],
+    "password_reset": [
+      "You're password has been reset as per requested. Your new password is #PASSWORD#.",
+      "The new password will be active within an hour."
+    ],
     "footer": [
       "GenOuest BioInformatics Platform - support at support@genouest.org",
       "Campus de Beaulieu",

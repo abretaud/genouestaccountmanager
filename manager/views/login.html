@@ -1,4 +1,9 @@
 <div class="row">
+  <div ng-if="msg">
+    <div class="status{{msgstatus}}">{{msg}}</div>
+  </div>
+</div>
+<div class="row">
           <div class="col-sm-6">
             <h1 class="text-center login-title">Sign in to access your account</h1>
             <div class="account-wall">
@@ -9,13 +14,12 @@
                 <input ng-model="password" type="password" class="form-control" placeholder="Password" required>
                 <button class="btn btn-lg btn-primary btn-block" type="button" ng-click="auth()">
                     Sign in</button>
+                <span class="lost">Lost your password ?<button class="btn btn-warning type="button" ng-click="password_reset_request()">RESET</button></span>
+
                 </form>
             </div>
         </div>
         <div class="col-sm-6">
-          <div ng-if="msg">
-            <div class="status{{msgstatus}}">{{msg}}</div>
-          </div>
           <h1 class="text-center login-title">Register for a new account</h1>
           <div class="account-wall">
             <form class="form-register form-signin">

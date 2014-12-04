@@ -60,6 +60,8 @@ app.get('/user/:id/expire', users);
 app.get('/user/:id/renew', users);
 app.get('/user/:id/activate', users);
 app.get('/user/:id/confirm', users);
+app.get('/user/:id/passwordreset', users);
+app.get('/user/:id/passwordreset/:key', users);
 app.delete('/user/:id', users);
 
 app.get('/auth', auth);

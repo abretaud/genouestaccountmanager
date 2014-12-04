@@ -1,5 +1,21 @@
 body { padding-top: 70px; }
 
+.status0 {
+  background-color: lightgrey;
+  padding: 10px;
+}
+
+.status1 {
+  background-color: orange;
+  padding: 10px;
+}
+
+.lost {
+  margin: 5px;
+}
+.lost button {
+  margin: 5px;
+}
 .user-form label {
   width: 150px;
 }

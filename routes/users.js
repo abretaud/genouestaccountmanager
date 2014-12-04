@@ -367,7 +367,7 @@ router.post('/user/:id', function(req, res) {
       }
       var uid = req.param('id');
       users_db.insert(user);
-        var link = GENERAL_CONFIG.url +
+      var link = GENERAL_CONFIG.url +
                   encodeURI('/user/'+uid+'/confirm?regkey='+regkey);
       var mailOptions = {
         from: MAIL_CONFIG.origin, // sender address
@@ -385,9 +385,16 @@ router.post('/user/:id', function(req, res) {
           if(error){
             console.log(error);
           }
+          res.send({'status': 0, 'msg': 'A confirmation email has been sent, please check your mailbox to validate your account creation. Once validated, the platform team will analyse your request and validate it.'});
+          res.end();
+          return;
         });
       }
-      res.send({'status': 0, 'msg': 'A confirmation email has been sent, please check your mailbox to validate your account creation. Once validated, the platform team will analyse your request and validate it.'});
+      else {
+        res.send({'status': 0, 'msg': 'Could not send an email, please contact the support.'});
+        res.end();
+        return;
+      }
 
   });
 });
@@ -448,6 +455,108 @@ router.get('/user/:id/expire', function(req, res){
     });
   });
 
+});
+
+//app.get('/user/:id/passwordreset', users);
+router.get('/user/:id/passwordreset', function(req, res){
+  var key = Math.random().toString(36).substring(7);
+  users_db.findOne({uid: req.param('id')}, function(err, user){
+    if(err || !user) {
+      res.status(404).send('User does not exists');
+      res.end();
+      return;
+    }
+    users_db.update({uid: req.param('id')},{regkey: key}, function(err){
+      if(err) {
+        res.status(404).send('User cannot be updated');
+        res.end();
+        return;
+      }
+      user.password='';
+      // Now send email
+      var link = CONFIG.general.url +
+                encodeURI('/user/'+req.param('id')+'/passwordreset/'+regkey);
+      var html_link = "<a href=\""+link+"\">"+link+"</a>";
+      var msg = CONFIG.message.password_reset_request.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+link+"\n"+CONFIG.message.footer.join("\n");
+      var html_msg = CONFIG.message.password_reset_request.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+html_link+"\n"+CONFIG.message.footer.join("\n");
+      var mailOptions = {
+        from: MAIL_CONFIG.origin, // sender address
+        to: user.email, // list of receivers
+        subject: msg,
+        html: html_msg
+      };
+      if(transport!==null) {
+        transport.sendMail(mailOptions, function(error, response){
+          if(error){
+            console.log(error);
+          }
+          res.send({message: 'Password reset requested, check your inbox for instructions to reset your password.'});
+        });
+      }
+      else {
+        res.send({message: 'Could not send an email, please contact the support'})
+      }
+    });
+
+  });
+});
+
+router.get('/user/:id/passwordreset/:key', function(req, res){
+  users_db.findOne({uid: req.param('id')}, function(err, user){
+    if(err) {
+      res.status(404).send('User does not exists');
+      res.end();
+      return;
+    }
+    if(req.param('key') == user.regkey) {
+      // reset the password
+      var new_password = Math.random().toString(36).substring(7);
+      user.password = new_password;
+      goldap.reset_password(user, function(err) {
+        if(err){
+          res.send({message: 'Error during operation'});
+          return;
+        }
+        else {
+          user.history.push({'action': 'password reset', date: new Date().getTime()});
+          users_db.update({uid: user.uid},{'$set': {history: user.history}}, function(err){
+            var script = "#!/bin/bash\n";
+            script += "set -e \n"
+            script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D cn=admin,dc=nodomain -f "+CONFIG.general.script_dir+"/"+user.uid+".ldif\n";
+            var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
+            fs.writeFile(script_file, script, function(err) {
+              fs.chmodSync(script_file,0755);
+              // Now send email
+              var msg = CONFIG.message.password_reset.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
+              var mailOptions = {
+                from: MAIL_CONFIG.origin, // sender address
+                to: user.email, // list of receivers
+                subject: msg,
+                html: msg
+              };
+              if(transport!==null) {
+                transport.sendMail(mailOptions, function(error, response){
+                  if(error){
+                    console.log(error);
+                  }
+                  res.redirect(GENERAL_CONFIG.url+'/manager/index.html#/login');
+                  res.end();
+                });
+              }
+              else {
+                res.send({message: 'Could not send an email, please contact the support'})
+              }
+            });
+          });
+        }
+      });
+
+    }
+    else {
+      res.status(401).send('Invalid authorization key.');
+      return;
+    }
+  });
 });
 
 router.get('/user/:id/renew', function(req, res){
