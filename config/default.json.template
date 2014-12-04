@@ -1,14 +1,15 @@
 {
- "general": {
+  "general": {
     "db": "gomngr",
-    "url": "http://localhost:3000/",
+    "url": "http://localhost:3000",
     "admin": [ "osallou" ],
-    "support": "support@genouest.org",
+    "support": "olivier.sallou@irisa.fr",
     "secret": "",
+    "script_dir": "/tmp",
     "admin_ip": [ "127.0.0.1" ],
-    "usage_directory": "/omaha-beach/admin/storage",
+    "usage_directory": "/tmp",
     "home": "/home",
-    "main_groups": []
+    "main_groups": [ "genouest", "symbiose", "irisa"]
  },
  "mongo": {
     "host": "localhost",
