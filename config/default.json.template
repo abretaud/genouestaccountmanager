@@ -23,6 +23,7 @@
   "ldap": {
     "host": "localhost",
     "dn": "dc=nodomain",
+    "admin_cn": "cn=admin"
     "admin_dn": "dc=nodomain",
     "admin_password": ""
   },

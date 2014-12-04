@@ -2,7 +2,7 @@
 
 ## Installation
 
-Requires openldap client (apt-get install libldap2-dev) and uuid lib (uuid-dev)
+Requires openldap client and devel libs (apt-get install libldap2-dev) and uuid lib (uuid-dev)
 
 npm install
 
