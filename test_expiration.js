@@ -49,12 +49,12 @@ function timeConverter(tsp){
 
 // Find users expiring in less then 2 month
 users_db.find({duration: {$lt: (new Date().getTime() + 1000*3600*24*60)}},{uid: 1}, function(err, users){
-  console.log(users);
   var mail_sent = 0;
   for(var i=0;i<users.length;i++){
     var user = users[i];
-    var msg_activ = CONFIG.message.expiration.join("\n").replace("#EXPIRE", timeConverter(user.expiration)).replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
-    var msg_activ_html = CONFIG.message.expiration.join("<br/>").replace("#EXPIRE", timeConverter(user.expiration)).replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"<br/>"+CONFIG.message.footer.join("<br/>");
+    console.log('User: '+user.uid);
+    var msg_activ = CONFIG.message.expiration.join("\n").replace("#EXPIRE#", timeConverter(user.expiration)).replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
+    var msg_activ_html = CONFIG.message.expiration.join("<br/>").replace("#EXPIRE#", timeConverter(user.expiration)).replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"<br/>"+CONFIG.message.footer.join("<br/>");
     var mailOptions = {
       from: MAIL_CONFIG.origin, // sender address
       to: user.email, // list of receivers
