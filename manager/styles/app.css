@@ -1,5 +1,9 @@
 body { padding-top: 70px; }
 
+.user-information {
+  padding-left: 10px;
+}
+
 .status0 {
   background-color: lightgrey;
   padding: 10px;

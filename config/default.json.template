@@ -72,7 +72,8 @@
     ],
     "reactivation": [
       "Your account (#UID#) has been reactivated. Your password has been reset to #PASSWORD#",
-      "Activation should be effective in the next hour."
+      "Activation should be effective in the next hour.",
+      ""
     ],
     "password_reset_request": [
       "A password reset has been request for your account #UID# on the GenOuest platform.",
@@ -82,7 +83,8 @@
     ],
     "password_reset": [
       "You're password has been reset as per requested. Your new password is #PASSWORD#.",
-      "The new password will be active within an hour."
+      "The new password will be active within an hour.",
+      ""
     ],
     "footer": [
       "GenOuest BioInformatics Platform - support at support@genouest.org",

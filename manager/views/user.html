@@ -25,74 +25,85 @@
 
 <div class="row">
   <div class="col-sm-6">
-    <h2>Information</h2>
-    <form role="form" class="user-form form-horizontal form-register">
-      <div class="form-group">
-      <label for="firstname">First name</label>
-      <input type="text" id="firstname" ng-model="user.firstname"></input>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Information</h3>
       </div>
-      <div class="form-group">
-        <label for="lastname">Last name</label>
-        <input type="text" id="lastname" ng-model="user.lastname"></input>
+      <div class="panel-body">
+        <div class="user-information">
+          <form role="form" class="user-form form-horizontal form-register">
+            <div class="form-group">
+            <label for="firstname">First name</label>
+            <input type="text" id="firstname" ng-model="user.firstname"></input>
+            </div>
+            <div class="form-group">
+              <label for="lastname">Last name</label>
+              <input type="text" id="lastname" ng-model="user.lastname"></input>
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" ng-model="user.email"></input>
+            </div>
+            <div class="form-group">
+              <label for="address">Address</label>
+              <textarea id="address" ng-model="user.address"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="lab">Laboratory</label>
+              <input type="text" id="lab" ng-model="user.lab"></input>
+            </div>
+            <div class="form-group">
+              <label for="responsible">Responsible</label>
+              <input type="text" id="responsible" ng-model="user.responsible"></input>
+            </div>
+            <div ng-if="session_user.is_admin">
+              <div class="form-group">
+                <label for="group">Group</label>
+                <input type="text"  ng-model="user.group"/>
+                <select ng-model="user.group" ">
+                  <option ng-repeat="group in groups">{{group.name}}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="mgroup">Main group directory</label>
+                <select id="mgroup" ng-model="user.maingroup" ng-options="item for item in maingroups"></select>
+              </div>
+              <div class="form-group">
+                <label for="ip">IP address</label>
+                <input type="text" id="ip" ng-model="user.ip"></input>
+              </div>
+              <div class="form-group">
+                <label for="loginShell">Shell</label>
+                <input type="text" id="loginShell" ng-model="user.loginShell"></input>
+              </div>
+              <div class="form-group">
+                <div class="checkbox">
+                  <label>
+                    <input ng-model="user.is_genouest" type="checkbox"> GenOuest member
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div ng-if="! session_user.is_admin">
+              <div class="form-group">
+                <label for="group">Group</label>
+                <input type="text" id="group" ng-model="user.group" disabled></input>
+              </div>
+              <div class="form-group">
+                <label for="ip">IP address</label>
+                <input type="text" id="ip" ng-model="user.ip" disabled></input>
+              </div>
+            </div>
+            <div class="form-group">
+              <button type="button" class="btn btn-primary btn-lg" ng-click="update_info()">Update info</button>
+            </div>
+          </form>
+
+
       </div>
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" ng-model="user.email"></input>
       </div>
-      <div class="form-group">
-        <label for="address">Address</label>
-        <textarea id="address" ng-model="user.address"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="lab">Laboratory</label>
-        <input type="text" id="lab" ng-model="user.lab"></input>
-      </div>
-      <div class="form-group">
-        <label for="responsible">Responsible</label>
-        <input type="text" id="responsible" ng-model="user.responsible"></input>
-      </div>
-      <div ng-if="session_user.is_admin">
-        <div class="form-group">
-          <label for="group">Group</label>
-          <input type="text"  ng-model="user.group"/>
-          <select ng-model="user.group" ">
-            <option ng-repeat="group in groups">{{group.name}}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="mgroup">Main group directory</label>
-          <select id="mgroup" ng-model="user.maingroup" ng-options="item for item in maingroups"></select>
-        </div>
-        <div class="form-group">
-          <label for="ip">IP address</label>
-          <input type="text" id="ip" ng-model="user.ip"></input>
-        </div>
-        <div class="form-group">
-          <label for="loginShell">Shell</label>
-          <input type="text" id="loginShell" ng-model="user.loginShell"></input>
-        </div>
-        <div class="form-group">
-          <div class="checkbox">
-            <label>
-              <input ng-model="user.is_genouest" type="checkbox"> GenOuest member
-            </label>
-          </div>
-        </div>
-      </div>
-      <div ng-if="! session_user.is_admin">
-        <div class="form-group">
-          <label for="group">Group</label>
-          <input type="text" id="group" ng-model="user.group" disabled></input>
-        </div>
-        <div class="form-group">
-          <label for="ip">IP address</label>
-          <input type="text" id="ip" ng-model="user.ip" disabled></input>
-        </div>
-      </div>
-      <div class="form-group">
-        <button type="button" class="btn btn-primary btn-lg" ng-click="update_info()">Update info</button>
-      </div>
-    </form>
+    </div>
+
   </div>
   <div class="col-sm-6">
     <div class="row">
