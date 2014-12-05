@@ -463,10 +463,18 @@ router.get('/user/:id/expire', function(req, res){
               fs.writeFile(script_file, script, function(err) {
                 fs.chmodSync(script_file,0755);
                 // Now remove from mailing list
-                notif.remove(user.email, function(err){
-                  res.send({message: 'Operation in progress'});
-                });
-                return;
+                try {
+                  notif.remove(user.email, function(err){
+                      res.send({message: 'Operation in progress'});
+                      res.end();
+                      return;
+                    });
+                }
+                catch(err) {
+                    res.send({message: 'Operation in progress, user not in mailing list'});
+                    res.end();
+                    return;
+                }
               });
 
               return;
