@@ -215,7 +215,7 @@ router.get('/user/:id/activate', function(req, res) {
                 script += "if [ -e "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+"."+fid+".ldif"+"]; then\n"
                 script += "\tldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+"."+fid+".ldif\n";
                 script += "fi\n"
-                script += "sleep 3";
+                script += "sleep 3\n";
                 script += "mkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh\n";
                 script += "touch "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/authorized_keys\n";
                 script += "mkdir -p /omaha-beach/"+user.uid+"\n";
