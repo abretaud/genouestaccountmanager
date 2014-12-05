@@ -155,8 +155,9 @@ router.delete('/user/:id', function(req, res){
           script += "set -e \n"
           script += "ldapdelete -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn +" \"uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\"\n";
           script += "rm -rf "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
-          var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
-          fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update", script, function(err) {
+          var fid = new Date().getTime();
+          var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
+          fs.writeFile(script_file, script, function(err) {
             fs.chmodSync(script_file,0755);
 
             users_db.remove({_id: user.id}, function(err){
