@@ -160,7 +160,7 @@ router.delete('/user/:id', function(req, res){
           fs.writeFile(script_file, script, function(err) {
             fs.chmodSync(script_file,0755);
 
-            users_db.remove({_id: user.id}, function(err){
+            users_db.remove({_id: user._id}, function(err){
               if(err){
                 res.send({message: 'Could not delete '+req.param('id')});
                 res.end();
