@@ -7,6 +7,9 @@
     <div class="col-sm-6">
       <div ng-if="session_user.is_admin && user.status == STATUS_PENDING_APPROVAL">
         <button class="btn btn-primary" ng-click="activate()">Activate</button>
+        <div ng-if="user.is_admin && (user.status == STATUS_PENDING_APPROVAL || user.status == STATUS_PENDING_EMAIL)">
+          <div class="btn btn-lg" confirm-delete on-confirm="delete()"></div></td>
+        </div>
       </div>
       <div ng-if="session_user.is_admin && user.status == STATUS_ACTIVE">
         <button class="btn btn-primary" ng-click="expire()">Expire</button>
