@@ -221,7 +221,7 @@ router.get('/user/:id/activate', function(req, res) {
                 script += "mkdir -p /omaha-beach/"+user.uid+"\n";
                 script += "chown -R "+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
                 script += "chown -R "+user.uid+" /omaha-beach/"+user.uid+"\n";
-                var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
+                var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
                 fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update", script, function(err) {
                   fs.chmodSync(script_file,0755);
                   notif.add(user.email, function(){
