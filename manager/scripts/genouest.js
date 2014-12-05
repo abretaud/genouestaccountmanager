@@ -283,6 +283,12 @@ angular.module('genouest').controller('usermngrCtrl',
       });
     };
 
+    $scope.update_ssh = function() {
+      User.update_ssh({name: $scope.user.uid}, {ssh: $scope.user.ssh}).$promise.then(function(data) {
+        $scope.user = data;
+      });
+    }
+
 });
 
 angular.module('genouest').controller('userCtrl',

@@ -55,6 +55,7 @@ app.delete('/web/:id', web);
 app.post('/user/:id', users);
 app.get('/disk/:id', disks);
 app.put('/user/:id', users);
+app.put('/user/:id/ssh', users);
 app.get('/user/:id', users);
 app.get('/user/:id/expire', users);
 app.get('/user/:id/renew', users);

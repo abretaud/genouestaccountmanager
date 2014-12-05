@@ -20,7 +20,7 @@ var options = {
 
 module.exports = {
 
-  reset_password: function(user, callback){
+  reset_password: function(user, fid, callback){
 
     var user_ldif = "";
     user_ldif += "dn: uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\n";
@@ -28,7 +28,7 @@ module.exports = {
     user_ldif += "replace: password\n";
     user_ldif += "password: "+user.password+"\n";
 
-    fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+".ldif", user_ldif, function(err) {
+    fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"."+fid+".ldif", user_ldif, function(err) {
       callback(err);
     });
   },
@@ -63,7 +63,7 @@ module.exports = {
   },
 
 
-  modify: function(user, callback) {
+  modify: function(user, fid, callback) {
     /* Modify contact info
     dn: cn=Modify Me,dc=example,dc=com
     changetype: modify
@@ -122,12 +122,12 @@ module.exports = {
       user_ldif += "memberUid: "+user.uid+"\n"
     }
 
-    fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+".ldif", user_ldif, function(err) {
+    fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"."+fid+".ldif", user_ldif, function(err) {
       callback(err);
     });
   },
 
-  add: function(user, callback) {
+  add: function(user, fid, callback) {
 
     var password = Math.random().toString(36).substring(7);
     var user_ldif = "";
@@ -168,12 +168,12 @@ module.exports = {
       group_ldif += "add: memberUid\n";
       group_ldif += "memberUid: "+user.uid+"\n"
 
-      fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+".ldif", user_ldif, function(err) {
+      fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"."+fid+".ldif", user_ldif, function(err) {
         if(err) {
             console.log(err);
         }
         if(group_ldif != "") {
-          fs.writeFile(CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+".ldif", group_ldif, function(err) {
+          fs.writeFile(CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+"."+fid+".ldif", group_ldif, function(err) {
             callback(err);
           });
         }

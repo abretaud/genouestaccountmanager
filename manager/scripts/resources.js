@@ -111,6 +111,12 @@
               isArray: false,
               cache: false
             },
+            update_ssh: {
+              url: prefix+'/user/:name/ssh',
+              method: 'PUT',
+              isArray: false,
+              cache: false
+            },
             delete: {
               url: prefix+'/user/:name',
               method: 'DELETE',

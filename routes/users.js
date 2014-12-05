@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var bcrypt = require('bcryptjs');
 var fs = require('fs');
+var escapeshellarg = require('escapeshellarg');
 
 var CONFIG = require('config');
 var GENERAL_CONFIG = CONFIG.general;
@@ -204,22 +205,23 @@ router.get('/user/:id/activate', function(req, res) {
         }
         user.uidnumber = minuid;
         user.gidnumber = mingid;
-        goldap.add(user, function(err) {
+        var fid = new Date().getTime();
+        goldap.add(user, fid, function(err) {
           if(!err){
             users_db.update({uid: req.param('id')},{'$set': { status: STATUS_ACTIVE}, '$push': { history: {action: 'validation', date: new Date().getTime()}} }, function(err){
               groups_db.update({'name': user.group}, {'$set': { 'gid': user.gidnumber}}, {upsert:true}, function(err){
                 var script = "#!/bin/bash\n";
                 script += "set -e \n"
-                script += "ldapadd -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+".ldif\n";
+                script += "ldapadd -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
                 script += "if [ -e "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+".ldif"+"]; then\n"
-                script += "\tldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+".ldif\n";
+                script += "\tldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+"."+fid+".ldif\n";
                 script += "fi\n"
-                script += "mkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
+                script += "mkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh\n";
                 script += "mkdir -p /omaha-beach/"+user.uid+"\n";
                 script += "chown -R "+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
                 script += "chown -R "+user.uid+" /omaha-beach/"+user.uid+"\n";
                 var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
-                fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update", script, function(err) {
+                fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update", script, function(err) {
                   fs.chmodSync(script_file,0755);
                   notif.add(user.email, function(){
                     var msg_activ = CONFIG.message.activation.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
@@ -444,7 +446,8 @@ router.get('/user/:id/expire', function(req, res){
       if(session_user.is_admin){
         var new_password = Math.random().toString(36).substring(7);
         user.new_password = new_password;
-        goldap.reset_password(user, function(err) {
+        var fid = new Date().getTime();
+        goldap.reset_password(user, fid, function(err) {
           if(err){
             res.send({message: 'Error during operation'});
             return;
@@ -454,8 +457,8 @@ router.get('/user/:id/expire', function(req, res){
             users_db.update({uid: user.uid},{'$set': {status: STATUS_EXPIRED, expiration: new Date().getTime() + 1000*3600*24*365*user.duration, history: user.history}}, function(err){
               var script = "#!/bin/bash\n";
               script += "set -e \n"
-              script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+".ldif\n";
-              var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
+              script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
+              var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
               fs.writeFile(script_file, script, function(err) {
                 fs.chmodSync(script_file,0755);
                 // Now remove from mailing list
@@ -542,7 +545,8 @@ router.get('/user/:id/passwordreset/:key', function(req, res){
       // reset the password
       var new_password = Math.random().toString(36).substring(7);
       user.password = new_password;
-      goldap.reset_password(user, function(err) {
+      var fid = new Date().getTime();
+      goldap.reset_password(user, fid, function(err) {
         if(err){
           res.send({message: 'Error during operation'});
           return;
@@ -552,8 +556,8 @@ router.get('/user/:id/passwordreset/:key', function(req, res){
           users_db.update({uid: user.uid},{'$set': {history: user.history}}, function(err){
             var script = "#!/bin/bash\n";
             script += "set -e \n"
-            script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+".ldif\n";
-            var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
+            script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
+            var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
             fs.writeFile(script_file, script, function(err) {
               fs.chmodSync(script_file,0755);
               // Now send email
@@ -612,7 +616,8 @@ router.get('/user/:id/renew', function(req, res){
       if(session_user.is_admin){
         var new_password = Math.random().toString(36).substring(7);
         user.password = new_password;
-        goldap.reset_password(user, function(err) {
+        var fid = new Date().getTime();
+        goldap.reset_password(user, fid, function(err) {
           if(err){
             res.send({message: 'Error during operation'});
             return;
@@ -622,8 +627,8 @@ router.get('/user/:id/renew', function(req, res){
             users_db.update({uid: user.uid},{'$set': {status: STATUS_ACTIVE, expiration: new Date().getTime(), history: user.history}}, function(err){
               var script = "#!/bin/bash\n";
               script += "set -e \n"
-              script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+".ldif\n";
-              var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
+              script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
+              var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
               fs.writeFile(script_file, script, function(err) {
                 fs.chmodSync(script_file,0755);
                 notif.add(user.email, function(){
@@ -671,6 +676,46 @@ router.get('/user/:id/renew', function(req, res){
 
 });
 
+
+router.put('/user/:id/ssh', function(req, res) {
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+      if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
+        session_user.is_admin = true;
+      }
+      else {
+        session_user.is_admin = false;
+      }
+
+      users_db.findOne({uid: req.param('id')}, function(err, user){
+        // If not admin nor logged user
+        if(!session_user.is_admin && user._id != sess.gomngr) {
+          res.status(401).send('Not authorized');
+          return;
+        }
+        // Update SSH Key
+        users_db.update({_id: user._id}, {'$set': {ssh: req.param('ssh')}}, function(err){
+          user.ssh = escapeshellarg(req.param('ssh'));
+          var script = "#!/bin/bash\n";
+          script += "set -e \n";
+          script += "echo "+user.ssh+" >> ~"+user.uid+"/.ssh/authorized_keys\n";
+          var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
+          fs.writeFile(script_file, script, function(err) {
+            fs.chmodSync(script_file,0755);
+            res.send(user);
+            res.end();
+            return;
+          });
+
+        });
+      });
+    });
+});
+
 // Update user info
 router.put('/user/:id', function(req, res) {
   /*
@@ -689,70 +734,100 @@ router.put('/user/:id', function(req, res) {
   loginShell: '/bin/bash',
   history: [{action: 'register', date: new Date().getTime()}]
   */
-  users_db.findOne({uid: req.param('id')}, function(err, user){
 
-    user.firstname = req.param('firstname');
-    user.lastname = req.param('lastname');
-    user.oldemail = user.email;
-    user.email = req.param('email');
-    user.address = req.param('address');
-    user.lab = req.param('lab');
-    user.responsible = req.param('responsible');
-    var is_admin = false;
-    if(GENERAL_CONFIG.admin.indexOf(user.uid) >= 0) {
-      is_admin = true;
-    }
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+      if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
+        session_user.is_admin = true;
+      }
+      else {
+        session_user.is_admin = false;
+      }
 
-    if(is_admin){
-      user.oldgroup = user.group;
-      user.oldgidnumber = user.gidnumber;
-      user.oldmaingroup = user.oldmaingroup;
-      user.group = req.param('group'); // TODO manage ldap group membership modif
-      user.ip = req.param('ip');
-      user.is_genouest = req.param('is_genouest');
-      user.maingroup = req.param('maingroup');
-    }
-
-    user.history.push({'action': 'update info', date: new Date().getTime()});
-
-
-    if(user.status == STATUS_ACTIVE){
-      users_db.update({_id: user._id}, user, function(err){
-        if(is_admin) {
-          user.is_admin = true;
+      users_db.findOne({uid: req.param('id')}, function(err, user){
+        // If not admin nor logged user
+        if(!session_user.is_admin && user._id != sess.gomngr) {
+          res.status(401).send('Not authorized');
+          return;
         }
-        goldap.modify(user, function(err){
-            var script = "#!/bin/bash\n";
-            script += "set -e \n"
-            script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+".ldif\n";
-            if(user.oldgroup != user.group) {
-              // If group modification, change home location
-              script += "if [ ! -e "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+" ]; then\n"
-              script += "\tmkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
-              script += "fi\n";
-              script += "mv "+CONFIG.general.home+"/"+user.oldmaingroup+"/"+user.oldgroup+"/"+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/\n";
-              script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
+
+        user.firstname = req.param('firstname');
+        user.lastname = req.param('lastname');
+        user.oldemail = user.email;
+        user.email = req.param('email');
+        if(user.email == '' || user.firstname == '' || user.lastname == '') {
+          res.status(401).send('Some mandatory fields are empty');
+          return;
+        }
+        user.address = req.param('address');
+        user.lab = req.param('lab');
+        user.responsible = req.param('responsible');
+        var is_admin = false;
+        if(GENERAL_CONFIG.admin.indexOf(user.uid) >= 0) {
+          is_admin = true;
+        }
+
+        if(is_admin){
+          user.oldgroup = user.group;
+          user.oldgidnumber = user.gidnumber;
+          user.oldmaingroup = user.oldmaingroup;
+          user.group = req.param('group');
+          user.ip = req.param('ip');
+          user.is_genouest = req.param('is_genouest');
+          user.maingroup = req.param('maingroup');
+          if(user.group == '' || user.group == null) {
+            res.status(401).send('Some mandatory fields are empty');
+            return;
+          }
+        }
+
+        user.history.push({'action': 'update info', date: new Date().getTime()});
+
+
+        if(user.status == STATUS_ACTIVE){
+          users_db.update({_id: user._id}, user, function(err){
+            if(is_admin) {
+              user.is_admin = true;
             }
-            var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
-            fs.writeFile(script_file, script, function(err) {
-              fs.chmodSync(script_file,0755);
-              if(user.oldemail!=user.email) {
-                notif.modify(user.oldemail, user.email, function() {
+            var fid = new Date().getTime();
+            goldap.modify(user, fid, function(err){
+                var script = "#!/bin/bash\n";
+                script += "set -e \n"
+                script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
+                if(user.oldgroup != user.group) {
+                  // If group modification, change home location
+                  script += "if [ ! -e "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+" ]; then\n"
+                  script += "\tmkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
+                  script += "fi\n";
+                  script += "mv "+CONFIG.general.home+"/"+user.oldmaingroup+"/"+user.oldgroup+"/"+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/\n";
+                  script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
+                }
+                var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
+                fs.writeFile(script_file, script, function(err) {
+                  fs.chmodSync(script_file,0755);
+                  if(user.oldemail!=user.email) {
+                    notif.modify(user.oldemail, user.email, function() {
+                      res.send(user);
+                    });
+                  }
+                  else {
                   res.send(user);
+                  }
                 });
-              }
-              else {
-              res.send(user);
-              }
             });
-        });
+          });
+        }
+        else {
+          users_db.update({_id: user._id}, user, function(err){
+            res.send(user);
+          });
+        }
+
       });
-    }
-    else {
-      users_db.update({_id: user._id}, user, function(err){
-        res.send(user);
-      });
-    }
 
   });
 
