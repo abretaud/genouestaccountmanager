@@ -86,6 +86,10 @@
       "The new password will be active within an hour.",
       ""
     ],
+    "expiration": [
+      "Your account will expire at #EXPIRE#, if you wish to extend the duration of your account, please contact the support team.",
+      ""
+    ],
     "footer": [
       "GenOuest BioInformatics Platform - support at support@genouest.org",
       "Campus de Beaulieu",

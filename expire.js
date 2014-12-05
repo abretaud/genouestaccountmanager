@@ -1,11 +1,15 @@
 /**
-* Test expiration date of user, if lower than 2 month, send an email to user
+* Test expiration date of user, if expired, expire the user
 */
-
+var STATUS_PENDING_EMAIL = 'Waiting for email approval';
+var STATUS_PENDING_APPROVAL = 'Waiting for admin approval';
+var STATUS_ACTIVE = 'Active';
+var STATUS_EXPIRED = 'Expired';
 
 var CONFIG = require('config');
 var goldap = require('./routes/goldap.js');
 var notif = require('./routes/notif.js');
+var fs = require('fs');
 
 var monk = require('monk'),
     db = monk(CONFIG.mongo.host+':'+CONFIG.mongo.port+'/'+CONFIG.general.db),
@@ -53,17 +57,17 @@ function timeConverter(tsp){
 }
 
 // Find users expiring in less then 2 month
-users_db.find({duration: {$lt: (new Date().getTime() + 1000*3600*24*60)}},{uid: 1}, function(err, users){
+users_db.find({status: STATUS_ACTIVE, duration: {$lt: (new Date().getTime())}},{uid: 1}, function(err, users){
   var mail_sent = 0;
   for(var i=0;i<users.length;i++){
     var user = users[i];
     console.log('User: '+user.uid);
-    var msg_activ = CONFIG.message.expiration.join("\n").replace("#EXPIRE#", timeConverter(user.expiration)).replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
-    var msg_activ_html = CONFIG.message.expiration.join("<br/>").replace("#EXPIRE#", timeConverter(user.expiration)).replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"<br/>"+CONFIG.message.footer.join("<br/>");
+    var msg_activ = "User "+user.uid+" has expired, updating account";
+    var msg_activ_html = msg_activ;
     var mailOptions = {
       from: MAIL_CONFIG.origin, // sender address
-      to: user.email, // list of receivers
-      subject: 'Genouest account expiration', // Subject line
+      to: CONFIG.general.support, // list of receivers
+      subject: 'Genouest account expiration: '+user.uid, // Subject line
       text: msg_activ, // plaintext body
       html: msg_activ_html // html body
     };
@@ -71,10 +75,35 @@ users_db.find({duration: {$lt: (new Date().getTime() + 1000*3600*24*60)}},{uid: 
         if(error){
           console.log(error);
         }
-        mail_sent++;
-        if(mail_sent == users.length) {
-          process.exit(code=0);
-        }
+        var fid = new Date().getTime();
+        goldap.reset_password(user, fid, function(err) {
+            user.history.push({'action': 'expire', date: new Date().getTime()});
+            users_db.update({uid: user.uid},{'$set': {status: STATUS_EXPIRED, expiration: new Date().getTime(), history: user.history}}, function(err){
+              var script = "#!/bin/bash\n";
+              script += "set -e \n"
+              script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
+              var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
+              fs.writeFile(script_file, script, function(err) {
+                fs.chmodSync(script_file,0755);
+                // Now remove from mailing list
+                try {
+                  notif.remove(user.email, function(err){
+                      mail_sent++;
+                      if(mail_sent == users.length) {
+                        process.exit(code=0);
+                      }
+                    });
+                }
+                catch(err) {
+                    mail_sent++;
+                    if(mail_sent == users.length) {
+                      process.exit(code=0);
+                    }
+                }
+              });
+            });
+        });
+
     });
 
   }
