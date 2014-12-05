@@ -156,7 +156,7 @@ router.delete('/user/:id', function(req, res){
           script += "ldapdelete -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn +" \"uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\"\n";
           script += "rm -rf "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
           var fid = new Date().getTime();
-          var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
+          var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
           fs.writeFile(script_file, script, function(err) {
             fs.chmodSync(script_file,0755);
 
@@ -212,7 +212,7 @@ router.get('/user/:id/activate', function(req, res) {
                 var script = "#!/bin/bash\n";
                 script += "set -e \n"
                 script += "ldapadd -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
-                script += "if [ -e "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+".ldif"+"]; then\n"
+                script += "if [ -e "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+"."+fid+".ldif"+"]; then\n"
                 script += "\tldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+"."+fid+".ldif\n";
                 script += "fi\n"
                 script += "sleep 3";
@@ -221,8 +221,8 @@ router.get('/user/:id/activate', function(req, res) {
                 script += "mkdir -p /omaha-beach/"+user.uid+"\n";
                 script += "chown -R "+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
                 script += "chown -R "+user.uid+" /omaha-beach/"+user.uid+"\n";
-                var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
-                fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update", script, function(err) {
+                var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
+                fs.writeFile(script_file, script, function(err) {
                   fs.chmodSync(script_file,0755);
                   notif.add(user.email, function(){
                     var msg_activ = CONFIG.message.activation.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
@@ -459,7 +459,7 @@ router.get('/user/:id/expire', function(req, res){
               var script = "#!/bin/bash\n";
               script += "set -e \n"
               script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
-              var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
+              var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
               fs.writeFile(script_file, script, function(err) {
                 fs.chmodSync(script_file,0755);
                 // Now remove from mailing list
@@ -566,7 +566,7 @@ router.get('/user/:id/passwordreset/:key', function(req, res){
             var script = "#!/bin/bash\n";
             script += "set -e \n"
             script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
-            var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
+            var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
             fs.writeFile(script_file, script, function(err) {
               fs.chmodSync(script_file,0755);
               // Now send email
@@ -637,7 +637,7 @@ router.get('/user/:id/renew', function(req, res){
               var script = "#!/bin/bash\n";
               script += "set -e \n"
               script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
-              var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
+              var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
               fs.writeFile(script_file, script, function(err) {
                 fs.chmodSync(script_file,0755);
                 notif.add(user.email, function(){
@@ -815,7 +815,7 @@ router.put('/user/:id', function(req, res) {
                   script += "mv "+CONFIG.general.home+"/"+user.oldmaingroup+"/"+user.oldgroup+"/"+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/\n";
                   script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
                 }
-                var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
+                var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
                 fs.writeFile(script_file, script, function(err) {
                   fs.chmodSync(script_file,0755);
                   if(user.oldemail!=user.email) {

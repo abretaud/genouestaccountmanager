@@ -11,7 +11,7 @@ fi
 
 touch /tmp/gomngr.lock
 
-ls $1/*.update | sort -n -t _ -k 2 > /tmp/gomngr.list
+ls $1/*.update | sort -n -t . -k 2 > /tmp/gomngr.list
 
 while read p; do
   $p
