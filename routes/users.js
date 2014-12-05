@@ -110,54 +110,73 @@ router.delete('/user/:id', function(req, res){
     res.status(401).send('Not authorized');
     return;
   }
-  users_db.findOne({_id: sess.gomngr}, function(err, user){
-    if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
+  users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+    if(GENERAL_CONFIG.admin.indexOf(session_user.uid) < 0){
       res.status(401).send('Not authorized');
       return;
     }
 
     var uid = req.param('id');
-    // Must check if user has databases and sites
-    // Do not remove in this case, owners must be changed before
-    databases_db.find({owner: uid}, function(err, databases){
-      if(databases && databases.length>0) {
-        res.send({message: 'User owns some databases, please change owner first!'});
-        res.end();
-        return;
+    users_db.findOne({uid: uid}, function(err, user){
+      if(user.status == STATUS_PENDING_EMAIL || user.status == STATUS_PENDING_APPROVAL){
+        // not yet active, simply delete
+        users_db.remove({_id: user.id}, function(err){
+          if(err){
+            res.send({message: 'Could not delete '+req.param('id')});
+            res.end();
+            return;
+          }
+
+          res.send({message: 'User deleted'});
+          res.end();
+          return;
+        });
       }
-      web_db.find({owner: uid}, function(err, websites){
-        if(websites && websites.length>0) {
-          res.send({message: 'User owns some web sites, please change owner first!'});
+
+      // Must check if user has databases and sites
+      // Do not remove in this case, owners must be changed before
+      databases_db.find({owner: uid}, function(err, databases){
+        if(databases && databases.length>0) {
+          res.send({message: 'User owns some databases, please change owner first!'});
           res.end();
           return;
         }
-
-        // remove from ldap
-        // delete home
-        var script = "#!/bin/bash\n";
-        script += "set -e \n"
-        script += "ldapdelete -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn +" \"uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\"\n";
-        script += "rm -rf "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
-        var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
-        fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update", script, function(err) {
-          fs.chmodSync(script_file,0755);
-          // This is fine now, delete user
-          users_db.remove({uid: uid}, function(err){
-            if(err){
-              res.send({message: 'Could not delete '+req.param('id')});
-              res.end();
-              return;
-            }
-
-            res.send({message: 'User deleted'});
+        web_db.find({owner: uid}, function(err, websites){
+          if(websites && websites.length>0) {
+            res.send({message: 'User owns some web sites, please change owner first!'});
             res.end();
             return;
+          }
+
+          // remove from ldap
+          // delete home
+          var script = "#!/bin/bash\n";
+          script += "set -e \n"
+          script += "ldapdelete -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn +" \"uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\"\n";
+          script += "rm -rf "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
+          var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
+          fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update", script, function(err) {
+            fs.chmodSync(script_file,0755);
+            // This is fine now, delete user
+            notif.remove(user.email, function(err){
+              users_db.remove({_id: user.id}, function(err){
+                if(err){
+                  res.send({message: 'Could not delete '+req.param('id')});
+                  res.end();
+                  return;
+                }
+
+                res.send({message: 'User deleted'});
+                res.end();
+                return;
+              });
+            });
           });
+
+
         });
 
-
       });
-
     });
 
   });
