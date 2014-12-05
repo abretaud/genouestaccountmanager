@@ -181,7 +181,7 @@
       }
 
       function Logout($resource) {
-        return $resource('/logout');
+        return $resource(prefix+'/logout');
       }
 
 
