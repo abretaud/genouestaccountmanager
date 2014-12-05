@@ -458,7 +458,7 @@ router.get('/user/:id/expire', function(req, res){
             users_db.update({uid: user.uid},{'$set': {status: STATUS_EXPIRED, expiration: new Date().getTime(), history: user.history}}, function(err){
               var script = "#!/bin/bash\n";
               script += "set -e \n"
-              script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
+              script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
               var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
               fs.writeFile(script_file, script, function(err) {
                 fs.chmodSync(script_file,0755);
@@ -565,7 +565,7 @@ router.get('/user/:id/passwordreset/:key', function(req, res){
           users_db.update({uid: user.uid},{'$set': {history: user.history}}, function(err){
             var script = "#!/bin/bash\n";
             script += "set -e \n"
-            script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
+            script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
             var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
             fs.writeFile(script_file, script, function(err) {
               fs.chmodSync(script_file,0755);
@@ -636,7 +636,7 @@ router.get('/user/:id/renew', function(req, res){
             users_db.update({uid: user.uid},{'$set': {status: STATUS_ACTIVE, expiration: (new Date().getTime() + 1000*3600*24*365*user.duration), history: user.history}}, function(err){
               var script = "#!/bin/bash\n";
               script += "set -e \n"
-              script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
+              script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
               var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
               fs.writeFile(script_file, script, function(err) {
                 fs.chmodSync(script_file,0755);
@@ -806,7 +806,7 @@ router.put('/user/:id', function(req, res) {
             goldap.modify(user, fid, function(err){
                 var script = "#!/bin/bash\n";
                 script += "set -e \n"
-                script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
+                script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
                 if(user.oldgroup != user.group) {
                   // If group modification, change home location
                   script += "if [ ! -e "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+" ]; then\n"
