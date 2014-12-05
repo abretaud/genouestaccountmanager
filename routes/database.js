@@ -66,7 +66,9 @@ router.put('/database/:id/owner/:old/:new', function(req, res) {
       return;
     }
     databases_db.update({name: req.param('id')},{'$set': {owner: req.param('new')}}, function(err){
-      res.send({message: 'Owner changed from '+req.param('old')+' to '+req.param('new')})
+      res.send({message: 'Owner changed from '+req.param('old')+' to '+req.param('new')});
+      res.end();
+      return;
     });
   });
 });
@@ -110,6 +112,8 @@ router.post('/database/:id', function(req, res) {
     databases_db.findOne({name: db.name}, function(err, database){
       if(database) {
         res.send({database: null, message: 'Database already exists, please use an other name'});
+        res.end();
+        return;
       }
       else {
         databases_db.insert(db, function(err){
@@ -194,6 +198,8 @@ router.delete('/database/:id', function(req, res) {
           sql = "DROP DATABASE "+connection.escape(req.param('id'))+";\n";
           connection.query(sql, function(err, results) {
             res.send({message: ''});
+            res.end();
+            return;
           });
         });
 

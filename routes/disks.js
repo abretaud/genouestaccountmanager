@@ -38,6 +38,8 @@ router.get('/disk/:id', function(req, res) {
             omtime = ostats.mtime;
           }
           res.send({home: hdisk, omaha: odisk, home_date: hmtime, omaha_date: omtime});
+          res.end();
+          return;
         });
       });
     });

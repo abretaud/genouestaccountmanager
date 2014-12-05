@@ -154,6 +154,12 @@ angular.module('genouest').controller('usermngrCtrl',
   function($scope, $rootScope, $routeParams, $log, $location, User, Group, Disk, Database, Web, Auth) {
     $scope.session_user = Auth.getUser();
     $scope.maingroups = ['genouest', 'irisa', 'symbiose'];
+    $scope.selected_group = '';
+
+    $scope.change_group = function() {
+      console.log($scope.selected_group);
+      $scope.user.group = $scope.selected_group.name;
+    };
 
     Disk.get({name: $routeParams.id}).$promise.then(function(data){
       $scope.disk_home = data.home;
@@ -173,6 +179,7 @@ angular.module('genouest').controller('usermngrCtrl',
         }
         if(!found) { $scope.groups.push({name: user.group})}
         $scope.user = user;
+
       });
     });
     $scope.STATUS_PENDING_EMAIL = 'Waiting for email approval';

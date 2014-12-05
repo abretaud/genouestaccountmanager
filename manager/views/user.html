@@ -51,7 +51,8 @@
       <div ng-if="session_user.is_admin">
         <div class="form-group">
           <label for="group">Group</label>
-          <select ng-model="user.group">
+          <input type="text"  ng-model="user.group"/>
+          <select ng-model="user.group" ">
             <option ng-repeat="group in groups">{{group.name}}</option>
           </select>
         </div>

@@ -73,6 +73,7 @@ router.get('/auth', function(req, res) {
 router.post('/auth/:id', function(req, res) {
   if(req.param('password') === undefined || req.param('password') === null || req.param('password') == "") {
     res.status(401).send('Missing password');
+    return;
   }
   users_db.findOne({uid: req.param('id')}, function(err, user){
     if(! user) {
