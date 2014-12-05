@@ -455,7 +455,7 @@ router.get('/user/:id/expire', function(req, res){
           }
           else {
             user.history.push({'action': 'expire', date: new Date().getTime()});
-            users_db.update({uid: user.uid},{'$set': {status: STATUS_EXPIRED, expiration: new Date().getTime() + 1000*3600*24*365*user.duration, history: user.history}}, function(err){
+            users_db.update({uid: user.uid},{'$set': {status: STATUS_EXPIRED, expiration: new Date().getTime(), history: user.history}}, function(err){
               var script = "#!/bin/bash\n";
               script += "set -e \n"
               script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
@@ -633,7 +633,7 @@ router.get('/user/:id/renew', function(req, res){
           }
           else {
             user.history.push({'action': 'reactivate', date: new Date().getTime()});
-            users_db.update({uid: user.uid},{'$set': {status: STATUS_ACTIVE, expiration: new Date().getTime(), history: user.history}}, function(err){
+            users_db.update({uid: user.uid},{'$set': {status: STATUS_ACTIVE, expiration: (new Date().getTime() + 1000*3600*24*365*user.duration), history: user.history}}, function(err){
               var script = "#!/bin/bash\n";
               script += "set -e \n"
               script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
