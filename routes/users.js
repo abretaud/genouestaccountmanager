@@ -336,6 +336,10 @@ router.post('/user/:id', function(req, res) {
     res.send({'status': 1, 'msg': 'invalid data'});
     return;
   }
+  if(!req.param('id').match(/^[0-9a-z]+$/)){
+    res.send({'status': 1, 'msg': 'invalid data identifier, numeric and lowercase letters only'});
+    return;
+  }
 
   users_db.findOne({uid: req.param('id')}, function(err, user){
       if(user){
