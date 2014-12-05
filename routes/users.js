@@ -158,21 +158,19 @@ router.delete('/user/:id', function(req, res){
           var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
           fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update", script, function(err) {
             fs.chmodSync(script_file,0755);
-            // This is fine now, delete user
-            notif.remove(user.email, function(err){
-              users_db.remove({_id: user.id}, function(err){
-                if(err){
-                  res.send({message: 'Could not delete '+req.param('id')});
-                  res.end();
-                  return;
-                }
 
-                res.send({message: 'User deleted'});
+            users_db.remove({_id: user.id}, function(err){
+              if(err){
+                res.send({message: 'Could not delete '+req.param('id')});
                 res.end();
                 return;
-              });
+              }
+              res.send({message: 'User deleted'});
+              res.end();
+              return;
             });
           });
+
 
 
         });
