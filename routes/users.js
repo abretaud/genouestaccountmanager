@@ -446,7 +446,7 @@ router.get('/user/:id/expire', function(req, res){
       }
       if(session_user.is_admin){
         var new_password = Math.random().toString(36).substring(7);
-        user.new_password = new_password;
+        user.password = new_password;
         var fid = new Date().getTime();
         goldap.reset_password(user, fid, function(err) {
           if(err){
