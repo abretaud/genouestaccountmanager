@@ -77,20 +77,24 @@ router.post('/group/:id', function(req, res){
       }
       var mingid = 1000;
       //groups_db.findOne(sort=[('gid', -1)], function(err, data){
-      groups_db.find({}, { limit: 1 , sort: { gid: -1 }}), function(err, data){
-        if(!err && data){
-          mingid = data.gid+1;
+      groups_db.find({}, { limit: 1 , sort: { gid: -1 }}, function(err, data){
+        if(!err && data && data.length>0){
+          mingid = data[0].gid+1;
         }
+        var fid = new Date().getTime();
         group = {name: req.param('id'), gid: mingid};
         groups_db.insert(group, function(err){
           goldap.add_group(group, fid, function(err){
-            var fid = new Date().getTime();
+
             var script = "#!/bin/bash\n";
             script += "set -e \n"
             script += "ldapadd -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+group.name+"."+fid+".ldif\n";
             var script_file = CONFIG.general.script_dir+'/'+group.name+"."+fid+".update";
             fs.writeFile(script_file, script, function(err) {
               fs.chmodSync(script_file,0755);
+              res.send(group);
+              res.end();
+              return;
             });
           });
         });
@@ -239,13 +243,13 @@ router.get('/user/:id/activate', function(req, res) {
     user.password = Math.random().toString(36).substring(7);
     var minuid = 1000;
     var mingid = 1000;
-    users_db.findOne({}, { limit: 1 , sort: { uinnumber: -1 }}, function(err, data){
-      if(!err && data){
-        minuid = data.uidnumber+1;
+    users_db.find({}, { limit: 1 , sort: { uidnumber: -1 }}, function(err, data){
+      if(!err && data && data.length>0){
+        minuid = data[0].uidnumber+1;
       }
-      groups_db.findOne({}, { limit: 1 , sort: { gid: -1 }}, function(err, data){
-        if(!err && data){
-          mingid = data.gid+1;
+      groups_db.find({}, { limit: 1 , sort: { gid: -1 }}, function(err, data){
+        if(!err && data && data.length>0){
+          mingid = data[0].gid+1;
         }
         user.uidnumber = minuid;
         user.gidnumber = mingid;
