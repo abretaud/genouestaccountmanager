@@ -111,8 +111,10 @@ module.exports = {
     user_ldif += "loginShell: /bin/bash\n";
 
     if(is_admin && user.oldgroup != user.group) {
+      user_ldif += "replace: gidnumber\n";
+      user_ldif += "gidnumber: "+user.gidnumber+"\n";
       // Group membership modification
-      user_ldif += "\ndn: cn="+user.group+",ou=groups,"+CONFIG.ldap.dn+"\n";
+      user_ldif += "\ndn: cn="+user.oldgroup+",ou=groups,"+CONFIG.ldap.dn+"\n";
       user_ldif += "changetype: modify\n";
       user_ldif += "delete: memberUid\n";
       user_ldif += "memberUid: "+user.uid+"\n\n"
@@ -122,8 +124,17 @@ module.exports = {
       user_ldif += "memberUid: "+user.uid+"\n"
     }
 
-    fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"."+fid+".ldif", user_ldif, function(err) {
-      callback(err);
+    groups_db.findOne({'name': user.group}, function(err, group){
+      if(err || group == null || group == undefined) {
+        callback(err);
+        return;
+      }
+      fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"."+fid+".ldif", user_ldif, function(err) {
+        if(err) {
+            console.log(err);
+        }
+        callback(err);
+      });
     });
   },
 
