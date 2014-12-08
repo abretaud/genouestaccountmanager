@@ -126,7 +126,7 @@ module.exports = {
 
     groups_db.findOne({'name': user.group}, function(err, group){
       if(err || group == null || group == undefined) {
-        callback(err);
+        callback({err: "Group does not exists"});
         return;
       }
       fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"."+fid+".ldif", user_ldif, function(err) {
