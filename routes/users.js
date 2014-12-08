@@ -76,7 +76,8 @@ router.post('/group/:id', function(req, res){
         return;
       }
       var mingid = 1000;
-      groups_db.findOne(sort=[('gid', -1)], function(err, data){
+      //groups_db.findOne(sort=[('gid', -1)], function(err, data){
+      groups_db.find({}, { limit: 1 , sort: { gid: -1 }}), function(err, data){
         if(!err && data){
           mingid = data.gid+1;
         }
@@ -238,11 +239,11 @@ router.get('/user/:id/activate', function(req, res) {
     user.password = Math.random().toString(36).substring(7);
     var minuid = 1000;
     var mingid = 1000;
-    users_db.findOne(sort=[('uidnumber', -1)], function(err, data){
+    users_db.findOne({}, { limit: 1 , sort: { uinnumber: -1 }}, function(err, data){
       if(!err && data){
         minuid = data.uidnumber+1;
       }
-      groups_db.findOne(sort=[('gid', -1)], function(err, data){
+      groups_db.findOne({}, { limit: 1 , sort: { gid: -1 }}, function(err, data){
         if(!err && data){
           mingid = data.gid+1;
         }
