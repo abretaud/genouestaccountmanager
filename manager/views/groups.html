@@ -1,0 +1,25 @@
+<div class="row">
+  <h4>Group creation can require a few minutes to be effective</h4>
+  <form role="form" class="user-form form-inline">
+    <div class="form-group">
+      <input placeholder="group name" type="text" ng-model="newgroup"/>
+    </div>
+    <div class="form-group">
+      <button type="button" class="btn btn-primary" ng-click="add_group()">Create</button>
+    </div>
+    <div class="alert" ng-if="msg">{{msg}}</div>
+  </form>
+</div>
+<div class="row">
+  <table datatable="ng" class="table table-striped">
+    <thead>
+      <th>Group</th><th>gid</th>
+    </thead>
+    <tbody>
+      <tr ng-repeat="group in groups">
+        <td>{{group.name}}</td>
+        <td>{{group.gid}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

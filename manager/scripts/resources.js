@@ -23,7 +23,13 @@
               url: prefix+'/group',
               method: 'GET',
               isArray: true,
-              cache: true
+              cache: false
+            },
+            add: {
+              url: prefix+'/group/:name',
+              method: 'POST',
+              isArray: false,
+              cache: false
             }
           });
       }

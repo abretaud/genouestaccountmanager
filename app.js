@@ -43,6 +43,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', routes);
 app.post('/message', users);
 app.get('/group', users);
+app.post('/group/:id', users);
 app.get('/user', users);
 app.get('/database', database);
 app.post('/database/:id', database);

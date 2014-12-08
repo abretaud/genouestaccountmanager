@@ -55,6 +55,50 @@ var STATUS_PENDING_APPROVAL = 'Waiting for admin approval';
 var STATUS_ACTIVE = 'Active';
 var STATUS_EXPIRED = 'Expired';
 
+router.post('/group/:id', function(req, res){
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, user){
+    if(err || user == null){
+      res.status(404).send('User not found');
+      return;
+    }
+    if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
+      res.status(401).send('Not authorized');
+      return;
+    }
+    groups_db.findOne({name: req.param('id')}, function(err, group){
+      if(group) {
+        res.status(401).send('Group already exists');
+        return;
+      }
+      var mingid = 1000;
+      groups_db.findOne(sort=[('gid', -1)], function(err, data){
+        if(!err && data){
+          mingid = data.gid+1;
+        }
+        group = {name: req.param('id'), gid: mingid};
+        groups_db.insert(group, function(err){
+          goldap.add_group(group, fid, function(err){
+            var fid = new Date().getTime();
+            var script = "#!/bin/bash\n";
+            script += "set -e \n"
+            script += "ldapadd -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+group.name+"."+fid+".ldif\n";
+            var script_file = CONFIG.general.script_dir+'/'+group.name+"."+fid+".update";
+            fs.writeFile(script_file, script, function(err) {
+              fs.chmodSync(script_file,0755);
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+
 router.get('/group', function(req, res){
   var sess = req.session;
   if(! sess.gomngr) {
@@ -806,6 +850,7 @@ router.put('/user/:id', function(req, res) {
             goldap.modify(user, fid, function(err){
                 if(err) {
                   res.status(401).send('Group '+user.group+' does not exists, please create it first');
+                  return;
                 }
                 var script = "#!/bin/bash\n";
                 script += "set -e \n"

@@ -138,6 +138,23 @@ module.exports = {
     });
   },
 
+  add_group: function(group, fid, callback) {
+    var user_ldif = "";
+    user_ldif += "dn: cn="+group.name+",ou=groups,"+CONFIG.ldap.dn+"\n";
+    user_ldif += "objectClass: top\n";
+    user_ldif += "objectClass: posixGroup\n";
+    user_ldif += "gidNumber: "+group.gid+"\n";
+    user_ldif += "cn: "+group.name+"\n";
+    user_ldif += "description: group for "+group.name+"\n";
+    user_ldif += "\n";
+    fs.writeFile(CONFIG.general.script_dir+'/'+group.name+"."+fid+".ldif", user_ldif, function(err) {
+      if(err) {
+          console.log(err);
+      }
+      callback(err);
+    });
+  },
+
   add: function(user, fid, callback) {
 
     var password = Math.random().toString(36).substring(7);

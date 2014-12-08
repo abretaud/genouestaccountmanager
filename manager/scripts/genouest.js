@@ -43,6 +43,10 @@ angular.module('genouest', ['genouest.resources', 'ngSanitize', 'ngCookies', 'ng
             templateUrl: 'views/users.html',
             controller: 'usersmngrCtrl'
         });
+        $routeProvider.when('/group', {
+            templateUrl: 'views/groups.html',
+            controller: 'groupsmngrCtrl'
+        });
         $routeProvider.when('/database', {
             templateUrl: 'views/databases.html',
             controller: 'databasesmngrCtrl'
@@ -129,6 +133,28 @@ angular.module('genouest').controller('messageCtrl',
       }
     });
 
+
+angular.module('genouest').controller('groupsmngrCtrl',
+  function($scope, $rootScope, $routeParams, $log, $location, Group, Auth) {
+    Group.list().$promise.then(function(data) {
+      $scope.groups = data;
+    });
+    $scope.new_group = '';
+    $scope.add_group = function(){
+      if($scope.new_group == '') {
+        return;
+      }
+      Group.add({name: $scope.new_group},{}).$promise.then(function(data){
+        $scope.msg = '';
+        Group.list().$promise.then(function(data) {
+          $scope.groups = data;
+        }, function(error){
+          $scope.msg = error.data;
+        });
+      });
+    }
+
+});
 
 angular.module('genouest').controller('usersmngrCtrl',
   function($scope, $rootScope, $routeParams, $log, $location, User, Auth) {
@@ -278,8 +304,11 @@ angular.module('genouest').controller('usermngrCtrl',
     };
 
     $scope.update_info = function() {
+      $scope.msg = "";
       User.update({name: $scope.user.uid}, $scope.user).$promise.then(function(data) {
         $scope.user = data;
+      }, function(error){
+        $scope.msg = error.data;
       });
     };
 
