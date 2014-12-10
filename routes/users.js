@@ -861,7 +861,7 @@ router.put('/user/:id', function(req, res) {
                 var script = "#!/bin/bash\n";
                 script += "set -e \n"
                 script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
-                if(user.oldgroup != user.group) {
+                if(user.oldgroup != user.group || user.oldmaingroup != user.maingroup) {
                   // If group modification, change home location
                   script += "if [ ! -e "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+" ]; then\n"
                   script += "\tmkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
