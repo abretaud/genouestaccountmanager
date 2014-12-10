@@ -332,7 +332,7 @@ router.get('/user/:id', function(req, res) {
         res.status(404).send('User not found');
         return;
       }
-      if(GENERAL_CONFIG.admin.indexOf(user.uid) >= 0) {
+      if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
         user.is_admin = true;
       }
       else {
@@ -821,6 +821,7 @@ router.put('/user/:id', function(req, res) {
           res.status(401).send('Some mandatory fields are empty');
           return;
         }
+        user.loginShell = req.param('loginShell');
         user.address = req.param('address');
         user.lab = req.param('lab');
         user.responsible = req.param('responsible');
