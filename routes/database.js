@@ -117,22 +117,22 @@ router.post('/database/:id', function(req, res) {
       }
       else {
         databases_db.insert(db, function(err){
-            var sql = "CREATE DATABASE "+connection.escape(req.param('id'))+";\n";
+            var sql = "CREATE DATABASE "+req.param('id')+";\n";
             connection.query(sql, function(err, results) {
-              if (err && err.number != Client.ERROR_DB_CREATE_EXISTS) {
+              if (err) {
                 res.send({message: 'database already exists'});
                 res.end();
                 return
               }
               var password = Math.random().toString(36).substring(10);
-              sql = "CREATE USER '"+connection.escape(req.param('id'))+"'@'%' IDENTIFIED BY '"+password+"';\n";
+              sql = "CREATE USER '"+req.param('id')+"'@'%' IDENTIFIED BY '"+password+"';\n";
               connection.query(sql, function(err, results) {
                 if (err) {
                   res.send({message: 'Failed to create user'});
                   res.end();
                   return
                 }
-                sql = "GRANT ALL PRIVILEGES ON *.* TO '"+connection.escape(req.param('id'))+"'@'%'\n";
+                sql = "GRANT ALL PRIVILEGES ON "+req.param('id')+".* TO '"+req.param('id'))+"'@'%'\n";
                 connection.query(sql, function(err, results) {
                   if (err) {
                     res.send({message: 'Failed to grant access to user'});
@@ -193,9 +193,9 @@ router.delete('/database/:id', function(req, res) {
 
     databases_db.remove(filter, function(err){
 
-        var sql = "DROP USER '"+connection.escape(req.param('id'))+"'@'%';\n";
+        var sql = "DROP USER '"+req.param('id')+"'@'%';\n";
         connection.query(sql, function(err, results) {
-          sql = "DROP DATABASE "+connection.escape(req.param('id'))+";\n";
+          sql = "DROP DATABASE "+req.param('id')+";\n";
           connection.query(sql, function(err, results) {
             res.send({message: ''});
             res.end();

@@ -9,7 +9,7 @@
     "admin_ip": [ "127.0.0.1" ],
     "usage_directory": "/tmp",
     "home": "/home",
-    "main_groups": [ "genouest", "symbiose", "irisa"]
+    "main_groups": [ "", "genouest", "symbiose", "irisa"]
  },
  "mongo": {
     "host": "localhost",
@@ -37,7 +37,8 @@
   },
   "mailchimp": {
     "apikey": "",
-    "list": ""
+    "list": "",
+    "template": ""
   },
   "message": {
     "activation": [
