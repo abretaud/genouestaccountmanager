@@ -159,7 +159,7 @@ router.post('/database/:id', function(req, res) {
                   res.end();
                   return
                 }
-                sql = "GRANT ALL PRIVILEGES ON "+req.param('id')+".* TO '"+req.param('id'))+"'@'%'\n";
+                sql = "GRANT ALL PRIVILEGES ON "+req.param('id')+".* TO '"+req.param('id')+"'@'%'\n";
                 connection.query(sql, function(err, results) {
                   if (err) {
                     res.send({message: 'Failed to grant access to user'});
