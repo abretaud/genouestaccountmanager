@@ -92,6 +92,7 @@ router.post('/group/:id', function(req, res){
             var script_file = CONFIG.general.script_dir+'/'+group.name+"."+fid+".update";
             fs.writeFile(script_file, script, function(err) {
               fs.chmodSync(script_file,0755);
+              group.fid = fid;
               res.send(group);
               res.end();
               return;
@@ -215,7 +216,7 @@ router.delete('/user/:id', function(req, res){
                 res.end();
                 return;
               }
-              res.send({message: 'User deleted'});
+              res.send({message: 'User deleted', fid: fid});
               res.end();
               return;
             });
@@ -288,13 +289,13 @@ router.get('/user/:id/activate', function(req, res) {
                         if(error){
                           console.log(error);
                         }
-                        res.send({msg: 'Activation in progress'});
+                        res.send({msg: 'Activation in progress', fid: fid});
                         res.end();
                         return;
                       });
                     }
                     else {
-                      res.send({msg: 'Activation in progress'});
+                      res.send({msg: 'Activation in progress', fid: fid});
                       res.end();
                       return;
                     }
@@ -514,13 +515,13 @@ router.get('/user/:id/expire', function(req, res){
                 // Now remove from mailing list
                 try {
                   notif.remove(user.email, function(err){
-                      res.send({message: 'Operation in progress'});
+                      res.send({message: 'Operation in progress', fid: fid});
                       res.end();
                       return;
                     });
                 }
                 catch(err) {
-                    res.send({message: 'Operation in progress, user not in mailing list'});
+                    res.send({message: 'Operation in progress, user not in mailing list', fid: fid});
                     res.end();
                     return;
                 }
@@ -705,13 +706,13 @@ router.get('/user/:id/renew', function(req, res){
                       if(error){
                         console.log(error);
                       }
-                      res.send({msg: 'Activation in progress'});
+                      res.send({msg: 'Activation in progress', fid: fid});
                       res.end();
                       return;
                     });
                   }
                   else {
-                    res.send({msg: 'Activation in progress'});
+                    res.send({msg: 'Activation in progress', fid: fid});
                     res.end();
                     return;
                   }
@@ -764,6 +765,7 @@ router.put('/user/:id/ssh', function(req, res) {
           var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
           fs.writeFile(script_file, script, function(err) {
             fs.chmodSync(script_file,0755);
+            user.fid = fid;
             res.send(user);
             res.end();
             return;
@@ -874,11 +876,13 @@ router.put('/user/:id', function(req, res) {
                   fs.chmodSync(script_file,0755);
                   if(user.oldemail!=user.email) {
                     notif.modify(user.oldemail, user.email, function() {
+                      user.fid = fid;
                       res.send(user);
                     });
                   }
                   else {
-                  res.send(user);
+                    user.fid = fid;
+                    res.send(user);
                   }
                 });
             });
@@ -886,6 +890,7 @@ router.put('/user/:id', function(req, res) {
         }
         else {
           users_db.update({_id: user._id}, user, function(err){
+            user.fid = null;
             res.send(user);
           });
         }
