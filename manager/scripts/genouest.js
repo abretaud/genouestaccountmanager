@@ -35,6 +35,10 @@ angular.module('genouest', ['genouest.resources', 'ngSanitize', 'ngCookies', 'ng
             templateUrl: 'views/message.html',
             controller: 'messageCtrl'
         });
+        $routeProvider.when('/logs', {
+            templateUrl: 'views/logs.html',
+            controller: 'logsCtrl'
+        });
         $routeProvider.when('/login', {
             templateUrl: 'views/login.html',
             controller: 'loginCtrl'
@@ -72,6 +76,18 @@ angular.module('genouest').controller('genouestCtrl',
             $rootScope.alerts.splice(index, 1);
         };
     });
+
+angular.module('genouest').controller('logsCtrl',
+    function ($scope, $rootScope, User, Auth, GOLog, GOActionLog) {
+      $scope.logs = GOLog.get();
+      console.log(GOLog.get());
+      $scope.logcontent = "";
+      $scope.getlog = function(obj_id, file_id) {
+        GOActionLog.get({id: obj_id, fid: file_id}).$promise.then(function(data){
+          $scope.logcontent = data.log.replace(/(\r\n|\n|\r)/g,"<br />");
+        });
+      };
+});
 
 angular.module('genouest').controller('databasesmngrCtrl',
     function ($scope, $rootScope, User, Auth, Database) {
@@ -135,7 +151,7 @@ angular.module('genouest').controller('messageCtrl',
 
 
 angular.module('genouest').controller('groupsmngrCtrl',
-  function($scope, $rootScope, $routeParams, $log, $location, Group, Auth) {
+  function($scope, $rootScope, $routeParams, $log, $location, Group, Auth, GOLog) {
     Group.list().$promise.then(function(data) {
       $scope.groups = data;
     });
@@ -146,6 +162,7 @@ angular.module('genouest').controller('groupsmngrCtrl',
       }
       Group.add({name: $scope.new_group},{}).$promise.then(function(data){
         $scope.msg = '';
+        GOLog.add(data.name, data.fid, 'Add group '+data.name);
         Group.list().$promise.then(function(data) {
           $scope.groups = data;
         }, function(error){
@@ -177,13 +194,13 @@ angular.module('genouest').controller('usersmngrCtrl',
 });
 
 angular.module('genouest').controller('usermngrCtrl',
-  function($scope, $rootScope, $routeParams, $log, $location, User, Group, Disk, Database, Web, Auth) {
+  function($scope, $rootScope, $routeParams, $log, $location, User, Group, Disk, Database, Web, Auth, GOLog) {
     $scope.session_user = Auth.getUser();
     $scope.maingroups = ['genouest', 'irisa', 'symbiose'];
     $scope.selected_group = '';
 
     $scope.change_group = function() {
-      console.log($scope.selected_group);
+      //console.log($scope.selected_group);
       $scope.user.group = $scope.selected_group.name;
     };
 
@@ -280,12 +297,14 @@ angular.module('genouest').controller('usermngrCtrl',
     $scope.expire = function() {
       User.expire({name: $scope.user.uid},{}).$promise.then(function(data){
         $scope.msg = data.message;
+        GOLog.add($scope.user.uid, data.fid, "Expire user "+$scope.user.uid);
         $scope.user.status = $scope.STATUS_EXPIRED;
       });
     };
 
     $scope.delete = function() {
       User.delete({name: $scope.user.uid},{}).$promise.then(function(data){
+        GOLog.add($scope.user.uid, data.fid, "Delete user "+$scope.user.uid);
         $location.path('/user');
 
       });
@@ -294,19 +313,25 @@ angular.module('genouest').controller('usermngrCtrl',
     $scope.renew = function() {
       User.renew({name: $scope.user.uid},{}).$promise.then(function(data){
         $scope.msg = data.message;
+        GOLog.add($scope.user.uid, data.fid, "Renew user "+$scope.user.uid);
         $scope.user.status = $scope.STATUS_ACTIVE;
       });
     };
 
     $scope.activate = function() {
-      User.activate({name: $scope.user.uid});
-      $scope.user.status = $scope.STATUS_ACTIVE;
+      User.activate({name: $scope.user.uid}).$promise.then(function (data){
+        GOLog.add($scope.user.uid, data.fid, "Activate user "+$scope.user.uid);
+        $scope.user.status = $scope.STATUS_ACTIVE;
+      });
     };
 
     $scope.update_info = function() {
       $scope.msg = "";
       User.update({name: $scope.user.uid}, $scope.user).$promise.then(function(data) {
         $scope.user = data;
+        if(data.fid!=null){
+          GOLog.add($scope.user.uid, data.fid, "Update user "+$scope.user.uid);
+        }
       }, function(error){
         $scope.msg = error.data;
       });
@@ -315,6 +340,7 @@ angular.module('genouest').controller('usermngrCtrl',
     $scope.update_ssh = function() {
       User.update_ssh({name: $scope.user.uid}, {ssh: $scope.user.ssh}).$promise.then(function(data) {
         $scope.user = data;
+        GOLog.add($scope.user.uid, data.fid, "Add SSH key for user "+$scope.user.uid);
       });
     }
 
@@ -432,6 +458,18 @@ angular.module('genouest').controller('mainCtrl',
       if(user) {
       $location.path('/user/'+user.uid);
       }
+});
+
+angular.module('genouest').service('GOLog', function() {
+  var logs = [];
+  return {
+    get: function() {
+      return logs;
+    },
+    add: function(id, fid, desc) {
+      logs.push({obj_id: id, file_id: fid, description: desc});
+    }
+  }
 });
 
 angular.module('genouest').service('Auth', function() {

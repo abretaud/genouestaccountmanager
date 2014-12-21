@@ -762,7 +762,8 @@ router.put('/user/:id/ssh', function(req, res) {
           var script = "#!/bin/bash\n";
           script += "set -e \n";
           script += "echo "+user.ssh+" >> ~"+user.uid+"/.ssh/authorized_keys\n";
-          var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+(new Date().getTime())+".update";
+          var fid = new Date().getTime();
+          var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
           fs.writeFile(script_file, script, function(err) {
             fs.chmodSync(script_file,0755);
             user.fid = fid;

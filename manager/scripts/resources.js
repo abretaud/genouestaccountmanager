@@ -6,6 +6,17 @@
       // Server URL prefix
       var prefix = '';
 
+      function GOActionLog($resource) {
+        return $resource(prefix+'/log', {}, {
+          get: {
+            url: prefix+'/log/:id/:fid',
+            method: 'GET',
+            isArray: false,
+            cache: false
+          }
+        });
+      }
+
       function IP($resource) {
         return $resource('http://jsonip.com', {}, {
             get: {
@@ -199,6 +210,7 @@
   .factory('Web', Web)
   .factory('User', User)
   .factory('Logout', Logout)
+  .factory('GOActionLog', GOActionLog)
   .factory('IP', IP);
 
 }());

@@ -13,6 +13,7 @@ var auth = require('./routes/auth');
 var disks = require('./routes/disks');
 var database = require('./routes/database');
 var web = require('./routes/web');
+var logs = require('./routes/logs');
 
 var CONFIG = require('config');
 
@@ -41,6 +42,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.get('/', routes);
+app.get('/log/:id/:fid', logs);
 app.post('/message', users);
 app.get('/group', users);
 app.post('/group/:id', users);
