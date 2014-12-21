@@ -131,6 +131,11 @@ router.post('/database/:id', function(req, res) {
       owner: session_user.uid,
       name: req.param('id')
     }
+    if (!input_string.match(/^[0-9a-z_]+$/))
+      res.send({database: null, message: 'Databse name must be alphanumeric [0-9a-zA-Z_]'});
+      res.end();
+      return;
+    }
     databases_db.findOne({name: db.name}, function(err, database){
       if(database) {
         res.send({database: null, message: 'Database already exists, please use an other name'});
