@@ -8,6 +8,10 @@ mc = new mcapi.Mailchimp(CONFIG.mailchimp.apikey);
 module.exports = {
 
   add: function(email, callback) {
+    if(email==undefined ||email==null || email=='') {
+      callback();
+      return;
+    }
     mc.lists.subscribe({id: CONFIG.mailchimp.list, email:{email: email}, double_optin: false, update_existing: true, send_welcome: true }, function(data) {
       callback();
     }, function(error) {
@@ -15,11 +19,19 @@ module.exports = {
     });
   },
   remove: function(email, callback) {
+    if(email==undefined ||email==null || email=='') {
+      callback();
+      return;
+    }
     mc.lists.unsubscribe({id: CONFIG.mailchimp.list, email:{email: email}, delete_member: true}, function(data) {
       callback();
     });
   },
   modify: function(oldemail, newemail, callback) {
+    if(newemail==undefined ||newemail==null || newemail=='') {
+      callback();
+      return;
+    }
     mc.lists.subscribe({id: CONFIG.mailchimp.list, email:{email: newemail}, double_optin: false, update_existing: true, send_welcome: true }, function(data) {
       mc.lists.unsubscribe({id: CONFIG.mailchimp.list, email:{email: newemail}, delete_member: true, send_notify: false }, function(data) {
         callback();

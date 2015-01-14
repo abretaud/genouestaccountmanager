@@ -824,7 +824,7 @@ router.put('/user/:id', function(req, res) {
           res.status(401).send('Some mandatory fields are empty');
           return;
         }
-        user.loginShell = req.param('loginShell');
+        user.loginShell = req.param('loginShell').trim();
         user.address = req.param('address');
         user.lab = req.param('lab');
         user.responsible = req.param('responsible');
@@ -836,7 +836,7 @@ router.put('/user/:id', function(req, res) {
         if(is_admin){
           user.oldgroup = user.group;
           user.oldgidnumber = user.gidnumber;
-          user.oldmaingroup = user.oldmaingroup;
+          user.oldmaingroup = user.maingroup;
           user.group = req.param('group');
           user.ip = req.param('ip');
           user.is_genouest = req.param('is_genouest');

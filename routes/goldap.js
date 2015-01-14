@@ -23,7 +23,8 @@ module.exports = {
   reset_password: function(user, fid, callback){
 
     var user_ldif = "";
-    user_ldif += "dn: uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\n";
+    //user_ldif += "dn: uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\n";
+    user_ldif += "dn: cn="+user.firstname+" "+user.lastname+",ou=people,"+CONFIG.ldap.dn+"\n";
     user_ldif += "changetype: modify\n";
     user_ldif += "replace: password\n";
     user_ldif += "password: "+user.password+"\n";
@@ -40,7 +41,7 @@ module.exports = {
     }
 
     var fb_options = {
-        base: CONFIG.ldap.admin_dn,
+        base: CONFIG.ldap.dn,
         filter: 'uid='+uid,
         scope: 'sub',
         attrs: '',
@@ -48,6 +49,7 @@ module.exports = {
     }
     var ldap = new LDAP(options);
     ldap.open(function(err) {
+      //console.log(fb_options);
       ldap.findandbind(fb_options, function(err, data) {
       //ldap.simplebind(bind_options, function(err) {
         if(err) {
@@ -78,13 +80,21 @@ module.exports = {
     -
     delete: description
     */
+    if(user.firstname == '' || user.lastname == '') {
+      console.log('firstname or lastname empty');
+      callback();
+      return;
+    }
     var user_ldif = "";
-    user_ldif += "dn: uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\n";
+    //user_ldif += "dn: uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\n";
+    user_ldif += "dn: cn="+user.firstname+" "+user.lastname+",ou=people,"+CONFIG.ldap.dn+"\n";
     user_ldif += "changetype: modify\n";
-    user_ldif += "replace: cn\n";
-    user_ldif += "cn: "+user.firstname+" "+user.lastname+"\n";
+    //user_ldif += "replace: cn\n";
+    //user_ldif += "cn: "+user.firstname+" "+user.lastname+"\n";
+    //user_ldif += "-\n";
     user_ldif += "replace: sn\n";
     user_ldif += "sn: "+user.lastname+"\n";
+    user_ldif += "-\n";
     var is_admin = false;
     if(CONFIG.general.admin.indexOf(user.uid) >= 0) {
       is_admin = true;
@@ -93,24 +103,30 @@ module.exports = {
       if(user.is_genouest){
       user_ldif += "replace: ou\n";
       user_ldif += "ou: genouest\n";
+      user_ldif += "-\n";
       }
       else {
       user_ldif += "replace: ou\n";
       user_ldif += "ou: \n";
+      user_ldif += "-\n";
       }
-      user_ldif += "replace: homedirectory\n";
-      user_ldif += 'homedirectory: '+CONFIG.general.home+'/'+user.maingroup+'/'+user.group+'/'+user.uid+"\n";
-      user_ldif += "replace: gidnumber\n";
-      user_ldif += "mail: "+user.gidnumber+"\n";
+      user_ldif += "replace: homeDirectory\n";
+      user_ldif += 'homeDirectory: '+CONFIG.general.home+'/'+user.maingroup+'/'+user.group+'/'+user.uid+"\n";
+      user_ldif += "-\n";
+      //user_ldif += "replace: mail\n";
+      //user_ldif += "mail: "+user.email+"\n";
     }
-    user_ldif += "replace: givenname\n";
-    user_ldif += "givenname: "+user.firstname+"\n";
+    user_ldif += "replace: givenName\n";
+    user_ldif += "givenName: "+user.firstname+"\n";
+    user_ldif += "-\n";
     user_ldif += "replace: mail\n";
     user_ldif += "mail: "+user.email+"\n";
-    user_ldif += "loginShell: mail\n";
+    user_ldif += "-\n";
+    user_ldif += "replace: loginShell\n";
     user_ldif += "loginShell: /bin/bash\n";
 
     if(is_admin && user.oldgroup != user.group) {
+      user_ldif += "-\n";
       user_ldif += "replace: gidnumber\n";
       user_ldif += "gidnumber: "+user.gidnumber+"\n";
       // Group membership modification
@@ -169,9 +185,9 @@ module.exports = {
     else {
       user_ldif += "ou: external\n";
     }
-    user_ldif += "givenname: "+user.firstname+"\n";
+    user_ldif += "givenName: "+user.firstname+"\n";
     user_ldif += "mail: "+user.email+"\n";
-    user_ldif += 'homedirectory: '+CONFIG.general.home+'/'+user.maingroup+'/'+user.group+'/'+user.uid+"\n";
+    user_ldif += 'homeDirectory: '+CONFIG.general.home+'/'+user.maingroup+'/'+user.group+'/'+user.uid+"\n";
     user_ldif += "loginShell: /bin/bash\n";
     user_ldif += "userpassword: "+user.password+"\n";
     user_ldif += "uidnumber: "+user.uidnumber+"\n";

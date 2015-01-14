@@ -14,7 +14,8 @@ function handleDisconnect() {
   connection = mysql.createConnection({
     host     : CONFIG.mysql.host,
     user     : CONFIG.mysql.user,
-    password : CONFIG.mysql.password
+    password : CONFIG.mysql.password,
+    insecureAuth: true
   }); // Recreate the connection, since
                                                   // the old one cannot be reused.
 
@@ -131,8 +132,8 @@ router.post('/database/:id', function(req, res) {
       owner: session_user.uid,
       name: req.param('id')
     }
-    if (!input_string.match(/^[0-9a-z_]+$/)) {
-      res.send({database: null, message: 'Databse name must be alphanumeric [0-9a-zA-Z_]'});
+    if (!req.param('id').match(/^[0-9a-z_]+$/)) {
+      res.send({database: null, message: 'Database name must be alphanumeric [0-9a-zA-Z_]'});
       res.end();
       return;
     }
