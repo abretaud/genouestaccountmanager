@@ -205,6 +205,7 @@ router.delete('/user/:id', function(req, res){
           script += "set -e \n"
           script += "ldapdelete -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn +" \"uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\"\n";
           script += "rm -rf "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
+          script += "rm -rf /omaha-beach/"+user.uid+"\n";
           var fid = new Date().getTime();
           var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
           fs.writeFile(script_file, script, function(err) {
@@ -248,9 +249,21 @@ router.get('/user/:id/activate', function(req, res) {
       if(!err && data && data.length>0){
         minuid = data[0].uidnumber+1;
       }
-      groups_db.find({}, { limit: 1 , sort: { gid: -1 }}, function(err, data){
+      groups_db.find({}, { sort: { gid: -1 }}, function(err, data){
         if(!err && data && data.length>0){
-          mingid = data[0].gid+1;
+          var gfound = false;
+          for(var g=0; g<data.length;g++){
+            if(data[g].name == user.group) {
+              console.log('Group exists, use it '+data[g].gid);
+              console.log(data[g]);
+              mingid = data[g].gid;
+              gfound = true;
+              break;
+            }
+          }
+          if(!gfound) {
+            mingid = data[0].gid+1;
+          }
         }
         user.uidnumber = minuid;
         user.gidnumber = mingid;
@@ -446,16 +459,14 @@ router.post('/user/:id', function(req, res) {
       users_db.insert(user);
       var link = GENERAL_CONFIG.url +
                   encodeURI('/user/'+uid+'/confirm?regkey='+regkey);
+      var msg_activ = CONFIG.message.emailconfirmation.join("\n").replace('#LINK#', link).replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
+      var msg_activ_html = CONFIG.message.emailconfirmation.join("<br/>").replace('#LINK#', '<a href="'+link+'">'+link+'</a>').replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"<br/>"+CONFIG.message.footer.join("<br/>");
       var mailOptions = {
         from: MAIL_CONFIG.origin, // sender address
         to: user.email, // list of receivers
         subject: 'Genouest account registration', // Subject line
-        text: 'You have created an account on GenOuest platform,' +
-              'please confirm your subscription at the following link: '+
-              link, // plaintext body
-        html: 'You have created an account on GenOuest Platform, please confirm '+
-               'your subscription at the following link: <a href="'+link+'">'+
-               link+'</a>' // html body
+        text: msg_activ,
+        html: msg_activ_html
       };
       if(transport!==null) {
         transport.sendMail(mailOptions, function(error, response){
