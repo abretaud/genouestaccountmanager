@@ -326,7 +326,7 @@ router.delete('/user/:id', function(req, res){
           // Remove user from groups
           var allgroups = user.secondarygroups;
           allgroups.push(user.group);
-          goldap.change_user_groups(user.uid, [], [user.group], fid, function() {
+          goldap.change_user_groups(user.uid, [], allgroups, fid, function() {
             // remove from ldap
             // delete home
             var script = "#!/bin/bash\n";
