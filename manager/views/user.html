@@ -147,6 +147,29 @@
         </div>
 
     </div>
+    <div class="panel panel-default" ng-if="session_user.is_admin">
+      <div class="panel-heading">
+        <h3 class="panel-title">Secondary groups</h3>
+      </div>
+      <div class="panel-body">
+        <div>
+          <form role="form" class="user-form form-inline">
+            <div class="form-group">
+              <select ng-model="user.newgroup">
+                <option ng-repeat="group in groups| orderBy:'name'">{{group.name}}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <button type="button" class="btn btn-primary" ng-click="add_secondary_group()">Add to group</button>
+            </div>
+          </form>
+          <hr/>
+          <div id="secondarygroups">
+            <h4 ng-repeat="secondarygroup in user.secondarygroups| orderBy:'name'"><span class="label label-primary">{{secondarygroup}} <span class="glyphicon glyphicon-trash" ng-click="delete_secondary_group(secondarygroup)"> </span></span></h4>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="panel panel-default">
       <div class="panel-heading">
         <h3 class="panel-title">Public SSH key</h3>

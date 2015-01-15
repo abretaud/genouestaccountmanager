@@ -155,6 +155,130 @@ router.get('/user', function(req, res) {
   });
 });
 
+
+router.post('/user/:id/group/:group', function(req, res){
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+    if(GENERAL_CONFIG.admin.indexOf(session_user.uid) < 0){
+      res.status(401).send('Not authorized');
+      return;
+    }
+    var uid = req.param('id');
+    var secgroup = req.param('group');
+    users_db.findOne({uid: uid}, function(err, user){
+      if(secgroup == user.group) {
+        res.send({message: 'group is user main\'s group'});
+        res.end();
+        return;
+      }
+      for(var g=0;g < user.secondarygroups.length;g++){
+        if(secgroup == user.secondarygroups[g]) {
+          res.send({message: 'group is already set'});
+          res.end();
+          return;
+        }
+      }
+      user.secondarygroups.push(secgroup);
+      console.log(user.secondarygroups);
+      var fid = new Date().getTime();
+      // Now add group
+      goldap.change_user_groups(user, [secgroup], [], fid, function() {
+        // remove from ldap
+        // delete home
+        var script = "#!/bin/bash\n";
+        script += "set -e \n"
+        script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
+
+        var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
+        fs.writeFile(script_file, script, function(err) {
+          fs.chmodSync(script_file,0755);
+
+          users_db.update({_id: user._id}, {'$set': { secondarygroups: user.secondarygroups}}, function(err){
+            if(err){
+              res.send({message: 'Could not update user'});
+              res.end();
+              return;
+            }
+            res.send({message: 'User added to group', fid: fid});
+            res.end();
+            return;
+          });
+        });
+      });
+    });
+  });
+
+});
+
+router.delete('/user/:id/group/:group', function(req, res){
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+    if(GENERAL_CONFIG.admin.indexOf(session_user.uid) < 0){
+      res.status(401).send('Not authorized');
+      return;
+    }
+    var uid = req.param('id');
+    var secgroup = req.param('group');
+    users_db.findOne({uid: uid}, function(err, user){
+      if(secgroup == user.group) {
+        res.send({message: 'group is user main\'s group'});
+        res.end();
+        return;
+      }
+      var present = false;
+      var newgroup = [];
+      console.log(user);
+      for(var g=0;g < user.secondarygroups.length;g++){
+        if(secgroup == user.secondarygroups[g]) {
+          present = true;
+        }
+        else {
+          newgroup.push(user.secondarygroups[g]);
+        }
+      }
+      if(! present) {
+        res.send({message: 'group is not set'});
+        res.end();
+        return;
+      }
+      user.secondarygroups = newgroup;
+      var fid = new Date().getTime();
+      // Now add group
+      goldap.change_user_groups(user, [], [secgroup], fid, function() {
+        // remove from ldap
+        // delete home
+        var script = "#!/bin/bash\n";
+        script += "set -e \n"
+        script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
+
+        var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
+        fs.writeFile(script_file, script, function(err) {
+          fs.chmodSync(script_file,0755);
+
+          users_db.update({_id: user._id}, {'$set': { secondarygroups: user.secondarygroups}}, function(err){
+            if(err){
+              res.send({message: 'Could not update user'});
+              res.end();
+              return;
+            }
+            res.send({message: 'User removed from group', fid: fid});
+            res.end();
+            return;
+          });
+        });
+      });
+    });
+  });
+});
+
 router.delete('/user/:id', function(req, res){
   var sess = req.session;
   if(! sess.gomngr) {
@@ -198,28 +322,34 @@ router.delete('/user/:id', function(req, res){
             res.end();
             return;
           }
-
-          // remove from ldap
-          // delete home
-          var script = "#!/bin/bash\n";
-          script += "set -e \n"
-          script += "ldapdelete -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn +" \"uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\"\n";
-          script += "rm -rf "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
-          script += "rm -rf /omaha-beach/"+user.uid+"\n";
           var fid = new Date().getTime();
-          var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
-          fs.writeFile(script_file, script, function(err) {
-            fs.chmodSync(script_file,0755);
+          // Remove user from groups
+          var allgroups = user.secondarygroups;
+          allgroups.push(user.group);
+          goldap.change_user_groups(user.uid, [], [user.group], fid, function() {
+            // remove from ldap
+            // delete home
+            var script = "#!/bin/bash\n";
+            script += "set -e \n"
+            script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
+            script += "ldapdelete -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn +" \"uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\"\n";
+            script += "rm -rf "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
+            script += "rm -rf /omaha-beach/"+user.uid+"\n";
 
-            users_db.remove({_id: user._id}, function(err){
-              if(err){
-                res.send({message: 'Could not delete '+req.param('id')});
+            var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
+            fs.writeFile(script_file, script, function(err) {
+              fs.chmodSync(script_file,0755);
+
+              users_db.remove({_id: user._id}, function(err){
+                if(err){
+                  res.send({message: 'Could not delete '+req.param('id')});
+                  res.end();
+                  return;
+                }
+                res.send({message: 'User deleted', fid: fid});
                 res.end();
                 return;
-              }
-              res.send({message: 'User deleted', fid: fid});
-              res.end();
-              return;
+              });
             });
           });
 
@@ -444,6 +574,7 @@ router.post('/user/:id', function(req, res) {
         lab: req.param('lab'),
         responsible: req.param('responsible'),
         group: req.param('group'),
+        secondarygroups: [],
         maingroup: 'genouest',
         ip: req.param('ip'),
         regkey: regkey,

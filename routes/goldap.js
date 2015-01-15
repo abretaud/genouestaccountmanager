@@ -227,7 +227,35 @@ module.exports = {
       });
     });
 
-  }
+  },
+
+  change_user_groups: function(user, group_add, group_remove, fid, callback) {
+    /*
+    dn: cn=XXX,ou=groups,dc=genouest,dc=org
+    changetype: modify
+    delete: memberUid / add: memberUid
+    memberUid: YYY
+    */
+    var user_ldif = "";
+    for(var ga=0;ga<group_add.length;ga++){
+      user_ldif += "dn: cn="+group_add[ga]+",ou=groups,"+CONFIG.ldap.dn+"\n";
+      user_ldif += "changetype: modify\n";
+      user_ldif += "add: memberUid\n";
+      user_ldif += "memberUid: "+user.uid+"\n\n"
+    }
+    for(var gd=0;gd<group_remove.length;gd++){
+      user_ldif += "dn: cn="+group_remove[gd]+",ou=groups,"+CONFIG.ldap.dn+"\n";
+      user_ldif += "changetype: modify\n";
+      user_ldif += "delete: memberUid\n";
+      user_ldif += "memberUid: "+user.uid+"\n\n"
+    }
+    fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"."+fid+".ldif", user_ldif, function(err) {
+      if(err) {
+          console.log(err);
+      }
+      callback(err);
+    });
+  },
 
 
 }

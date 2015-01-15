@@ -66,6 +66,8 @@ app.get('/user/:id/activate', users);
 app.get('/user/:id/confirm', users);
 app.get('/user/:id/passwordreset', users);
 app.get('/user/:id/passwordreset/:key', users);
+app.post('/user/:id/group/:group', users);
+app.delete('/user/:id/group/:group', users);
 app.delete('/user/:id', users);
 
 app.get('/auth', auth);

@@ -256,6 +256,29 @@ angular.module('genouest').controller('usermngrCtrl',
       $scope.websites = data;
     });
 
+    $scope.add_secondary_group = function() {
+      var sgroup = $scope.user.newgroup;
+      if(sgroup.trim()!=''){
+        User.add_group({name: $scope.user.uid, group: sgroup},{}).$promise.then(function(data){
+          $scope.msg = data.message;
+          $scope.user.secondarygroups.push(sgroup);
+        });
+      }
+    };
+
+    $scope.delete_secondary_group = function(sgroup) {
+      User.delete_group({name: $scope.user.uid, group: sgroup}).$promise.then(function(data){
+        $scope.msg = data.message;
+        var tmpgroups = [];
+        for(var t=0;t<$scope.user.secondarygroups;t++){
+          if($scope.user.secondarygroups[t] != sgroup) {
+            tmpgroup.push($scope.user.secondarygroups[t]);
+          }
+        }
+        $scope.user.secondarygroups = tmpgroups;
+      });
+    };
+
     $scope.database_delete = function(db){
       $scope.dbmsg = '';
       Database.delete({name: db}).$promise.then(function(data){

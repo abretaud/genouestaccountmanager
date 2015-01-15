@@ -193,6 +193,18 @@
               method: 'GET',
               isArray: false,
               cache: false
+            },
+            add_group: {
+              url: prefix+'/user/:name/group/:group',
+              method: 'POST',
+              isArray: false,
+              cache: false
+            },
+            delete_group: {
+              url: prefix+'/user/:name/group/:group',
+              method: 'DELETE',
+              isArray: false,
+              cache: false
             }
           });
       }
