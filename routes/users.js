@@ -18,6 +18,8 @@ var notif = require('../routes/notif.js');
 var MAIL_CONFIG = CONFIG.mail;
 var transport = null;
 
+var get_ip = require('ipware')().get_ip;
+
 
 if(MAIL_CONFIG.host !== 'fake') {
   if(MAIL_CONFIG.user !== undefined && MAIL_CONFIG.user !== '') {
@@ -104,6 +106,16 @@ router.post('/group/:id', function(req, res){
   });
 });
 
+router.get('/ip', function(req, res) {
+  
+  var ip = req.headers['x-forwarded-for'] || 
+     req.connection.remoteAddress || 
+     req.socket.remoteAddress ||
+     req.connection.socket.remoteAddress;
+  
+  //var ip_info = get_ip(req);
+  res.json({ip: ip});
+});
 
 router.get('/group', function(req, res){
   var sess = req.session;
@@ -295,7 +307,7 @@ router.delete('/user/:id', function(req, res){
     users_db.findOne({uid: uid}, function(err, user){
       if(user.status == STATUS_PENDING_EMAIL || user.status == STATUS_PENDING_APPROVAL){
         // not yet active, simply delete
-        users_db.remove({_id: user.id}, function(err){
+        users_db.remove({_id: user._id}, function(err){
           if(err){
             res.send({message: 'Could not delete '+req.param('id')});
             res.end();
@@ -307,7 +319,7 @@ router.delete('/user/:id', function(req, res){
           return;
         });
       }
-
+      else { 
       // Must check if user has databases and sites
       // Do not remove in this case, owners must be changed before
       databases_db.find({owner: uid}, function(err, databases){
@@ -358,6 +370,7 @@ router.delete('/user/:id', function(req, res){
         });
 
       });
+      }
     });
 
   });
@@ -400,7 +413,7 @@ router.get('/user/:id/activate', function(req, res) {
         var fid = new Date().getTime();
         goldap.add(user, fid, function(err) {
           if(!err){
-            users_db.update({uid: req.param('id')},{'$set': { status: STATUS_ACTIVE}, '$push': { history: {action: 'validation', date: new Date().getTime()}} }, function(err){
+            users_db.update({uid: req.param('id')},{'$set': {status: STATUS_ACTIVE, uidnumber: minuid, gidnumber: mingid}, '$push': { history: {action: 'validation', date: new Date().getTime()}} }, function(err){
               groups_db.update({'name': user.group}, {'$set': { 'gid': user.gidnumber}}, {upsert:true}, function(err){
                 var script = "#!/bin/bash\n";
                 script += "set -e \n"
@@ -952,6 +965,10 @@ router.put('/user/:id', function(req, res) {
       }
 
       users_db.findOne({uid: req.param('id')}, function(err, user){
+        if(err){
+          res.status(401).send('Not authorized');
+          return;
+        }
         // If not admin nor logged user
         if(!session_user.is_admin && user._id != sess.gomngr) {
           res.status(401).send('Not authorized');
@@ -970,12 +987,14 @@ router.put('/user/:id', function(req, res) {
         user.address = req.param('address');
         user.lab = req.param('lab');
         user.responsible = req.param('responsible');
+        
         var is_admin = false;
         if(GENERAL_CONFIG.admin.indexOf(user.uid) >= 0) {
           is_admin = true;
         }
+        
 
-        if(is_admin){
+        if(session_user.is_admin){
           user.oldgroup = user.group;
           user.oldgidnumber = user.gidnumber;
           user.oldmaingroup = user.maingroup;

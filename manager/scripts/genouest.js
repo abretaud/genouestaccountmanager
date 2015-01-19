@@ -413,7 +413,9 @@ angular.module('genouest').controller('loginCtrl',
     $scope.duration = 1;
 
     IP.get().$promise.then(function(data) {
-      $scope.ip = data.ip;
+      var ips = data.ip.split(',');
+      var ip = ips[0].trim();
+      $scope.ip = ip;
     });
 
     $scope.password_reset_request = function() {

@@ -1,6 +1,10 @@
 /**
 * Test expiration date of user, if lower than 2 month, send an email to user
 */
+var STATUS_PENDING_EMAIL = 'Waiting for email approval';
+var STATUS_PENDING_APPROVAL = 'Waiting for admin approval';
+var STATUS_ACTIVE = 'Active';
+var STATUS_EXPIRED = 'Expired';
 
 
 var CONFIG = require('config');
@@ -53,7 +57,7 @@ function timeConverter(tsp){
 }
 
 // Find users expiring in less then 2 month
-users_db.find({duration: {$lt: (new Date().getTime() + 1000*3600*24*60)}},{uid: 1}, function(err, users){
+users_db.find({status: STATUS_ACTIVE, expiration: {$lt: (new Date().getTime() + 1000*3600*24*60)}},{uid: 1}, function(err, users){
   var mail_sent = 0;
   for(var i=0;i<users.length;i++){
     var user = users[i];

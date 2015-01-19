@@ -18,7 +18,7 @@
       }
 
       function IP($resource) {
-        return $resource('http://jsonip.com', {}, {
+        return $resource('/ip', {}, {
             get: {
               paramDefault: {callback: '?'},
               method: 'GET',

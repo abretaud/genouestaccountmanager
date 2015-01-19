@@ -56,8 +56,8 @@ function timeConverter(tsp){
   return time;
 }
 
-// Find users expiring in less then 2 month
-users_db.find({status: STATUS_ACTIVE, duration: {$lt: (new Date().getTime())}},{uid: 1}, function(err, users){
+// Find users expiring
+users_db.find({status: STATUS_ACTIVE, expiration: {$lt: (new Date().getTime())}},{uid: 1}, function(err, users){
   var mail_sent = 0;
   for(var i=0;i<users.length;i++){
     var user = users[i];
