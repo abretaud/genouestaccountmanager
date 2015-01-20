@@ -479,7 +479,7 @@ router.get('/user/:id/activate', function(req, res) {
 router.get('/user/:id', function(req, res) {
   var sess = req.session;
   if(! sess.gomngr) {
-    res.status(401).send('Not authorized');
+    res.status(401).send('Not authorized, need to login first');
     return;
   }
   users_db.findOne({_id: sess.gomngr}, function(err, session_user){
@@ -495,12 +495,12 @@ router.get('/user/:id', function(req, res) {
       else {
         user.is_admin = false;
       }
-      if(sess.gomngr === user._id || GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0){
+      if(sess.gomngr == user._id || GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0){
         res.json(user);
         return;
       }
       else {
-        res.status(401).send('Not authorized');
+        res.status(401).send('Not authorized to access this user info');
         return;
       }
 

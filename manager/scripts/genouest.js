@@ -237,6 +237,7 @@ angular.module('genouest').controller('usermngrCtrl',
       $scope.omaha_date = data.omaha_date;
     });
     User.get({name: $routeParams.id}).$promise.then(function(user){
+      if(user.is_admin) {
       Group.list().$promise.then(function(data) {
         $scope.groups = data;
         var found = false;
@@ -248,8 +249,11 @@ angular.module('genouest').controller('usermngrCtrl',
         }
         if(!found) { $scope.groups.push({name: user.group})}
         $scope.user = user;
-
       });
+      }
+      else {
+        $scope.user = user;
+      }
     });
     $scope.STATUS_PENDING_EMAIL = 'Waiting for email approval';
     $scope.STATUS_PENDING_APPROVAL = 'Waiting for admin approval';
