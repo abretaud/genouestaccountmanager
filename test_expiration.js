@@ -62,8 +62,10 @@ users_db.find({status: STATUS_ACTIVE, expiration: {$lt: (new Date().getTime() + 
   for(var i=0;i<users.length;i++){
     var user = users[i];
     console.log('User: '+user.uid);
-    var msg_activ = CONFIG.message.expiration.join("\n").replace("#EXPIRE#", timeConverter(user.expiration)).replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
-    var msg_activ_html = CONFIG.message.expiration.join("<br/>").replace("#EXPIRE#", timeConverter(user.expiration)).replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"<br/>"+CONFIG.message.footer.join("<br/>");
+    var link = GENERAL_CONFIG.url +
+                encodeURI('/manager/index.html#/user/'+uid+'/renew/'+regkey);
+    var msg_activ = CONFIG.message.expiration.join("\n").replace('#LINK#', link).replace("#EXPIRE#", timeConverter(user.expiration)).replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
+    var msg_activ_html = CONFIG.message.expiration.join("<br/>").replace('#LINK#', link).replace("#EXPIRE#", timeConverter(user.expiration)).replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"<br/>"+CONFIG.message.footer.join("<br/>");
     var mailOptions = {
       from: MAIL_CONFIG.origin, // sender address
       to: user.email, // list of receivers

@@ -63,6 +63,10 @@ angular.module('genouest', ['genouest.resources', 'ngSanitize', 'ngCookies', 'ng
             templateUrl: 'views/user.html',
             controller: 'usermngrCtrl'
         });
+        $routeProvider.when('/user/:id/renew/:regkey', {
+            templateUrl: 'views/info.html',
+            controller: 'userextendCtrl'
+        });
         $routeProvider.otherwise({
             redirectTo: '/'
         });
@@ -190,6 +194,28 @@ angular.module('genouest').controller('usersmngrCtrl',
       var time = date + ',' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
       return time;
     }
+
+});
+
+angular.module('genouest').controller('userextendCtrl',
+  function($scope, $rootScope, $routeParams, $log, $location, User) {
+
+  $scope.date_convert = function timeConverter(tsp){
+    var a = new Date(tsp);
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var year = a.getFullYear();
+    var month = months[a.getMonth()];
+    var date = a.getDate();
+    var hour = a.getHours();
+    var min = a.getMinutes();
+    var sec = a.getSeconds();
+    var time = date + ',' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+    return time;
+  }
+
+  User.extend({name: $routeParams.id, regkey: $routeParams.regkey},{}).$promise.then(function(data){
+    $scope.msg = '<h3>'+data.message+ ' '+$scope.date_convert(data.expiration)+'</h3>';
+  });
 
 });
 
@@ -338,6 +364,13 @@ angular.module('genouest').controller('usermngrCtrl',
         $scope.msg = data.message;
         GOLog.add($scope.user.uid, data.fid, "Renew user "+$scope.user.uid);
         $scope.user.status = $scope.STATUS_ACTIVE;
+      });
+    };
+
+    $scope.extend = function() {
+      User.extend({name: $scope.user.uid, regkey: $scope.user.regkey},{}).$promise.then(function(data){
+        $scope.msg = data.message;
+        $scope.user.expiration = data.expiration;
       });
     };
 

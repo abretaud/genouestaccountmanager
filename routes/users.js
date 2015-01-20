@@ -107,12 +107,12 @@ router.post('/group/:id', function(req, res){
 });
 
 router.get('/ip', function(req, res) {
-  
-  var ip = req.headers['x-forwarded-for'] || 
-     req.connection.remoteAddress || 
+
+  var ip = req.headers['x-forwarded-for'] ||
+     req.connection.remoteAddress ||
      req.socket.remoteAddress ||
      req.connection.socket.remoteAddress;
-  
+
   //var ip_info = get_ip(req);
   res.json({ip: ip});
 });
@@ -319,7 +319,7 @@ router.delete('/user/:id', function(req, res){
           return;
         });
       }
-      else { 
+      else {
       // Must check if user has databases and sites
       // Do not remove in this case, owners must be changed before
       databases_db.find({owner: uid}, function(err, databases){
@@ -809,6 +809,35 @@ router.get('/user/:id/passwordreset/:key', function(req, res){
   });
 });
 
+/**
+* Extend validity period if active
+*/
+router.get('/user/:id/renew/:regkey', function(req, res){
+  users_db.findOne({uid: req.param('id')}, function(err, user){
+    if(err){
+      res.status(404).send('User not found');
+      return;
+    }
+    if(user.status != STATUS_ACTIVE) {
+      res.status(401).send('Not authorized');
+      return;
+    }
+    var regkey = req.param('regkey');
+    if(user.regkey == regkey) {
+      user.history.push({'action': 'extend validity period', date: new Date().getTime()});
+      var expiration = new Date().getTime() + 1000*3600*24*365*user.duration;
+      users_db.update({uid: user.uid},{'$set': {expiration: expiration, history: user.history}}, function(err){
+        res.send({message: 'Account validity period extended', expiration: expiration});
+        return;
+      });
+    }
+    else {
+      res.status(401).send('Not authorized');
+      return;
+    }
+  });
+});
+
 router.get('/user/:id/renew', function(req, res){
   var sess = req.session;
   if(! sess.gomngr) {
@@ -987,12 +1016,12 @@ router.put('/user/:id', function(req, res) {
         user.address = req.param('address');
         user.lab = req.param('lab');
         user.responsible = req.param('responsible');
-        
+
         var is_admin = false;
         if(GENERAL_CONFIG.admin.indexOf(user.uid) >= 0) {
           is_admin = true;
         }
-        
+
 
         if(session_user.is_admin){
           user.oldgroup = user.group;

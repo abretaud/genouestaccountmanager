@@ -188,6 +188,12 @@
               isArray: false,
               cache: false
             },
+            extend: {
+              url: prefix+'/user/:name/renew/:regkey',
+              method: 'GET',
+              isArray: false,
+              cache: false
+            },
             password_reset_request: {
               url: prefix+'/user/:name/passwordreset',
               method: 'GET',
