@@ -72,6 +72,7 @@ fs.readFile('/opt/gomngr/migrate/migrate/extract/users_list.csv', 'utf8', functi
         status = STATUS_EXPIRED;
         expiration = new Date().getTime();
       }
+      var regkey = Math.random().toString(36).substring(7);
       var guser = {
         status: status,
         uid: user[6],
@@ -84,7 +85,7 @@ fs.readFile('/opt/gomngr/migrate/migrate/extract/users_list.csv', 'utf8', functi
         group: group,
         maingroup: maingroup,
         ip: user[20],
-        regkey: null,
+        regkey: regkey,
         is_genouest: is_genouest,
         uidnumber: parseInt(user[7]),
         gidnumber: parseInt(user[8]),
