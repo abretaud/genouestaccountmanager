@@ -31,6 +31,10 @@ angular.module('genouest', ['genouest.resources', 'ngSanitize', 'ngCookies', 'ng
             templateUrl: 'views/main.html',
             controller: 'mainCtrl'
         });
+        $routeProvider.when('/pending', {
+            templateUrl: 'views/pending.html',
+            controller: 'pendingCtrl'
+        });
         $routeProvider.when('/message', {
             templateUrl: 'views/message.html',
             controller: 'messageCtrl'
@@ -508,7 +512,7 @@ angular.module('genouest').controller('loginCtrl',
         }
         else {
           $scope.msg = data.msg;
-          $scope.status = ERROR;
+          $scope.msgstatus = ERROR;
         }
       });
     }
@@ -521,6 +525,11 @@ angular.module('genouest').controller('mainCtrl',
       $location.path('/user/'+user.uid);
       }
 });
+
+angular.module('genouest').controller('pendingCtrl',
+    function ($rootScope, $scope, $location, Auth) {
+});
+
 
 angular.module('genouest').service('GOLog', function() {
   var logs = [];

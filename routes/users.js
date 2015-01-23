@@ -520,6 +520,12 @@ router.get('/user/:id/confirm', function(req, res) {
     }
     else {
         if(user.regkey == regkey) {
+          if(user.status == STATUS_PENDING_APPROVAL) {
+            // Already pending
+            res.redirect(GENERAL_CONFIG.url+'/manager/index.html#/pending');
+            res.end();
+            return;
+          }
           var account_event = {action: 'email_confirm', date: new Date().getTime()};
           users_db.update({ _id: user._id},
                           { $set: {status: STATUS_PENDING_APPROVAL},
@@ -528,7 +534,7 @@ router.get('/user/:id/confirm', function(req, res) {
           var mailOptions = {
             from: MAIL_CONFIG.origin, // sender address
             to: GENERAL_CONFIG.support, // list of receivers
-            subject: 'Genouest account registration', // Subject line
+            subject: 'Genouest account registration: '+uid, // Subject line
             text: 'New account registration waiting for approval: '+uid, // plaintext body
             html: 'New account registration waiting for approval: '+uid // html body
           };
@@ -537,13 +543,13 @@ router.get('/user/:id/confirm', function(req, res) {
               if(error){
                 console.log(error);
               }
-              res.redirect(GENERAL_CONFIG.url+'/manager/index.html#/login');
+              res.redirect(GENERAL_CONFIG.url+'/manager/index.html#/pending');
               res.end();
               return;
             });
           }
           else {
-            res.redirect(GENERAL_CONFIG.url+'/manager/index.html#/login');
+            res.redirect(GENERAL_CONFIG.url+'/manager/index.html#/pending');
             res.end();
           }
         }
