@@ -570,6 +570,14 @@ router.post('/user/:id', function(req, res) {
     res.send({'status': 1, 'msg': 'invalid data'});
     return;
   }
+  if(req.param('group')=='') {
+    res.send({'status': 1, 'msg': 'Missing field: team'});
+    return;
+  }
+  if(req.param('responsible')=='') {
+    res.send({'status': 1, 'msg': 'Missing field: Responsible/Manager'});
+    return;
+  }
   if(!req.param('id').match(/^[0-9a-z]+$/)){
     res.send({'status': 1, 'msg': 'invalid data identifier, numeric and lowercase letters only'});
     return;
