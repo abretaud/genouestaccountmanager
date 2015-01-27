@@ -31,6 +31,10 @@ angular.module('genouest', ['genouest.resources', 'ngSanitize', 'ngCookies', 'ng
             templateUrl: 'views/main.html',
             controller: 'mainCtrl'
         });
+        $routeProvider.when('/pending', {
+            templateUrl: 'views/pending.html',
+            controller: 'pendingCtrl'
+        });
         $routeProvider.when('/message', {
             templateUrl: 'views/message.html',
             controller: 'messageCtrl'
@@ -237,6 +241,7 @@ angular.module('genouest').controller('usermngrCtrl',
       $scope.omaha_date = data.omaha_date;
     });
     User.get({name: $routeParams.id}).$promise.then(function(user){
+      if(user.is_admin) {
       Group.list().$promise.then(function(data) {
         $scope.groups = data;
         var found = false;
@@ -248,8 +253,11 @@ angular.module('genouest').controller('usermngrCtrl',
         }
         if(!found) { $scope.groups.push({name: user.group})}
         $scope.user = user;
-
       });
+      }
+      else {
+        $scope.user = user;
+      }
     });
     $scope.STATUS_PENDING_EMAIL = 'Waiting for email approval';
     $scope.STATUS_PENDING_APPROVAL = 'Waiting for admin approval';
@@ -504,7 +512,7 @@ angular.module('genouest').controller('loginCtrl',
         }
         else {
           $scope.msg = data.msg;
-          $scope.status = ERROR;
+          $scope.msgstatus = ERROR;
         }
       }, function(error){
           $scope.msg = error.data;
@@ -519,6 +527,11 @@ angular.module('genouest').controller('mainCtrl',
       $location.path('/user/'+user.uid);
       }
 });
+
+angular.module('genouest').controller('pendingCtrl',
+    function ($rootScope, $scope, $location, Auth) {
+});
+
 
 angular.module('genouest').service('GOLog', function() {
   var logs = [];

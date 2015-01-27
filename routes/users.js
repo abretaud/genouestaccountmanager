@@ -479,7 +479,7 @@ router.get('/user/:id/activate', function(req, res) {
 router.get('/user/:id', function(req, res) {
   var sess = req.session;
   if(! sess.gomngr) {
-    res.status(401).send('Not authorized');
+    res.status(401).send('Not authorized, need to login first');
     return;
   }
   users_db.findOne({_id: sess.gomngr}, function(err, session_user){
@@ -495,12 +495,12 @@ router.get('/user/:id', function(req, res) {
       else {
         user.is_admin = false;
       }
-      if(sess.gomngr === user._id || GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0){
+      if(sess.gomngr == user._id || GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0){
         res.json(user);
         return;
       }
       else {
-        res.status(401).send('Not authorized');
+        res.status(401).send('Not authorized to access this user info');
         return;
       }
 
@@ -520,6 +520,12 @@ router.get('/user/:id/confirm', function(req, res) {
     }
     else {
         if(user.regkey == regkey) {
+          if(user.status == STATUS_PENDING_APPROVAL) {
+            // Already pending
+            res.redirect(GENERAL_CONFIG.url+'/manager/index.html#/pending');
+            res.end();
+            return;
+          }
           var account_event = {action: 'email_confirm', date: new Date().getTime()};
           users_db.update({ _id: user._id},
                           { $set: {status: STATUS_PENDING_APPROVAL},
@@ -528,7 +534,7 @@ router.get('/user/:id/confirm', function(req, res) {
           var mailOptions = {
             from: MAIL_CONFIG.origin, // sender address
             to: GENERAL_CONFIG.accounts, // list of receivers
-            subject: 'Genouest account registration', // Subject line
+            subject: 'Genouest account registration: '+uid, // Subject line
             text: 'New account registration waiting for approval: '+uid, // plaintext body
             html: 'New account registration waiting for approval: '+uid // html body
           };
@@ -537,13 +543,13 @@ router.get('/user/:id/confirm', function(req, res) {
               if(error){
                 console.log(error);
               }
-              res.redirect(GENERAL_CONFIG.url+'/manager/index.html#/login');
+              res.redirect(GENERAL_CONFIG.url+'/manager/index.html#/pending');
               res.end();
               return;
             });
           }
           else {
-            res.redirect(GENERAL_CONFIG.url+'/manager/index.html#/login');
+            res.redirect(GENERAL_CONFIG.url+'/manager/index.html#/pending');
             res.end();
           }
         }

@@ -61,6 +61,11 @@
             </div>
             <div ng-if="session_user.is_admin">
               <div class="form-group">
+                <label for="key">Key</label>
+                <input type="text" id="key" ng-model="user.regkey" disabled></input>
+              </div>
+
+              <div class="form-group">
                 <label for="group">Group</label>
                 <input type="text"  ng-model="user.group"/>
                 <select ng-model="user.group">
