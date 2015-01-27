@@ -1079,7 +1079,7 @@ router.put('/user/:id', function(req, res) {
                   script += "\tmkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
                   script += "fi\n";
                   script += "mv "+CONFIG.general.home+"/"+user.oldmaingroup+"/"+user.oldgroup+"/"+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/\n";
-                  script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
+                  script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/"+user.uid+"\n";
                 }
                 var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
                 fs.writeFile(script_file, script, function(err) {
