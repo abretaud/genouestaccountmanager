@@ -385,6 +385,11 @@ router.get('/user/:id/activate', function(req, res) {
       res.end();
       return;
     }
+    if(user.maingroup == undefined || user.group == undefined) {
+      res.send({msg: 'group or main group directory are not set'});
+      res.end();
+      return;
+    }
     user.password = Math.random().toString(36).substring(7);
     var minuid = 1000;
     var mingid = 1000;
