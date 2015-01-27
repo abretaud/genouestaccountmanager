@@ -4,6 +4,7 @@
     "url": "http://localhost:3000",
     "admin": [ "osallou" ],
     "support": "olivier.sallou@irisa.fr",
+    "accounts": "accounts@genouest.org",
     "secret": "",
     "script_dir": "/tmp",
     "admin_ip": [ "127.0.0.1" ],

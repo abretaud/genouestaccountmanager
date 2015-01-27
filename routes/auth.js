@@ -26,6 +26,7 @@ var ldap_manager = {
   }
 }
 
+var attemps = {};
 
 router.get('/logout', function(req, res) {
   req.session.destroy();
@@ -80,6 +81,17 @@ router.post('/auth/:id', function(req, res) {
       res.status(404).send('User not found');
       return;
     }
+    if(attemps[user.uid] != undefined && attemps[user.uid]['attemps']>=2) {
+        var checkDate = new Date();
+        checkDate.setHours(checkDate.getHours() - 1);
+        if(attemps[user.uid]['last'] > checkDate) {
+          res.status(401).send('You have reached the maximum of login attemps, your account access is blocked for one hour'); 
+          return;
+        }
+        else {
+          attemps[user.uid]['attemps'] = 0;
+        }
+    }
     // Check bind with ldap
     var sess = req.session;
     sess.gomngr = user._id;
@@ -101,10 +113,16 @@ router.post('/auth/:id', function(req, res) {
     else {
       goldap.bind(user.uid, req.param('password'), function(err) {
         if(err) {
-          res.send({ user: null, msg: err.message});
+          if(attemps[user.uid] == undefined) {
+            attemps[user.uid] = { attemps: 0};
+          }
+          attemps[user.uid]['attemps'] += 1;
+          attemps[user.uid]['last'] = new Date();
+          res.send({ user: null, msg: "Login error, remains "+(3-attemps[user.uid]['attemps'])+" attemps."});
           res.end();
           return;
         }
+        attemps[user.uid]['attemps'] = 0;
         res.send({ user: user, msg: ''});
         res.end();
       });

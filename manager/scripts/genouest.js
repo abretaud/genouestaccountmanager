@@ -506,6 +506,8 @@ angular.module('genouest').controller('loginCtrl',
           $scope.msg = data.msg;
           $scope.status = ERROR;
         }
+      }, function(error){
+          $scope.msg = error.data;
       });
     }
 });

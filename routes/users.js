@@ -527,7 +527,7 @@ router.get('/user/:id/confirm', function(req, res) {
                           }, function(err) {});
           var mailOptions = {
             from: MAIL_CONFIG.origin, // sender address
-            to: GENERAL_CONFIG.support, // list of receivers
+            to: GENERAL_CONFIG.accounts, // list of receivers
             subject: 'Genouest account registration', // Subject line
             text: 'New account registration waiting for approval: '+uid, // plaintext body
             html: 'New account registration waiting for approval: '+uid // html body

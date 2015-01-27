@@ -175,7 +175,7 @@ router.post('/database/:id', function(req, res) {
                   msg += " Password: " + password+"\n";
                   var mailOptions = {
                     from: CONFIG.mail.origin, // sender address
-                    to: session_user.email+","+CONFIG.general.support, // list of receivers
+                    to: session_user.email+","+CONFIG.general.accounts, // list of receivers
                     subject: 'Database creation', // Subject line
                     text: msg, // plaintext body
                     html: msg // html body
