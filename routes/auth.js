@@ -112,10 +112,10 @@ router.post('/auth/:id', function(req, res) {
     }
     else {
       goldap.bind(user.uid, req.param('password'), function(err) {
+        if(attemps[user.uid] == undefined) {
+          attemps[user.uid] = { attemps: 0};
+        }
         if(err) {
-          if(attemps[user.uid] == undefined) {
-            attemps[user.uid] = { attemps: 0};
-          }
           attemps[user.uid]['attemps'] += 1;
           attemps[user.uid]['last'] = new Date();
           res.send({ user: null, msg: "Login error, remains "+(3-attemps[user.uid]['attemps'])+" attemps."});
