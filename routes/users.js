@@ -385,6 +385,11 @@ router.get('/user/:id/activate', function(req, res) {
       res.end();
       return;
     }
+    if(user.maingroup == undefined || user.group == undefined) {
+      res.send({msg: 'group or main group directory are not set'});
+      res.end();
+      return;
+    }
     user.password = Math.random().toString(36).substring(7);
     var minuid = 1000;
     var mingid = 1000;
@@ -1037,20 +1042,6 @@ router.put('/user/:id', function(req, res) {
         }
 
 
-        if(session_user.is_admin){
-          user.oldgroup = user.group;
-          user.oldgidnumber = user.gidnumber;
-          user.oldmaingroup = user.maingroup;
-          user.group = req.param('group');
-          user.ip = req.param('ip');
-          user.is_genouest = req.param('is_genouest');
-          user.maingroup = req.param('maingroup');
-          if(user.group == '' || user.group == null) {
-            res.status(401).send('Some mandatory fields are empty');
-            return;
-          }
-        }
-
         user.history.push({'action': 'update info', date: new Date().getTime()});
 
         // Get group gid
@@ -1059,7 +1050,21 @@ router.put('/user/:id', function(req, res) {
             res.status(401).send('Group '+user.group+' does not exists, please create it first');
             return;
           }
-          user.gidnumber = group.gid;
+
+          if(session_user.is_admin){
+            user.oldgroup = user.group;
+            user.oldgidnumber = user.gidnumber;
+            user.oldmaingroup = user.maingroup;
+            user.group = req.param('group');
+            user.gidnumber = group.gid;
+            user.ip = req.param('ip');
+            user.is_genouest = req.param('is_genouest');
+            user.maingroup = req.param('maingroup');
+            if(user.group == '' || user.group == null) {
+              res.status(401).send('Some mandatory fields are empty');
+              return;
+            }
+          }
 
           if(user.status == STATUS_ACTIVE){
             users_db.update({_id: user._id}, user, function(err){
@@ -1081,7 +1086,7 @@ router.put('/user/:id', function(req, res) {
                     script += "\tmkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
                     script += "fi\n";
                     script += "mv "+CONFIG.general.home+"/"+user.oldmaingroup+"/"+user.oldgroup+"/"+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/\n";
-                    script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
+                    script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/"+user.uid+"\n";
                   }
                   var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
                   fs.writeFile(script_file, script, function(err) {
