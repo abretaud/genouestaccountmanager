@@ -1053,52 +1053,62 @@ router.put('/user/:id', function(req, res) {
 
         user.history.push({'action': 'update info', date: new Date().getTime()});
 
+        // Get group gid
+        groups_db.find({'name': user.group}}, function(err, group){
+          if(err || group == null || group == undefined) {
+            res.status(401).send('Group '+user.group+' does not exists, please create it first');
+            return;
+          }
+          user.gidnumber = group.gid;
 
-        if(user.status == STATUS_ACTIVE){
-          users_db.update({_id: user._id}, user, function(err){
-            if(is_admin) {
-              user.is_admin = true;
-            }
-            var fid = new Date().getTime();
-            goldap.modify(user, fid, function(err){
-                if(err) {
-                  res.status(401).send('Group '+user.group+' does not exists, please create it first');
-                  return;
-                }
-                var script = "#!/bin/bash\n";
-                script += "set -e \n"
-                script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
-                if(user.oldgroup != user.group || user.oldmaingroup != user.maingroup) {
-                  // If group modification, change home location
-                  script += "if [ ! -e "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+" ]; then\n"
-                  script += "\tmkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
-                  script += "fi\n";
-                  script += "mv "+CONFIG.general.home+"/"+user.oldmaingroup+"/"+user.oldgroup+"/"+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/\n";
-                  script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
-                }
-                var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
-                fs.writeFile(script_file, script, function(err) {
-                  fs.chmodSync(script_file,0755);
-                  if(user.oldemail!=user.email) {
-                    notif.modify(user.oldemail, user.email, function() {
+          if(user.status == STATUS_ACTIVE){
+            users_db.update({_id: user._id}, user, function(err){
+              if(is_admin) {
+                user.is_admin = true;
+              }
+              var fid = new Date().getTime();
+              goldap.modify(user, fid, function(err){
+                  if(err) {
+                    res.status(401).send('Group '+user.group+' does not exists, please create it first');
+                    return;
+                  }
+                  var script = "#!/bin/bash\n";
+                  script += "set -e \n"
+                  script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
+                  if(user.oldgroup != user.group || user.oldmaingroup != user.maingroup) {
+                    // If group modification, change home location
+                    script += "if [ ! -e "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+" ]; then\n"
+                    script += "\tmkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
+                    script += "fi\n";
+                    script += "mv "+CONFIG.general.home+"/"+user.oldmaingroup+"/"+user.oldgroup+"/"+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/\n";
+                    script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
+                  }
+                  var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
+                  fs.writeFile(script_file, script, function(err) {
+                    fs.chmodSync(script_file,0755);
+                    if(user.oldemail!=user.email) {
+                      notif.modify(user.oldemail, user.email, function() {
+                        user.fid = fid;
+                        res.send(user);
+                      });
+                    }
+                    else {
                       user.fid = fid;
                       res.send(user);
-                    });
-                  }
-                  else {
-                    user.fid = fid;
-                    res.send(user);
-                  }
-                });
+                    }
+                  });
+              });
             });
-          });
-        }
-        else {
-          users_db.update({_id: user._id}, user, function(err){
-            user.fid = null;
-            res.send(user);
-          });
-        }
+          }
+          else {
+            users_db.update({_id: user._id}, user, function(err){
+              user.fid = null;
+              res.send(user);
+            });
+          }
+
+        });
+        // End group
 
       });
 

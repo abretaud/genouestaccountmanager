@@ -95,11 +95,8 @@ module.exports = {
     user_ldif += "replace: sn\n";
     user_ldif += "sn: "+user.lastname+"\n";
     user_ldif += "-\n";
-    var is_admin = false;
-    if(CONFIG.general.admin.indexOf(user.uid) >= 0) {
-      is_admin = true;
-    }
-    if(is_admin){
+
+    if(user.is_admin){
       if(user.is_genouest){
       user_ldif += "replace: ou\n";
       user_ldif += "ou: genouest\n";
@@ -125,7 +122,7 @@ module.exports = {
     user_ldif += "replace: loginShell\n";
     user_ldif += "loginShell: /bin/bash\n";
 
-    if(is_admin && user.oldgroup != user.group) {
+    if(user.is_admin && user.oldgroup != user.group) {
       user_ldif += "-\n";
       user_ldif += "replace: gidnumber\n";
       user_ldif += "gidnumber: "+user.gidnumber+"\n";
@@ -140,18 +137,13 @@ module.exports = {
       user_ldif += "memberUid: "+user.uid+"\n"
     }
 
-    groups_db.findOne({'name': user.group}, function(err, group){
-      if(err || group == null || group == undefined) {
-        callback({err: "Group does not exists"});
-        return;
+    fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"."+fid+".ldif", user_ldif, function(err) {
+      if(err) {
+          console.log(err);
       }
-      fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"."+fid+".ldif", user_ldif, function(err) {
-        if(err) {
-            console.log(err);
-        }
-        callback(err);
-      });
+      callback(err);
     });
+
   },
 
   add_group: function(group, fid, callback) {
