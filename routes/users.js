@@ -1045,7 +1045,7 @@ router.put('/user/:id', function(req, res) {
         user.history.push({'action': 'update info', date: new Date().getTime()});
 
         // Get group gid
-        groups_db.find({'name': user.group}}, function(err, group){
+        groups_db.find({'name': user.group}, function(err, group){
           if(err || group == null || group == undefined) {
             res.status(401).send('Group '+user.group+' does not exists, please create it first');
             return;
