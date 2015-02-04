@@ -575,11 +575,20 @@ router.post('/user/:id', function(req, res) {
     res.send({'status': 1, 'msg': 'invalid data'});
     return;
   }
-  if(req.param('group')=='') {
+  if(req.param('group')=='' || req.param('group')==null || req.param('group')==undefined) {
     res.send({'status': 1, 'msg': 'Missing field: team'});
     return;
   }
-  if(req.param('responsible')=='') {
+  if(req.param('lab')=='' || req.param('lab')==null || req.param('lab')==undefined) {
+    res.send({'status': 1, 'msg': 'Missing field: lab'});
+    return;
+  }
+  if(req.param('address')=='' || req.param('address')==null || req.param('address')==undefined) {
+    res.send({'status': 1, 'msg': 'Missing field: team'});
+    return;
+  }
+
+  if(req.param('responsible')=='' || req.param('responsible')==null || req.param('responsible')==undefined) {
     res.send({'status': 1, 'msg': 'Missing field: Responsible/Manager'});
     return;
   }
