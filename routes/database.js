@@ -121,6 +121,27 @@ router.get('/database', function(req, res) {
   });
 });
 
+router.get('/database/owner/:owner', function(req, res) {
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+    if(CONFIG.general.admin.indexOf(session_user.uid) >= 0) {
+      session_user.is_admin = true;
+    }
+    else {
+      session_user.is_admin = false;
+    }
+    var filter = {owner: req.param('owner')}
+    databases_db.find(filter, function(err, databases){
+      res.send(databases);
+      return;
+    });
+  });
+});
+
 router.post('/database/:id', function(req, res) {
   var sess = req.session;
   if(! sess.gomngr) {
@@ -148,7 +169,7 @@ router.post('/database/:id', function(req, res) {
             var sql = "CREATE DATABASE "+req.param('id')+";\n";
             connection.query(sql, function(err, results) {
               if (err) {
-                res.send({message: 'database already exists'});
+                res.send({message: 'Creation error: '+err});
                 res.end();
                 return
               }
@@ -185,7 +206,7 @@ router.post('/database/:id', function(req, res) {
                       if(error){
                         console.log(error);
                       }
-                      res.send({message:''});
+                      res.send({message:'Database created, credentials will be sent by mail'});
                       return;
                     });
                   }

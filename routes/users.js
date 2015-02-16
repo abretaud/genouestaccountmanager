@@ -428,6 +428,7 @@ router.get('/user/:id/activate', function(req, res) {
                 script += "fi\n"
                 script += "sleep 3\n";
                 script += "mkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh\n";
+                script += "ln -s /index/ClusterDocumentation/README "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/README\n";
                 script += "touch "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/authorized_keys\n";
                 script += "mkdir -p /omaha-beach/"+user.uid+"\n";
                 script += "chown -R "+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";

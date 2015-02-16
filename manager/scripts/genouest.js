@@ -258,6 +258,7 @@ angular.module('genouest').controller('usermngrCtrl',
       else {
         $scope.user = user;
       }
+
     });
     $scope.STATUS_PENDING_EMAIL = 'Waiting for email approval';
     $scope.STATUS_PENDING_APPROVAL = 'Waiting for admin approval';
@@ -282,11 +283,12 @@ angular.module('genouest').controller('usermngrCtrl',
     $scope.website_url = "";
     $scope.website_description = "";
 
-    Database.list().$promise.then(function(data){
+    Database.listowner({name: $routeParams.id}).$promise.then(function(data){
       $scope.databases = data;
     });
 
-    Web.list().$promise.then(function(data){
+
+    Web.listowner({name: $routeParams.id}).$promise.then(function(data){
       $scope.websites = data;
     });
 

@@ -57,6 +57,28 @@ router.get('/web', function(req, res) {
   });
 });
 
+router.get('/web/owner/:owner', function(req, res) {
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+    if(CONFIG.general.admin.indexOf(session_user.uid) >= 0) {
+      session_user.is_admin = true;
+    }
+    else {
+      session_user.is_admin = false;
+    }
+    var filter = {owner: req.param('owner')}
+    web_db.find(filter, function(err, databases){
+      res.send(databases);
+      return;
+    });
+  });
+});
+
+
 router.post('/web/:id', function(req, res) {
   var sess = req.session;
   if(! sess.gomngr) {

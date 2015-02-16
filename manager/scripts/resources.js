@@ -64,6 +64,12 @@
               isArray: true,
               cache: false
             },
+            listowner: {
+              url: prefix+'/database/owner/:name',
+              method: 'GET',
+              isArray: true,
+              cache: false
+            },
             add: {
               url: prefix+'/database/:name',
               method: 'POST',
@@ -89,6 +95,12 @@
         return $resource(prefix+'/web', {}, {
             list: {
               url: prefix+'/web',
+              method: 'GET',
+              isArray: true,
+              cache: false
+            },
+            listowner: {
+              url: prefix+'/web/owner/:name',
               method: 'GET',
               isArray: true,
               cache: false
