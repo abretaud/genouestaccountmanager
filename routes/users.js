@@ -580,6 +580,12 @@ router.post('/user/:id', function(req, res) {
     res.send({'status': 1, 'msg': 'Missing field: team'});
     return;
   }
+  if (!req.param('group').match(/^[0-9a-z_]+$/)) {
+    res.send({'status': 1, 'msg': 'Group/Team name must be alphanumeric [0-9a-z_]'});
+    res.end();
+    return;
+  }
+
   if(req.param('lab')=='' || req.param('lab')==null || req.param('lab')==undefined) {
     res.send({'status': 1, 'msg': 'Missing field: lab'});
     return;

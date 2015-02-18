@@ -318,7 +318,7 @@ angular.module('genouest').controller('usermngrCtrl',
     $scope.database_delete = function(db){
       $scope.dbmsg = '';
       Database.delete({name: db}).$promise.then(function(data){
-        Database.list().$promise.then(function(data){
+        Database.listowner({name: $routeParams.id}).$promise.then(function(data){
           $scope.databases = data;
         });
       });
@@ -327,7 +327,7 @@ angular.module('genouest').controller('usermngrCtrl',
     $scope.web_delete = function(site){
       $scope.webmsg = '';
       Web.delete({name: site}).$promise.then(function(data){
-        Web.list().$promise.then(function(data){
+        Web.listowner({name: $routeParams.id}).$promise.then(function(data){
           $scope.websites = data;
         });
       });
@@ -337,7 +337,7 @@ angular.module('genouest').controller('usermngrCtrl',
       $scope.dbmsg = '';
       Database.add({name: $scope.database},{}).$promise.then(function(data){
         $scope.dbmsg = data.message;
-        Database.list().$promise.then(function(data){
+        Database.listowner({name: $routeParams.id}).$promise.then(function(data){
           $scope.databases = data;
         });
       });
@@ -347,7 +347,7 @@ angular.module('genouest').controller('usermngrCtrl',
       $scope.webmsg = '';
       Web.add({name: $scope.website},{url: $scope.website_url, description: $scope.website_description}).$promise.then(function(data){
         $scope.webmsg = data.message;
-        Web.list().$promise.then(function(data){
+        Web.listowner({name: $routeParams.id}).$promise.then(function(data){
           $scope.websites = data;
         });
       });
