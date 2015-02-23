@@ -57,6 +57,110 @@ var STATUS_PENDING_APPROVAL = 'Waiting for admin approval';
 var STATUS_ACTIVE = 'Active';
 var STATUS_EXPIRED = 'Expired';
 
+router.post('/user/:id/cloud', function(req, res){
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized, need to login first');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+
+    users_db.findOne({uid: req.param('id')}, function(err, user){
+      if(err){
+        res.status(404).send('User not found');
+        return;
+      }
+      if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
+        user.is_admin = true;
+      }
+      else {
+        user.is_admin = false;
+      }
+      if(sess.gomngr == user._id || GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0){
+        user.history.push({'action': 'genocloud creation', date: new Date().getTime()});
+            users_db.update({uid: user.uid},{'$set': {cloud: true, history: user.history}}, function(err){
+              var fid = new Date().getTime();
+              var script = "#!/bin/bash\n";
+              script += "set -e \n";
+              var password = Math.random().toString(36).substring(7);
+              script += CONFIG.cloud.script+" --create --user="+user.uid+" --password="+password+" --auth="+CONFIG.cloud.oneauth+" --email="+GENERAL_CONFIG.accounts+"\n";
+              var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
+              fs.writeFile(script_file, script, function(err) {
+                fs.chmodSync(script_file,0755);
+                var msg = CONFIG.message.cloudcreation.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', password)+"\n"+CONFIG.message.footer.join("\n");
+                var msg_html = CONFIG.message.cloudcreation.join("<br/>").replace('#UID#', user.uid).replace('#PASSWORD#', password)+"<br/>"+CONFIG.message.footer.join("<br/>");
+                var mailOptions = {
+                  from: MAIL_CONFIG.origin, // sender address
+                  to: user.email, // list of receivers
+                  subject: 'Genouest cloud creation', // Subject line
+                  text: msg,
+                  html: msg_html
+                };
+                transport.sendMail(mailOptions, function(error, response){
+                res.json({'msg': 'Account created, an email will be sent with credentials'});
+                res.end();
+                });
+              });
+              
+            });
+      }
+      else {
+        res.status(401).send('Not authorized to access this user info');
+        return;
+      }
+
+    });
+
+  });
+});
+router.delete('/user/:id/cloud', function(req, res){
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized, need to login first');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+
+    users_db.findOne({uid: req.param('id')}, function(err, user){
+      if(err){
+        res.status(404).send('User not found');
+        return;
+      }
+      if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
+        user.is_admin = true;
+      }
+      else {
+        user.is_admin = false;
+      }
+      if(sess.gomngr == user._id || GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0){
+        user.history.push({'action': 'genocloud deletion', date: new Date().getTime()});
+            users_db.update({uid: user.uid},{'$set': {cloud: false, history: user.history}}, function(err){
+              var fid = new Date().getTime();
+              var script = "#!/bin/bash\n";
+              script += "set -e \n";
+              var password = Math.random().toString(36).substring(7);
+              script += CONFIG.cloud.script+" --delete --user="+user.uid+" --auth="+CONFIG.cloud.oneauth+" --email="+GENERAL_CONFIG.accounts+"\n";
+              var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
+              fs.writeFile(script_file, script, function(err) {
+                fs.chmodSync(script_file,0755);
+                res.json({'msg': 'Account deleted with associated VMs'});
+                res.end();
+              });
+
+            });
+      }
+      else {
+        res.status(401).send('Not authorized to access this user info');
+        return;
+      }
+
+    });
+
+  });
+
+});
+
+
 router.post('/group/:id', function(req, res){
   var sess = req.session;
   if(! sess.gomngr) {
@@ -322,6 +426,11 @@ router.delete('/user/:id', function(req, res){
       else {
       // Must check if user has databases and sites
       // Do not remove in this case, owners must be changed before
+      if(user.cloud) {
+          res.send({message: 'User has a cloud account, please delete it first!'});
+          res.end();
+          return;
+      }
       databases_db.find({owner: uid}, function(err, databases){
         if(databases && databases.length>0) {
           res.send({message: 'User owns some databases, please change owner first!'});
@@ -430,6 +539,9 @@ router.get('/user/:id/activate', function(req, res) {
                 script += "mkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh\n";
                 script += "ln -s /index/ClusterDocumentation/README "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/README\n";
                 script += "touch "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/authorized_keys\n";
+                script += "echo \"Host *\" > "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/config\n";
+                script += "echo \"  StrictHostKeyChecking no\" >> "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/config\n";
+                script += "echo \"   UserKnownHostsFile=/dev/null\" >> "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/config\n";
                 script += "mkdir -p /omaha-beach/"+user.uid+"\n";
                 script += "chown -R "+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
                 script += "chown -R "+user.uid+" /omaha-beach/"+user.uid+"\n";
@@ -526,8 +638,9 @@ router.get('/user/:id/confirm', function(req, res) {
     }
     else {
         if(user.regkey == regkey) {
-          if(user.status == STATUS_PENDING_APPROVAL) {
-            // Already pending
+          //if(user.status == STATUS_PENDING_APPROVAL) {
+          if(user.status != STATUS_PENDING_EMAIL) {
+            // Already pending or active
             res.redirect(GENERAL_CONFIG.url+'/manager/index.html#/pending');
             res.end();
             return;
@@ -629,6 +742,7 @@ router.post('/user/:id', function(req, res) {
         is_genouest: false,
         uidnumber: -1,
         gidnumber: -1,
+        cloud: false,
         duration: req.param('duration'),
         expiration: new Date().getTime() + 1000*3600*24*365*req.param('duration'),
         loginShell: '/bin/bash',

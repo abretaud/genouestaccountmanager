@@ -292,6 +292,21 @@ angular.module('genouest').controller('usermngrCtrl',
       $scope.websites = data;
     });
 
+    $scope.create_cloud_account = function() {
+      User.create_cloud({name: $scope.user.uid},{}).$promise.then(function(data){
+        $scope.msg = data.msg;
+        $scope.user.cloud = true;
+      });
+    };
+
+    $scope.delete_cloud_account = function() {
+      User.delete_cloud({name: $scope.user.uid}).$promise.then(function(data){
+        $scope.msg = data.msg;
+        $scope.user.cloud = false;
+      });
+    };
+
+
     $scope.add_secondary_group = function() {
       var sgroup = $scope.user.newgroup;
       if(sgroup.trim()!=''){

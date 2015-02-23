@@ -1,48 +1,44 @@
 {
   "general": {
     "db": "gomngr",
-    "url": "http://localhost:3000",
-    "admin": [ "osallou" ],
-    "support": "olivier.sallou@irisa.fr",
-    "accounts": "accounts@genouest.org",
-    "secret": "",
-    "script_dir": "/tmp",
+    "url": "https://my.genouest.org",
+    "admin": [ "osallou", "ocollin", "alauriou", "sphilipp" ],
+    "support": "support@genouest.org",
+    "secret": "thisissecretgenouestpass",
+    "script_dir": "/opt/gomngr/scripts",
     "admin_ip": [ "127.0.0.1" ],
-    "usage_directory": "/tmp",
+    "usage_directory": "/omaha-beach/admin/storage/",
     "home": "/home",
     "main_groups": [ "", "genouest", "symbiose", "irisa"]
  },
- "cloud": {
-    "oneauth": ""
-  },
  "mongo": {
     "host": "localhost",
     "port": 27017
  },
  "mail": {
-    "host": "mailtrap.io",
+    "host": "genogrid",
     "port": 25,
     "secure": false,
     "user": "",
     "password": "",
-    "origin": ""
+    "origin": "support@genouest.org"
   },
   "ldap": {
-    "host": "localhost",
-    "dn": "dc=nodomain",
+    "host": "dsldap",
+    "dn": "dc=genouest,dc=org",
     "admin_cn": "cn=admin",
-    "admin_dn": "dc=nodomain",
-    "admin_password": ""
+    "admin_dn": "cn=Administrators,cn=config",
+    "admin_password": "admindsee"
   },
   "mysql": {
-    "host": "localhost",
+    "host": "genobdd",
     "user": "root",
-    "password": "XXX"
+    "password": "CpaCroyab!"
   },
   "mailchimp": {
-    "apikey": "",
-    "list": "",
-    "template": ""
+    "apikey": "e1d45483b1a9e88adc37fde75b8d650b-us9",
+    "list": "203ff48f94",
+    "template": "184977"
   },
   "message": {
     "activation": [
@@ -75,11 +71,6 @@
       "A number of data banks are available and automatically udpated in directory /db.",
       "The list of data banks with their location and format are available at http://banks.genouest.org/BmajWatcher"
     ],
-    "cloudcreation": [
-      "An account for genocloud has been created with id #UID# and password #PASSWORD#.",
-      "You can have more information at http://genocloud.genouest.org/.",
-      "Do not forget to change your password and set your SSH public key in your  settings."
-    ],
     "reactivation": [
       "Your account (#UID#) has been reactivated. Your password has been reset to #PASSWORD#",
       "Activation should be effective in the next hour.",
@@ -101,16 +92,16 @@
       "#LINK#",
       ""
     ],
-    "emailconfirmation": [
-     "You have created an account on GenOuest platform, please confirm your subscription at the following link:",
-     "#LINK#",
-     "You will receive an email when your account has been validated."
-    ],
     "footer": [
       "GenOuest BioInformatics Platform - support at support@genouest.org",
       "Campus de Beaulieu",
       "Avenue du General Leclerc",
       "35000 RENNES"
+    ],
+    "emailconfirmation": [
+     "You have created an account on GenOuest platform, please confirm your subscription at the following link:",
+     "#LINK#",
+     "You will receive an email when your account has been validated."
     ]
   }
 

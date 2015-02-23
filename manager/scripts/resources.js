@@ -223,6 +223,18 @@
               method: 'DELETE',
               isArray: false,
               cache: false
+            },
+            create_cloud: {
+              url: prefix+'/user/:name/cloud',
+              method: 'POST',
+              isArray: false,
+              cache: false
+            },
+            delete_cloud: {
+              url: prefix+'/user/:name/cloud',
+              method: 'DELETE',
+              isArray: false,
+              cache: false
             }
           });
       }
