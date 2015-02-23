@@ -71,7 +71,7 @@ end.parse!
 # OpenNebula credentials
 CREDENTIALS = options[:auth]
 # XML_RPC endpoint where OpenNebula is listening
-ENDPOINT    = "http://localhost:2633/RPC2"
+ENDPOINT    = "http://genokvm4:2633/RPC2"
 
 client = Client.new(CREDENTIALS, ENDPOINT)
 
