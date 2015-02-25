@@ -26,8 +26,8 @@ module.exports = {
     //user_ldif += "dn: uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\n";
     user_ldif += "dn: cn="+user.firstname+" "+user.lastname+",ou=people,"+CONFIG.ldap.dn+"\n";
     user_ldif += "changetype: modify\n";
-    user_ldif += "replace: password\n";
-    user_ldif += "password: "+user.password+"\n";
+    user_ldif += "replace: userpassword\n";
+    user_ldif += "userpassword: "+user.password+"\n";
 
     fs.writeFile(CONFIG.general.script_dir+'/'+user.uid+"."+fid+".ldif", user_ldif, function(err) {
       callback(err);
