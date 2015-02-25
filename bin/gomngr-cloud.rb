@@ -119,9 +119,9 @@ if options[:delete]
   user_vm_pool.each do |vm|
     vm.info
     msg += vm.name.to_s+"\n"
-    #vm.delete
+    vm.delete
   end
-  #myuser.delete
+  myuser.delete
   sendEmail('Genocloud delete '+options[:user], msg, options[:email])
 end
 
