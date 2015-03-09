@@ -23,8 +23,8 @@ module.exports = {
   reset_password: function(user, fid, callback){
 
     var user_ldif = "";
-    //user_ldif += "dn: uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\n";
-    user_ldif += "dn: cn="+user.firstname+" "+user.lastname+",ou=people,"+CONFIG.ldap.dn+"\n";
+    user_ldif += "dn: uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\n";
+    //user_ldif += "dn: cn="+user.firstname+" "+user.lastname+",ou=people,"+CONFIG.ldap.dn+"\n";
     user_ldif += "changetype: modify\n";
     user_ldif += "replace: userpassword\n";
     user_ldif += "userpassword: "+user.password+"\n";
@@ -86,8 +86,8 @@ module.exports = {
       return;
     }
     var user_ldif = "";
-    //user_ldif += "dn: uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\n";
-    user_ldif += "dn: cn="+user.firstname+" "+user.lastname+",ou=people,"+CONFIG.ldap.dn+"\n";
+    user_ldif += "dn: uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\n";
+    //user_ldif += "dn: cn="+user.firstname+" "+user.lastname+",ou=people,"+CONFIG.ldap.dn+"\n";
     user_ldif += "changetype: modify\n";
     //user_ldif += "replace: cn\n";
     //user_ldif += "cn: "+user.firstname+" "+user.lastname+"\n";
