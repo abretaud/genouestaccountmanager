@@ -1167,7 +1167,7 @@ router.put('/user/:id', function(req, res) {
         user.responsible = req.param('responsible');
 
         var is_admin = false;
-        if(GENERAL_CONFIG.admin.indexOf(user.uid) >= 0) {
+        if(GENERAL_CONFIG.admin.indexOf(session_user.user.uid) >= 0) {
           is_admin = true;
         }
 
@@ -1198,7 +1198,7 @@ router.put('/user/:id', function(req, res) {
 
           if(user.status == STATUS_ACTIVE){
             users_db.update({_id: user._id}, user, function(err){
-              if(is_admin) {
+              if(session_user.is_admin) {
                 user.is_admin = true;
               }
               var fid = new Date().getTime();
@@ -1210,13 +1210,15 @@ router.put('/user/:id', function(req, res) {
                   var script = "#!/bin/bash\n";
                   script += "set -e \n"
                   script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
-                  if(user.oldgroup != user.group || user.oldmaingroup != user.maingroup) {
-                    // If group modification, change home location
-                    script += "if [ ! -e "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+" ]; then\n"
-                    script += "\tmkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
-                    script += "fi\n";
-                    script += "mv "+CONFIG.general.home+"/"+user.oldmaingroup+"/"+user.oldgroup+"/"+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/\n";
-                    script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/"+user.uid+"\n";
+                  if(session_user.is_admin) {
+                    if(user.oldgroup != user.group || user.oldmaingroup != user.maingroup) {
+                      // If group modification, change home location
+                      script += "if [ ! -e "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+" ]; then\n"
+                      script += "\tmkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"\n";
+                      script += "fi\n";
+                      script += "mv "+CONFIG.general.home+"/"+user.oldmaingroup+"/"+user.oldgroup+"/"+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/\n";
+                      script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/"+user.uid+"\n";
+                    }
                   }
                   var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
                   fs.writeFile(script_file, script, function(err) {
