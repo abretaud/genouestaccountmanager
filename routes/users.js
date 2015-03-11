@@ -453,7 +453,7 @@ router.delete('/user/:id', function(req, res){
             var script = "#!/bin/bash\n";
             //script += "set -e \n"
             script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+uid+"."+fid+".ldif\n";
-            script += "ldapdelete -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn +" \"cn="+user.firstname+" "+user.lastname+",ou=people,"+CONFIG.ldap.dn+"\"\n";
+            script += "ldapdelete -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn +" \"uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\"\n";
             script += "rm -rf "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
             script += "rm -rf /omaha-beach/"+user.uid+"\n";
 
