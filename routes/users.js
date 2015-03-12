@@ -1167,7 +1167,7 @@ router.put('/user/:id', function(req, res) {
         user.responsible = req.param('responsible');
 
         var is_admin = false;
-        if(GENERAL_CONFIG.admin.indexOf(session_user.user.uid) >= 0) {
+        if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
           is_admin = true;
         }
 
