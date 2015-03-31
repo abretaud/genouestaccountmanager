@@ -1094,6 +1094,11 @@ router.put('/user/:id/ssh', function(req, res) {
           user.ssh = escapeshellarg(req.param('ssh'));
           var script = "#!/bin/bash\n";
           script += "set -e \n";
+          script += "if [ ! -e ~"+user.uid+"/.ssh ]; then\n";
+          script += "  mkdir -p ~"+user.uid+"/.ssh\n";
+          script += "  touch  ~"+user.uid+"/.ssh/authorized_keys\n";
+          script += "  chown -R "+user.uid+" ~"+user.uid+"/.ssh/\n";
+          script += "fi\n"; 
           script += "echo "+user.ssh+" >> ~"+user.uid+"/.ssh/authorized_keys\n";
           var fid = new Date().getTime();
           var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
