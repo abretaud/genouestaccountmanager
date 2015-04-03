@@ -31,6 +31,10 @@ angular.module('genouest', ['genouest.resources', 'ngSanitize', 'ngCookies', 'ng
             templateUrl: 'views/main.html',
             controller: 'mainCtrl'
         });
+        $routeProvider.when('/registered', {
+            templateUrl: 'views/registered.html',
+            controller: 'registeredCtrl'
+        });
         $routeProvider.when('/pending', {
             templateUrl: 'views/pending.html',
             controller: 'pendingCtrl'
@@ -75,7 +79,23 @@ angular.module('genouest', ['genouest.resources', 'ngSanitize', 'ngCookies', 'ng
             redirectTo: '/'
         });
       }
-]);
+])
+.config(['$httpProvider', function ($httpProvider){
+    $httpProvider.interceptors.push( function($q){
+        return {
+            'response': function(response){
+                return response;
+            },
+            'responseError': function(rejection){
+                if(rejection.status == 401) {
+                    // Route to #/login
+                    location.replace('#/login');
+                }
+                return $q.reject(rejection);
+            }
+        };
+    });
+}]);
 
 angular.module('genouest').controller('genouestCtrl',
     function ($rootScope) {
@@ -84,7 +104,9 @@ angular.module('genouest').controller('genouestCtrl',
             $rootScope.alerts.splice(index, 1);
         };
     });
-
+angular.module('genouest').controller('registeredCtrl',
+    function ($rootScope) {
+    });
 angular.module('genouest').controller('logsCtrl',
     function ($scope, $rootScope, User, Auth, GOLog, GOActionLog) {
       $scope.logs = GOLog.get();
@@ -440,7 +462,9 @@ angular.module('genouest').controller('userCtrl',
          Auth.setUser($scope.user);
       }
       else {
-        $location.path('/login');
+        if($location.path().indexOf("renew") == -1) {
+            $location.path('/login');
+        }
       }
     });
 
@@ -469,7 +493,6 @@ angular.module('genouest').controller('loginCtrl',
     var ERROR = 1;
 
     $scope.duration = 1;
-    $scope.registered = false;
 
     IP.get().$promise.then(function(data) {
       var ips = data.ip.split(',');
@@ -518,7 +541,7 @@ angular.module('genouest').controller('loginCtrl',
       }).$promise.then(function(data){
         $scope.msg = data.msg;
         $scope.msgstatus = data.status;
-        $scope.registered = true;
+        $location.path('/registered');
       });
     };
 
