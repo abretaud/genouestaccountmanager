@@ -23,9 +23,15 @@ module.exports = {
       callback();
       return;
     }
-    mc.lists.unsubscribe({id: CONFIG.mailchimp.list, email:{email: email}, delete_member: true}, function(data) {
-      callback();
-    });
+    try {
+        mc.lists.unsubscribe({id: CONFIG.mailchimp.list, email:{email: email}, delete_member: true}, function(data) {
+            callback();
+        });
+    }
+    catch(err) {
+        callback();
+    }
+
   },
   modify: function(oldemail, newemail, callback) {
     if(newemail==undefined ||newemail==null || newemail=='') {

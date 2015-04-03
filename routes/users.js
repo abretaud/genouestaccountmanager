@@ -543,8 +543,8 @@ router.get('/user/:id/activate', function(req, res) {
                 script += "echo \"  StrictHostKeyChecking no\" >> "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/config\n";
                 script += "echo \"   UserKnownHostsFile=/dev/null\" >> "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/config\n";
                 script += "mkdir -p /omaha-beach/"+user.uid+"\n";
-                script += "chown -R "+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
-                script += "chown -R "+user.uid+" /omaha-beach/"+user.uid+"\n";
+                script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
+                script += "chown -R "+user.uid+":"+user.group+" /omaha-beach/"+user.uid+"\n";
                 var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
                 fs.writeFile(script_file, script, function(err) {
                   fs.chmodSync(script_file,0755);
@@ -1096,8 +1096,9 @@ router.put('/user/:id/ssh', function(req, res) {
           script += "set -e \n";
           script += "if [ ! -e ~"+user.uid+"/.ssh ]; then\n";
           script += "  mkdir -p ~"+user.uid+"/.ssh\n";
+          script += "  chmod -R 600 ~"+user.uid+"/.ssh\n";
           script += "  touch  ~"+user.uid+"/.ssh/authorized_keys\n";
-          script += "  chown -R "+user.uid+" ~"+user.uid+"/.ssh/\n";
+          script += "  chown -R "+user.uid+":"+user.group+" ~"+user.uid+"/.ssh/\n";
           script += "fi\n"; 
           script += "echo "+user.ssh+" >> ~"+user.uid+"/.ssh/authorized_keys\n";
           var fid = new Date().getTime();
@@ -1105,6 +1106,7 @@ router.put('/user/:id/ssh', function(req, res) {
           fs.writeFile(script_file, script, function(err) {
             fs.chmodSync(script_file,0755);
             user.fid = fid;
+            user.ssh = req.param('ssh');
             res.send(user);
             res.end();
             return;

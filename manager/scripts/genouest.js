@@ -469,6 +469,7 @@ angular.module('genouest').controller('loginCtrl',
     var ERROR = 1;
 
     $scope.duration = 1;
+    $scope.registered = false;
 
     IP.get().$promise.then(function(data) {
       var ips = data.ip.split(',');
@@ -517,6 +518,7 @@ angular.module('genouest').controller('loginCtrl',
       }).$promise.then(function(data){
         $scope.msg = data.msg;
         $scope.msgstatus = data.status;
+        $scope.registered = true;
       });
     };
 
