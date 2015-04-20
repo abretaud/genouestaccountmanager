@@ -541,7 +541,9 @@ angular.module('genouest').controller('loginCtrl',
       }).$promise.then(function(data){
         $scope.msg = data.msg;
         $scope.msgstatus = data.status;
-        $location.path('/registered');
+        if(data.status==0) {
+          $location.path('/registered');
+        }
       });
     };
 

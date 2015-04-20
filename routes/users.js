@@ -1096,7 +1096,7 @@ router.put('/user/:id/ssh', function(req, res) {
           script += "set -e \n";
           script += "if [ ! -e ~"+user.uid+"/.ssh ]; then\n";
           script += "  mkdir -p ~"+user.uid+"/.ssh\n";
-          script += "  chmod -R 600 ~"+user.uid+"/.ssh\n";
+          script += "  chmod -R 700 ~"+user.uid+"/.ssh\n";
           script += "  touch  ~"+user.uid+"/.ssh/authorized_keys\n";
           script += "  chown -R "+user.uid+":"+user.group+" ~"+user.uid+"/.ssh/\n";
           script += "fi\n"; 
@@ -1182,12 +1182,11 @@ router.put('/user/:id', function(req, res) {
         user.history.push({'action': 'update info', date: new Date().getTime()});
 
         // Get group gid
-        groups_db.find({'name': user.group}, function(err, group){
+        groups_db.findOne({'name': user.group}, function(err, group){
           if(err || group == null || group == undefined) {
             res.status(401).send('Group '+user.group+' does not exists, please create it first');
             return;
           }
-
           if(session_user.is_admin){
             user.oldgroup = user.group;
             user.oldgidnumber = user.gidnumber;
