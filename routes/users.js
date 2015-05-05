@@ -1182,9 +1182,10 @@ router.put('/user/:id', function(req, res) {
         user.history.push({'action': 'update info', date: new Date().getTime()});
 
         // Get group gid
-        groups_db.findOne({'name': user.group}, function(err, group){
+        //groups_db.findOne({'name': user.group}, function(err, group){
+        groups_db.findOne({'name': req.param('group')}, function(err, group){
           if(err || group == null || group == undefined) {
-            res.status(401).send('Group '+user.group+' does not exists, please create it first');
+            res.status(401).send('Group '+req.param('group')+' does not exists, please create it first');
             return;
           }
           if(session_user.is_admin){
