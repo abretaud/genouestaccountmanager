@@ -86,8 +86,8 @@
       ""
     ],
     "password_reset_request": [
-      "A password reset has been request for your account #UID# on the GenOuest platform.",
-      "If this is an error or an abuse, simply trash this email, you're password will be untouched.",
+      "A password reset has been requested for your account #UID# on the GenOuest platform.",
+      "If this is an error or an abuse, simply trash this email, your password will not be modified.",
       "If you really want to reset you password, click on the following link, a confirmation email will be sent afterward:",
       ""
     ],
