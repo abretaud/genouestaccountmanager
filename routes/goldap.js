@@ -104,7 +104,7 @@ module.exports = {
       }
       else {
       user_ldif += "replace: ou\n";
-      user_ldif += "ou: \n";
+      user_ldif += "ou: external\n";
       user_ldif += "-\n";
       }
       user_ldif += "replace: homeDirectory\n";
@@ -124,8 +124,8 @@ module.exports = {
 
     if(user.is_admin && user.oldgroup != user.group) {
       user_ldif += "-\n";
-      user_ldif += "replace: gidnumber\n";
-      user_ldif += "gidnumber: "+user.gidnumber+"\n";
+      user_ldif += "replace: gidNumber\n";
+      user_ldif += "gidNumber: "+user.gidnumber+"\n";
       // Group membership modification
       user_ldif += "\ndn: cn="+user.oldgroup+",ou=groups,"+CONFIG.ldap.dn+"\n";
       user_ldif += "changetype: modify\n";
@@ -182,8 +182,8 @@ module.exports = {
     user_ldif += 'homeDirectory: '+CONFIG.general.home+'/'+user.maingroup+'/'+user.group+'/'+user.uid+"\n";
     user_ldif += "loginShell: /bin/bash\n";
     user_ldif += "userpassword: "+user.password+"\n";
-    user_ldif += "uidnumber: "+user.uidnumber+"\n";
-    user_ldif += "gidnumber: "+user.gidnumber+"\n";
+    user_ldif += "uidNumber: "+user.uidnumber+"\n";
+    user_ldif += "gidNumber: "+user.gidnumber+"\n";
     user_ldif += "objectClass: top\n";
     user_ldif += "objectClass: posixAccount\n";
     user_ldif += "objectClass: inetOrgPerson\n\n";

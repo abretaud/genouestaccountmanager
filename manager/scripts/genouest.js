@@ -110,7 +110,7 @@ angular.module('genouest').controller('registeredCtrl',
 angular.module('genouest').controller('logsCtrl',
     function ($scope, $rootScope, User, Auth, GOLog, GOActionLog) {
       $scope.logs = GOLog.get();
-      console.log(GOLog.get());
+      //console.log(GOLog.get());
       $scope.logcontent = "";
       $scope.getlog = function(obj_id, file_id) {
         GOActionLog.get({id: obj_id, fid: file_id}).$promise.then(function(data){
@@ -400,9 +400,14 @@ angular.module('genouest').controller('usermngrCtrl',
 
     $scope.delete = function() {
       User.delete({name: $scope.user.uid},{}).$promise.then(function(data){
-        GOLog.add($scope.user.uid, data.fid, "Delete user "+$scope.user.uid);
-        $location.path('/user');
-
+        //console.log(data.fid);
+        if(data.fid === undefined) {
+            $scope.msg = data.message;
+        }
+        else { 
+            GOLog.add($scope.user.uid, data.fid, "Delete user "+$scope.user.uid);
+            $location.path('/user');
+        }
       });
     };
 
@@ -443,6 +448,7 @@ angular.module('genouest').controller('usermngrCtrl',
     $scope.update_ssh = function() {
       User.update_ssh({name: $scope.user.uid}, {ssh: $scope.user.ssh}).$promise.then(function(data) {
         $scope.user = data;
+        $scope.ssh_message = "SSH key added";
         GOLog.add($scope.user.uid, data.fid, "Add SSH key for user "+$scope.user.uid);
       });
     }
