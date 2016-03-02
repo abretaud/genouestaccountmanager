@@ -409,6 +409,11 @@ router.delete('/user/:id', function(req, res){
 
     var uid = req.param('id');
     users_db.findOne({uid: uid}, function(err, user){
+      if(err) {
+            res.send({message: 'User not found '+req.param('id')});
+            res.end();
+            return;
+      }
       if(user.status == STATUS_PENDING_EMAIL || user.status == STATUS_PENDING_APPROVAL){
         // not yet active, simply delete
         users_db.remove({_id: user._id}, function(err){
