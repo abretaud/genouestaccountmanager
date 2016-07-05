@@ -468,7 +468,7 @@ angular.module('genouest').controller('userCtrl',
          Auth.setUser($scope.user);
       }
       else {
-        if($location.path().indexOf("renew") == -1) {
+        if($location.path().indexOf("renew") == -1 && $location.path().indexOf("pending") == -1) {
             $location.path('/login');
         }
       }
