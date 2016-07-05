@@ -41,7 +41,36 @@
               method: 'POST',
               isArray: false,
               cache: false
-            }
+          }
+          });
+      }
+
+      function Project($resource) {
+        return $resource(prefix+'/project', {}, {
+            list: {
+              url: prefix+'/project',
+              method: 'GET',
+              isArray: true,
+              cache: false
+            },
+            add: {
+              url: prefix+'/project',
+              method: 'POST',
+              isArray: false,
+              cache: false
+          },
+            update: {
+              url: prefix+'/project/:name',
+              method: 'POST',
+              isArray: false,
+              cache: false
+          },
+          delete: {
+            url: prefix+'/project/:name',
+            method: 'DELETE',
+            isArray: false,
+            cache: false
+          }       
           });
       }
 
@@ -235,7 +264,13 @@
               method: 'DELETE',
               isArray: false,
               cache: false
-            }
+          },
+          update_quota: {
+              url: prefix+'/user/:name/quota',
+              method: 'POST',
+              isArray: false,
+              cache: false
+          }
           });
       }
 
@@ -247,6 +282,7 @@
 
   angular.module('genouest.resources', ['ngResource'])
   .factory('Group', Group)
+  .factory('Project', Project)
   .factory('Disk', Disk)
   .factory('Database', Database)
   .factory('Web', Web)

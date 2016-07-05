@@ -128,6 +128,18 @@
                 </div>
               </div>
             </div>
+            <div class="panel-body">
+             <div>Quota: {{user.quota.disk_home_quota}}G <span ng-if="user.quota.disk_home_quota_expire">{{date_convert(user.quota.disk_home_quota_expire)}}</span> <i ng-if="session_user.is_admin" ng-click="quota_home_edit()" class="glyphicon glyphicon-pencil"> </i></div>
+             <div ng-if="do_quota_home_edit && session_user.is_admin && user.status == STATUS_ACTIVE">
+                 <form role="form" class="form-inline">
+                    <div class="form-group">
+                        <input class="form-control input-sm" type="text" id="quota_home" ng-model="user.quota.disk_home_quota"></input>
+                        <input class="form-control input-sm" type="date" id="quota_home_expire" ng-model="user.quota.disk_home_quota_expire"></input>
+                        <button class="btn btn-primary btn-sm" ng-click="update_quota_home()">Update</button>
+                    </div>
+                 </form>
+             </div>
+            </div>
             <div class="panel-footer">
                 <span class="pull-left">{{date_convert(home_date)}}</span>
                 <div class="clearfix"></div>
@@ -146,6 +158,18 @@
                       <div>Omaha</div>
                 </div>
               </div>
+            </div>
+            <div class="panel-body">
+             <div>Quota: {{user.quota.disk_omaha_quota}}G <span ng-if="user.quota.disk_omaha_quota_expire">{{date_convert(user.quota.disk_omaha_quota_expire)}}</span> <i ng-if="session_user.is_admin" ng-click="quota_omaha_edit()" class="glyphicon glyphicon-pencil"> </i></div>
+             <div ng-if="do_quota_omaha_edit && session_user.is_admin && user.status == STATUS_ACTIVE">
+                 <form role="form" class="form-inline">
+                    <div class="form-group">
+                        <input class="form-control input-sm" type="text" id="quota_omaha" ng-model="user.quota.disk_omaha_quota"></input>
+                        <input class="form-control input-sm" type="date" id="quota_omaha_expire" ng-model="user.quota.disk_omaha_quota_expire"></input>
+                        <button class="btn btn-primary btn-sm" ng-click="update_quota_omaha()">Update</button>
+                    </div>
+                 </form>
+             </div>
             </div>
             <div class="panel-footer">
                 <span class="pull-left">{{date_convert(omaha_date)}}</span>

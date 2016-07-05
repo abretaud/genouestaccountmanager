@@ -59,6 +59,10 @@ angular.module('genouest', ['genouest.resources', 'ngSanitize', 'ngCookies', 'ng
             templateUrl: 'views/groups.html',
             controller: 'groupsmngrCtrl'
         });
+        $routeProvider.when('/project', {
+            templateUrl: 'views/projects.html',
+            controller: 'projectsmngrCtrl'
+        });
         $routeProvider.when('/database', {
             templateUrl: 'views/databases.html',
             controller: 'databasesmngrCtrl'
@@ -180,6 +184,66 @@ angular.module('genouest').controller('messageCtrl',
     });
 
 
+angular.module('genouest').controller('projectsmngrCtrl',
+  function($scope, $rootScope, $routeParams, $log, $location, Project, Auth, GOLog) {
+
+    $scope.project_list = function(){
+        Project.list().$promise.then(function(data) {
+            for(var i=0;i<data.length;i++){
+                data[i].expire = new Date(data[i].expire);
+            }
+            $scope.projects = data;
+        });
+    };
+    $scope.project_list();
+
+    $scope.project_id = '';
+    $scope.project_owner = null;
+    $scope.project_group = null;
+    $scope.project_expire = null;
+    $scope.project_size = null;
+
+
+    $scope.date_convert = function timeConverter(tsp){
+      var a = new Date(tsp);
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var year = a.getFullYear();
+      var month = months[a.getMonth()];
+      var date = a.getDate();
+      var hour = a.getHours();
+      var min = a.getMinutes();
+      var sec = a.getSeconds();
+      var time = date + ',' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+      return time;
+    }
+
+    $scope.add_project = function(){
+          if($scope.project_id == '') {
+            return;
+          }
+          Project.add({},{'id': $scope.project_id, 'owner': $scope.project_owner, 'group': $scope.project_group, 'size': $scope.project_size, 'expire': new Date($scope.project_expire).getTime()}).$promise.then(function(data){
+            $scope.msg = '';
+            Project.list().$promise.then(function(data) {
+              $scope.projects = data;
+            }, function(error){
+              $scope.msg = error.data;
+            });
+          });
+    };
+    $scope.update_project = function(project){
+        Project.update({'name': project.id},{'size': project.size, 'expire': new Date(project.expire).getTime(), 'owner': project.owner, 'group': project.group}).$promise.then(function(data){
+          $scope.project_list();
+        });
+    };
+
+    $scope.delete_project = function(project){
+        Project.delete({'name': project.id}).$promise.then(function(data){
+          $scope.project_list();
+        });
+    };
+
+});
+
 angular.module('genouest').controller('groupsmngrCtrl',
   function($scope, $rootScope, $routeParams, $log, $location, Group, Auth, GOLog) {
     Group.list().$promise.then(function(data) {
@@ -250,6 +314,29 @@ angular.module('genouest').controller('usermngrCtrl',
     $scope.session_user = Auth.getUser();
     $scope.maingroups = ['genouest', 'irisa', 'symbiose'];
     $scope.selected_group = '';
+    $scope.do_quota_home_edit = false;
+
+    $scope.quota_home_edit = function() {
+        $scope.do_quota_home_edit = true;
+    }
+    $scope.update_quota_home = function() {
+        $scope.do_quota_home_edit = false;
+        User.update_quota({name: $scope.user.uid},{'disk': 'home', 'size': $scope.user.quota.disk_home_quota, 'expire': new Date($scope.user.quota.disk_home_quota_expire).getTime()}).$promise.then(function(data){
+          $scope.msg = data.message;
+        });
+    }
+
+    $scope.do_quota_omaha_edit = false;
+
+    $scope.quota_omaha_edit = function() {
+        $scope.do_quota_omaha_edit = true;
+    }
+    $scope.update_quota_omaha = function() {
+        $scope.do_quota_omaha_edit = false;
+        User.update_quota({name: $scope.user.uid}, {'disk': 'omaha', 'size': $scope.user.quota.disk_omaha_quota, 'expire': new Date($scope.user.quota.disk_omaha_quota_expire).getTime()}).$promise.then(function(data){
+          $scope.msg = data.message;
+        });
+    }
 
     $scope.change_group = function() {
       //console.log($scope.selected_group);
@@ -404,7 +491,7 @@ angular.module('genouest').controller('usermngrCtrl',
         if(data.fid === undefined) {
             $scope.msg = data.message;
         }
-        else { 
+        else {
             GOLog.add($scope.user.uid, data.fid, "Delete user "+$scope.user.uid);
             $location.path('/user');
         }

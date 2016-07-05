@@ -14,6 +14,7 @@ var disks = require('./routes/disks');
 var database = require('./routes/database');
 var web = require('./routes/web');
 var logs = require('./routes/logs');
+var projects = require('./routes/projects');
 
 var CONFIG = require('config');
 
@@ -71,10 +72,15 @@ app.get('/user/:id/confirm', users);
 app.get('/user/:id/passwordreset', users);
 app.get('/user/:id/passwordreset/:key', users);
 app.post('/user/:id/cloud', users);
+app.post('/user/:id/quota', users);
 app.delete('/user/:id/cloud', users);
 app.post('/user/:id/group/:group', users);
 app.delete('/user/:id/group/:group', users);
 app.delete('/user/:id', users);
+app.get('/project', projects);
+app.post('/project', projects);
+app.post('/project/:id', projects);
+app.delete('/project/:id', projects);
 
 app.get('/auth', auth);
 app.post('/auth/:id', auth);

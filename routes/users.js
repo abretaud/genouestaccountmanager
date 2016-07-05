@@ -57,6 +57,50 @@ var STATUS_PENDING_APPROVAL = 'Waiting for admin approval';
 var STATUS_ACTIVE = 'Active';
 var STATUS_EXPIRED = 'Expired';
 
+
+router.post('/user/:id/quota', function(req, res){
+    var sess = req.session;
+    if(! sess.gomngr) {
+      res.status(401).send('Not authorized, need to login first');
+      return;
+    }
+    users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+
+      users_db.findOne({uid: req.param('id')}, function(err, user){
+        if(err){
+          res.status(404).send('User not found');
+          return;
+        }
+        if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
+          user.is_admin = true;
+        }
+        else {
+          user.is_admin = false;
+        }
+
+        if(sess.gomngr == user._id || GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0){
+          user.history.push({'action': 'Quota update:'+req.param('disk')+','+req.param('size')+','+new Date(req.param('expire')), date: new Date().getTime()});
+          var elts = {history: user.history};
+          elts['quota.disk_'+req.param('disk')+'_quota'] = req.param('size');
+          elts['quota.disk_'+req.param('disk')+'_quota_expire'] = req.param('expire');
+          users_db.update({uid: user.uid},{'$set': elts
+                                           }, function(err){
+                                                res.json({'msg': 'Quota updated'});
+                                                res.end();
+                                            });
+        }
+        else {
+          res.status(401).send('Not authorized to access this user info');
+          return;
+        }
+
+        });
+    });
+
+
+});
+
+
 router.post('/user/:id/cloud', function(req, res){
   var sess = req.session;
   if(! sess.gomngr) {
@@ -101,7 +145,7 @@ router.post('/user/:id/cloud', function(req, res){
                 res.end();
                 });
               });
-              
+
             });
       }
       else {
@@ -618,6 +662,17 @@ router.get('/user/:id', function(req, res) {
       else {
         user.is_admin = false;
       }
+      if(user.quota == undefined) {
+          user.quota = {};
+      }
+      if(user.quota.disk_home_quota == undefined) {
+          user.quota.disk_home_quota = GENERAL_CONFIG.quota.home;
+          user.quota.disk_home_quota_expire = null;
+      }
+      if(user.quota.disk_omaha_quota == undefined) {
+          user.quota.disk_omaha_quota = GENERAL_CONFIG.quota.omaha;
+          user.quota.disk_omaha_quota_expire = null;
+      }
       if(sess.gomngr == user._id || GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0){
         res.json(user);
         return;
@@ -1104,7 +1159,7 @@ router.put('/user/:id/ssh', function(req, res) {
           script += "  chmod -R 700 ~"+user.uid+"/.ssh\n";
           script += "  touch  ~"+user.uid+"/.ssh/authorized_keys\n";
           script += "  chown -R "+user.uid+":"+user.group+" ~"+user.uid+"/.ssh/\n";
-          script += "fi\n"; 
+          script += "fi\n";
           script += "echo "+user.ssh+" >> ~"+user.uid+"/.ssh/authorized_keys\n";
           var fid = new Date().getTime();
           var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";

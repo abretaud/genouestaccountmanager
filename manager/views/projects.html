@@ -1,0 +1,47 @@
+<div class="row">
+  <h4>Projects</h4>
+  <form role="form" class="user-form form-horizonal">
+    <div class="form-group">
+        <label for="project_id">Project name</label>
+      <input placeholder="project name" type="text" id="project_id" ng-model="project_id"/>
+    </div>
+    <div class="form-group">
+        <label for="project_owner">Project owner</label>
+      <input placeholder="project owner" type="text" id="project_owner" ng-model="project_owner"/>
+    </div>
+    <div class="form-group">
+        <label for="project_group">Project group</label>
+      <input placeholder="project group" type="text" id="project_group" ng-model="project_group"/>
+    </div>
+    <div class="form-group">
+        <label for="project_size">Project size</label>
+      <input placeholder="project size in G" type="number" id="project_size" ng-model="project_size"/>
+    </div>
+    <div class="form-group">
+        <label for="project_id">Project expiration</label>
+      <input type="date" id="project_expire" ng-model="project_expire"/>
+    </div>
+    <div class="form-group">
+      <button type="button" class="btn btn-primary" ng-click="add_project()">Create</button>
+    </div>
+    <div class="alert" ng-if="msg">{{msg}}</div>
+  </form>
+</div>
+<div class="row">
+  <table datatable="ng" class="table table-striped">
+    <thead>
+      <th>Project</th><th>Owner</th><th>Group</th><th>Size</th><th>Expire</th><th></th><th></th>
+    </thead>
+    <tbody>
+      <tr ng-repeat="project in projects">
+        <td>{{project.id}}</td>
+        <td><input type="text" ng-model="project.owner"/></td>
+        <td><input type="text" ng-model="project.group"/></td>
+        <td><input type="number" ng-model="project.size"/></td>
+        <td><input type="date" ng-model="project.expire"/></td>
+        <td><button class="btn btn-sm" ng-click="update_project(project)">Update</button></td>
+        <td><button class="btn btn-sm" ng-click="delete_project(project)">Delete</button></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
