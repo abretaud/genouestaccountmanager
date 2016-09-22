@@ -39,7 +39,7 @@ module.exports = {
       return;
     }
     mc.lists.subscribe({id: CONFIG.mailchimp.list, email:{email: newemail}, double_optin: false, update_existing: true, send_welcome: true }, function(data) {
-      mc.lists.unsubscribe({id: CONFIG.mailchimp.list, email:{email: newemail}, delete_member: true, send_notify: false }, function(data) {
+      mc.lists.unsubscribe({id: CONFIG.mailchimp.list, email:{email: oldemail}, delete_member: true, send_notify: false }, function(data) {
         callback();
       });
     }, function(error) {
