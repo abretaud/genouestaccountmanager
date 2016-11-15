@@ -222,7 +222,7 @@ router.post('/group/:id', function(req, res){
     }
     groups_db.findOne({name: req.param('id')}, function(err, group){
       if(group) {
-        res.status(401).send('Group already exists');
+        res.status(403).send('Group already exists');
         return;
       }
       var mingid = 1000;
@@ -591,6 +591,7 @@ router.get('/user/:id/activate', function(req, res) {
                 script += "echo \"Host *\" > "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/config\n";
                 script += "echo \"  StrictHostKeyChecking no\" >> "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/config\n";
                 script += "echo \"   UserKnownHostsFile=/dev/null\" >> "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/config\n";
+                script += "chmod 700 "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh\n";
                 script += "mkdir -p /omaha-beach/"+user.uid+"\n";
                 script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
                 script += "chown -R "+user.uid+":"+user.group+" /omaha-beach/"+user.uid+"\n";
@@ -780,7 +781,7 @@ router.post('/user/:id', function(req, res) {
   users_db.findOne({uid: req.param('id')}, function(err, user){
       if(user){
         res.send({'status': 1, 'msg': 'User id already exists'});
-        //res.status(401).send('User id already exists');
+        //res.status(403).send('User id already exists');
         return;
       }
 
@@ -921,7 +922,7 @@ router.get('/user/:id/passwordreset', function(req, res){
       return;
     }
     if(user.status != STATUS_ACTIVE){
-      res.status(401).send("You're account is not active");
+      res.status(401).send("Your account is not active");
       res.end();
       return;
     }
@@ -1232,7 +1233,7 @@ router.put('/user/:id', function(req, res) {
         user.oldemail = user.email;
         user.email = req.param('email');
         if(user.email == '' || user.firstname == '' || user.lastname == '') {
-          res.status(401).send('Some mandatory fields are empty');
+          res.status(403).send('Some mandatory fields are empty');
           return;
         }
         user.loginShell = req.param('loginShell').trim();
@@ -1252,7 +1253,7 @@ router.put('/user/:id', function(req, res) {
         //groups_db.findOne({'name': user.group}, function(err, group){
         groups_db.findOne({'name': req.param('group')}, function(err, group){
           if(err || group == null || group == undefined) {
-            res.status(401).send('Group '+req.param('group')+' does not exists, please create it first');
+            res.status(403).send('Group '+req.param('group')+' does not exists, please create it first');
             return;
           }
           if(session_user.is_admin){
@@ -1265,7 +1266,7 @@ router.put('/user/:id', function(req, res) {
             user.is_genouest = req.param('is_genouest');
             user.maingroup = req.param('maingroup');
             if(user.group == '' || user.group == null) {
-              res.status(401).send('Some mandatory fields are empty');
+              res.status(403).send('Some mandatory fields are empty');
               return;
             }
           }
@@ -1278,7 +1279,7 @@ router.put('/user/:id', function(req, res) {
               var fid = new Date().getTime();
               goldap.modify(user, fid, function(err){
                   if(err) {
-                    res.status(401).send('Group '+user.group+' does not exists, please create it first');
+                    res.status(403).send('Group '+user.group+' does not exists, please create it first');
                     return;
                   }
                   var script = "#!/bin/bash\n";

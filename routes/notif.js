@@ -34,16 +34,21 @@ module.exports = {
 
   },
   modify: function(oldemail, newemail, callback) {
+    console.log("Update email " + oldemail + " ==> " + newemail);
     if(newemail==undefined ||newemail==null || newemail=='') {
       callback();
       return;
     }
     mc.lists.subscribe({id: CONFIG.mailchimp.list, email:{email: newemail}, double_optin: false, update_existing: true, send_welcome: true }, function(data) {
-      mc.lists.unsubscribe({id: CONFIG.mailchimp.list, email:{email: newemail}, delete_member: true, send_notify: false }, function(data) {
+      console.log(newemail+' subscribed');
+      mc.lists.unsubscribe({id: CONFIG.mailchimp.list, email:{email: oldemail}, delete_member: true, send_notify: false }, function(data) {
+        console.log(oldemail+' unsubscribed');
         callback();
+      }, function(error){
+          console.log("Failed to unsubscribe " + oldemail + ": "+ error);
       });
     }, function(error) {
-      console.log("Failed to add "+email+" to mailing list");
+      console.log("Failed to add "+newemail+" to mailing list");
     });
   },
   send: function(subject, msg, callback) {
