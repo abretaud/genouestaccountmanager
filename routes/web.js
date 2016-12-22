@@ -86,8 +86,19 @@ router.post('/web/:id', function(req, res) {
     return;
   }
   users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+    if(CONFIG.general.admin.indexOf(session_user.uid) >= 0) {
+      session_user.is_admin = true;
+    }
+    else {
+      session_user.is_admin = false;
+    }
+
+    var owner = session_user.uid;
+    if(req.param('owner') !== undefined && session_user.is_admin) {
+        owner = req.param('owner');
+    }
     web = {
-      owner: session_user.uid,
+      owner: owner,
       name: req.param('id'),
       url: req.param('url'),
       description: req.param('description')

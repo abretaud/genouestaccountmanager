@@ -469,7 +469,7 @@ angular.module('genouest').controller('usermngrCtrl',
 
     $scope.web_add = function(){
       $scope.webmsg = '';
-      Web.add({name: $scope.website},{url: $scope.website_url, description: $scope.website_description}).$promise.then(function(data){
+      Web.add({name: $scope.website},{owner: $scope.user.uid, url: $scope.website_url, description: $scope.website_description}).$promise.then(function(data){
         $scope.webmsg = data.message;
         Web.listowner({name: $routeParams.id}).$promise.then(function(data){
           $scope.websites = data;
