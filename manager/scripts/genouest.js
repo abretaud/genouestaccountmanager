@@ -132,7 +132,11 @@ angular.module('genouest').controller('logsCtrl',
           var time = date + ',' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
           return time;
         }
-
+      $scope.get_status = function(status){
+          if(status!=0) {
+              return "alert alert-warning";
+          }
+      }
       $scope.logs = GOActionLog.list();
       //console.log(GOLog.get());
       $scope.logcontent = "";

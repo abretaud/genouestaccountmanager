@@ -5,7 +5,7 @@
     </thead>
     <tbody>
       <tr ng-repeat="log in logs">
-        <td>{{log._id}}</td>
+        <td ng-class="get_status(log.status)">{{log._id}}</td>
         <td>{{date_convert(log.date)}}</td>
         <td>{{log.action}}</td>
         <td><span ng-repeat="event in log.logs"><div ng-click="getlog(log._id, event)">{{event}}</div>

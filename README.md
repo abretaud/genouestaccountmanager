@@ -21,8 +21,16 @@ bower install
 
 ## Running
 
+
 forever start -o out.log -e err.log app.js
 
 ## Stopping
 
 forever stop app.js
+
+
+## Cron
+
+bin/gomngr.sh should be croned to execute generated scritps (every minutes). It takes as input the path to the scripts location and the url of the gomngr server.
+
+    gomngr.sh /opt/my_script_dir http://localhost:3000
