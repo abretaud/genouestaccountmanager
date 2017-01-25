@@ -34,3 +34,5 @@ forever stop app.js
 bin/gomngr.sh should be croned to execute generated scritps (every minutes). It takes as input the path to the scripts location and the url of the gomngr server.
 
     gomngr.sh /opt/my_script_dir http://localhost:3000
+
+Script execution includes home directory manipulation and ldap modifications. LDAP tools (ldap-utils with ldapmodify etc...) must be installed where the cron job is executed.
