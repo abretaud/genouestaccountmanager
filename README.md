@@ -28,6 +28,8 @@ bower install
 
 forever start -o out.log -e err.log app.js
 
+Some commands will be generated in script_dir (config), and executed by the cron task (see below). This means that some commands will have a small delay (cron execution).
+
 ## Stopping
 
 forever stop app.js
@@ -36,6 +38,7 @@ forever stop app.js
 ## Cron
 
 bin/gomngr.sh should be croned to execute generated scritps (every minutes). It takes as input the path to the scripts location and the url of the gomngr server.
+Must be executed as root
 
     gomngr.sh /opt/my_script_dir http://localhost:3000
 
