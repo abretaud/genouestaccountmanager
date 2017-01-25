@@ -120,12 +120,26 @@ angular.module('genouest').controller('registeredCtrl',
     });
 angular.module('genouest').controller('logsCtrl',
     function ($scope, $rootScope, User, Auth, GOLog, GOActionLog) {
-      $scope.logs = GOLog.get();
+        $scope.date_convert = function timeConverter(tsp){
+          var a = new Date(tsp);
+          var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          var year = a.getFullYear();
+          var month = months[a.getMonth()];
+          var date = a.getDate();
+          var hour = a.getHours();
+          var min = a.getMinutes();
+          var sec = a.getSeconds();
+          var time = date + ',' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+          return time;
+        }
+
+      $scope.logs = GOActionLog.list();
       //console.log(GOLog.get());
       $scope.logcontent = "";
-      $scope.getlog = function(obj_id, file_id) {
-        GOActionLog.get({id: obj_id, fid: file_id}).$promise.then(function(data){
+      $scope.getlog = function(log_id, event_file) {
+        GOActionLog.get({event: event_file}).$promise.then(function(data){
           $scope.logcontent = data.log.replace(/(\r\n|\n|\r)/g,"<br />");
+          $scope.logid = log_id;
         });
       };
 });

@@ -9,10 +9,16 @@
       function GOActionLog($resource) {
         return $resource(prefix+'/log', {}, {
           get: {
-            url: prefix+'/log/:id/:fid',
+            url: prefix+'/log/:event',
             method: 'GET',
             isArray: false,
             cache: false
+        },
+          list: {
+              url: prefix+'/log',
+              method: 'GET',
+              isArray: true,
+              cache: false
           }
         });
       }

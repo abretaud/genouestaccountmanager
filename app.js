@@ -45,7 +45,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', routes);
 app.get('/ip', users);
-app.get('/log/:id/:fid', logs);
+app.get('/log/:id', logs);
+app.get('/log', logs);
 app.post('/message', users);
 app.get('/group', users);
 app.post('/group/:id', users);

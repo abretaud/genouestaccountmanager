@@ -4,7 +4,8 @@ var CONFIG = require('config');
 var monk = require('monk'),
     db = monk(CONFIG.mongo.host+':'+CONFIG.mongo.port+'/'+CONFIG.general.db),
     databases_db = db.get('databases'),
-    users_db = db.get('users');
+    users_db = db.get('users'),
+    events_db = db.get('events');
 
 var mysql = require('mysql');
 
@@ -89,6 +90,7 @@ router.put('/database/:id/owner/:old/:new', function(req, res) {
       return;
     }
     databases_db.update({name: req.param('id')},{'$set': {owner: req.param('new')}}, function(err){
+      events_db.insert({'date': new Date().getTime(), 'action': 'database changed from '+req.param('old')+' to '+req.param('new'), 'logs': []}, function(err){});
       res.send({message: 'Owner changed from '+req.param('old')+' to '+req.param('new')});
       res.end();
       return;
@@ -206,6 +208,7 @@ router.post('/database/:id', function(req, res) {
                       if(error){
                         console.log(error);
                       }
+                      events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'created by ' +  sess.gomngr, 'logs': []}, function(err){});
                       res.send({message:'Database created, credentials will be sent by mail'});
                       return;
                     });

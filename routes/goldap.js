@@ -8,7 +8,8 @@ var myldap = require('ldapjs');
 var monk = require('monk'),
     db = monk(CONFIG.mongo.host+':'+CONFIG.mongo.port+'/'+CONFIG.general.db),
     groups_db = db.get('groups'),
-    users_db = db.get('users');
+    users_db = db.get('users'),
+    events_db = db.get('events');
 
 var options = {
     uri: 'ldap://'+CONFIG.ldap.host, // string

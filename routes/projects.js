@@ -47,7 +47,8 @@ if(MAIL_CONFIG.host !== 'fake') {
 var monk = require('monk'),
     db = monk(CONFIG.mongo.host+':'+CONFIG.mongo.port+'/'+GENERAL_CONFIG.db),
     projects_db = db.get('projects'),
-    users_db = db.get('users');
+    users_db = db.get('users'),
+    events_db = db.get('events');
 
 router.get('/project', function(req, res){
       var sess = req.session;
@@ -101,7 +102,7 @@ router.post('/project', function(req, res){
             'expire': req.param('expire')
         }
         projects_db.insert(new_project, function(err){
-
+            events_db.insert({'date': new Date().getTime(), 'action': 'new project creation: ' + req.param('id') , 'logs': []}, function(err){});
             res.send({'msg': 'Project created'});
             return;
         });
@@ -127,6 +128,8 @@ router.delete('/project/:id', function(req, res){
         return;
       }
       projects_db.remove({'id': req.param('id')}, function(err){
+          events_db.insert({'date': new Date().getTime(), 'action': 'remove project ' + req.param('id') , 'logs': []}, function(err){});
+
             res.send({'msg': 'Project deleted'});
             return;
         });
@@ -162,7 +165,7 @@ router.post('/project/:id', function(req, res){
             'expire': req.param('expire')
         }}
         projects_db.update({'id': req.param('id')}, new_project, function(err){
-
+            events_db.insert({'date': new Date().getTime(), 'action': 'update project ' + req.param('id') , 'logs': []}, function(err){});
             res.send({'msg': 'Project updated'});
             return;
         });

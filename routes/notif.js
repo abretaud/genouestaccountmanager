@@ -2,6 +2,11 @@ var CONFIG = require('config');
 var fs = require('fs');
 var mcapi = require('mailchimp-api/mailchimp');
 
+var monk = require('monk'),
+    db = monk(CONFIG.mongo.host+':'+CONFIG.mongo.port+'/'+CONFIG.general.db),
+    web_db = db.get('web'),
+    users_db = db.get('users'),
+    events_db = db.get('events');
 
 mc = new mcapi.Mailchimp(CONFIG.mailchimp.apikey);
 
@@ -13,6 +18,7 @@ module.exports = {
       return;
     }
     mc.lists.subscribe({id: CONFIG.mailchimp.list, email:{email: email}, double_optin: false, update_existing: true, send_welcome: true }, function(data) {
+      events_db.insert({'date': new Date().getTime(), 'action': 'add ' + email + 'to mailing list' , 'logs': []}, function(err){});
       callback();
     }, function(error) {
       console.log("Failed to add "+email+" to mailing list");
@@ -25,6 +31,7 @@ module.exports = {
     }
     try {
         mc.lists.unsubscribe({id: CONFIG.mailchimp.list, email:{email: email}, delete_member: true}, function(data) {
+            events_db.insert({'date': new Date().getTime(), 'action': 'unsubscribe ' + email + 'from mailing list' , 'logs': []}, function(err){});
             callback();
         });
     }
@@ -42,9 +49,11 @@ module.exports = {
     mc.lists.subscribe({id: CONFIG.mailchimp.list, email:{email: newemail}, double_optin: false, update_existing: true, send_welcome: true }, function(data) {
       console.log(newemail+' subscribed');
       mc.lists.unsubscribe({id: CONFIG.mailchimp.list, email:{email: oldemail}, delete_member: true, send_notify: false }, function(data) {
+        events_db.insert({'date': new Date().getTime(), 'action': 'update ' + newemail + 'in mailing list' , 'logs': []}, function(err){});
         console.log(oldemail+' unsubscribed');
         callback();
       }, function(error){
+          events_db.insert({'date': new Date().getTime(), 'action': 'update error with ' + oldemail + 'in mailing list' , 'logs': []}, function(err){});
           console.log("Failed to unsubscribe " + oldemail + ": "+ error);
       });
     }, function(error) {
