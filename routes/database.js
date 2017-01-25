@@ -171,6 +171,7 @@ router.post('/database/:id', function(req, res) {
             var sql = "CREATE DATABASE "+req.param('id')+";\n";
             connection.query(sql, function(err, results) {
               if (err) {
+                events_db.insert({'date': new Date().getTime(), 'action': 'database creation error ' + req.param('id') , 'logs': []}, function(err){});
                 res.send({message: 'Creation error: '+err});
                 res.end();
                 return
@@ -203,12 +204,13 @@ router.post('/database/:id', function(req, res) {
                     text: msg, // plaintext body
                     html: msg // html body
                   };
+                  events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'created by ' +  sess.gomngr, 'logs': []}, function(err){});
+
                   if(transport!==null) {
                     transport.sendMail(mailOptions, function(error, response){
                       if(error){
                         console.log(error);
                       }
-                      events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'created by ' +  sess.gomngr, 'logs': []}, function(err){});
                       res.send({message:'Database created, credentials will be sent by mail'});
                       return;
                     });
@@ -249,6 +251,7 @@ router.delete('/database/:id', function(req, res) {
         connection.query(sql, function(err, results) {
           sql = "DROP DATABASE "+req.param('id')+";\n";
           connection.query(sql, function(err, results) {
+            events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'deleted by ' +  sess.gomngr, 'logs': []}, function(err){});
             res.send({message: ''});
             res.end();
             return;

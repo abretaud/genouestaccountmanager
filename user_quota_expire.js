@@ -56,19 +56,19 @@ function timeConverter(tsp){
   return time;
 }
 
-// Find users expiring in less then 2 month
+// Find users quota expiring in less then 1 month
 users_db.find({status: STATUS_ACTIVE}, function(err, users){
   var mail_sent = 0;
   var notifs = [];
   for(var i=0;i<users.length;i++){
       var user = users[i];
-      if(user.quota.disk_omaha_quota_expire !== undefined && user.quota.disk_omaha_quota_expire!=null) {
+      if(user.quota && user.quota.disk_omaha_quota_expire !== undefined && user.quota.disk_omaha_quota_expire!=null) {
           if(user.quota.disk_omaha_quota_expire < new Date().getTime() + 1000*3600*24*30 && user.quota.disk_omaha_quota != CONFIG.general.quota.omaha) {
               var msg = "Quota for user "+user.uid+" omaha partition will expire at "+new Date(user.quota.disk_omaha_quota_expire);
               notifs.push(msg);
           }
       }
-      if(user.quota.disk_home_quota_expire !== undefined && user.quota.disk_home_quota_expire!=null) {
+      if(user.quota && user.quota.disk_home_quota_expire !== undefined && user.quota.disk_home_quota_expire!=null) {
           if(user.quota.disk_home_quota_expire < new Date().getTime() + 1000*3600*24*30 && user.quota.disk_home_quota != CONFIG.general.quota.home) {
               var msg = "Quota for user "+user.uid+" home partition will expire at "+new Date(user.quota.disk_home_quota_expire);
               notifs.push(msg);

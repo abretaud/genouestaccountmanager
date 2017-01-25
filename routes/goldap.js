@@ -42,31 +42,7 @@ module.exports = {
     var body = JSON.stringify({
         id: uid, password: password
     });
-    /*
-    var request = new http.ClientRequest({
-        hostname: CONFIG.general.auth_host,
-        port: 5000,
-        path: "/api/auth/bind/"+uid,
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Content-Length": Buffer.byteLength(body)
-        }
-    })
 
-    request.end(body);
-    request.on('response', function (response) {
-        err = false;
-        if (response.statusCode != 200) {
-           err = true;
-        }
-        response.setEncoding('utf8');
-        response.on('data', function (chunk) {
-            token = JSON.parse(chunk)['token']
-            callback(err, token);
-        });
-     });
-     */
      var client = myldap.createClient({
        url: 'ldap://' +  CONFIG.ldap.host
      });

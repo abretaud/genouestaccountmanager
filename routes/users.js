@@ -642,7 +642,7 @@ router.post('/user/:id', function(req, res) {
     return;
   }
   if(req.param('address')=='' || req.param('address')==null || req.param('address')==undefined) {
-    res.send({'status': 1, 'msg': 'Missing field: team'});
+    res.send({'status': 1, 'msg': 'Missing field: address'});
     return;
   }
 

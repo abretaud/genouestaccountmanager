@@ -21,6 +21,7 @@ module.exports = {
       events_db.insert({'date': new Date().getTime(), 'action': 'add ' + email + 'to mailing list' , 'logs': []}, function(err){});
       callback();
     }, function(error) {
+      events_db.insert({'date': new Date().getTime(), 'action': 'subscription error ' + email + 'to mailing list' , 'logs': []}, function(err){});
       console.log("Failed to add "+email+" to mailing list");
     });
   },
@@ -53,10 +54,11 @@ module.exports = {
         console.log(oldemail+' unsubscribed');
         callback();
       }, function(error){
-          events_db.insert({'date': new Date().getTime(), 'action': 'update error with ' + oldemail + 'in mailing list' , 'logs': []}, function(err){});
+          events_db.insert({'date': new Date().getTime(), 'action': 'unsubscribe error with ' + oldemail + 'in mailing list' , 'logs': []}, function(err){});
           console.log("Failed to unsubscribe " + oldemail + ": "+ error);
       });
     }, function(error) {
+      events_db.insert({'date': new Date().getTime(), 'action': 'subscription error with ' + newemail + 'in mailing list' , 'logs': []}, function(err){});
       console.log("Failed to add "+newemail+" to mailing list");
     });
   },
