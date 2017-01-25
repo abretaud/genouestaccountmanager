@@ -2,6 +2,8 @@
 
 ## Config
 
+All configuration is in config/default.json
+
 If server is using a prefix to access it (such as http://x.y.z/gomngr):
 
 update manager/scripts/resources.js:

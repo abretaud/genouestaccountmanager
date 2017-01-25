@@ -28,9 +28,6 @@
         }
     }    
  },
- "cloud": {
-    "oneauth": ""
-  },
  "mongo": {
     "host": "localhost",
     "port": 27017
