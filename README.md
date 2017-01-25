@@ -2,6 +2,8 @@
 
 ## Config
 
+If server is using a prefix to access it (such as http://x.y.z/gomngr):
+
 update manager/scripts/resources.js:
 
     var prefix = '/my_url_prefix';
