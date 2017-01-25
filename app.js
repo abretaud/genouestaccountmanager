@@ -15,6 +15,7 @@ var database = require('./routes/database');
 var web = require('./routes/web');
 var logs = require('./routes/logs');
 var projects = require('./routes/projects');
+var quota = require('./routes/quota');
 
 var CONFIG = require('config');
 
@@ -48,6 +49,7 @@ app.get('/log/:id/:fid', logs);
 app.post('/message', users);
 app.get('/group', users);
 app.post('/group/:id', users);
+app.get('/group/:id', users);
 app.get('/user', users);
 app.get('/database', database);
 app.get('/database/owner/:owner', database);
@@ -81,6 +83,7 @@ app.get('/project', projects);
 app.post('/project', projects);
 app.post('/project/:id', projects);
 app.delete('/project/:id', projects);
+app.get('/quota/:user/:id', quota);
 
 app.get('/auth', auth);
 app.post('/auth/:id', auth);

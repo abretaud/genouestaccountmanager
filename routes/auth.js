@@ -16,7 +16,6 @@ var monk = require('monk'),
     db = monk(CONFIG.mongo.host+':'+CONFIG.mongo.port+'/'+GENERAL_CONFIG.db),
     users_db = db.get('users');
 
-
 var ldap_manager = {
   auth: function(uid, password) {
     if(MAIL_CONFIG.ldap.host == 'fake') {
@@ -77,6 +76,7 @@ router.post('/auth/:id', function(req, res) {
     return;
   }
   users_db.findOne({uid: req.param('id')}, function(err, user){
+    if(err) { console.log(err); }
     if(! user) {
       res.status(404).send('User not found');
       return;
@@ -85,7 +85,7 @@ router.post('/auth/:id', function(req, res) {
         var checkDate = new Date();
         checkDate.setHours(checkDate.getHours() - 1);
         if(attemps[user.uid]['last'] > checkDate) {
-          res.status(401).send('You have reached the maximum of login attemps, your account access is blocked for one hour'); 
+          res.status(401).send('You have reached the maximum of login attemps, your account access is blocked for one hour');
           return;
         }
         else {
@@ -105,13 +105,14 @@ router.post('/auth/:id', function(req, res) {
      req.connection.remoteAddress ||
      req.socket.remoteAddress ||
      req.connection.socket.remoteAddress;
-    if(user.is_admin && GENERAL_CONFIG.admin_ip.indexOf(ip) >= 0) {
+    if(user.is_admin && (GENERAL_CONFIG.admin_ip.indexOf(ip) >= 0 || process.env.gomngr_auth=='fake')) {
       // Skip auth
       res.send({ user: user, msg: ''});
       res.end();
     }
     else {
-      goldap.bind(user.uid, req.param('password'), function(err) {
+      goldap.bind(user.uid, req.param('password'), function(err, token) {
+        user['token'] = token;
         if(attemps[user.uid] == undefined) {
           attemps[user.uid] = { attemps: 0};
         }
@@ -128,7 +129,6 @@ router.post('/auth/:id', function(req, res) {
         res.end();
       });
     }
-    //res.cookie('gomngr',user._id, { maxAge: 900000 });
 
   });
 });

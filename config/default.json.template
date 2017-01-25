@@ -10,7 +10,23 @@
     "admin_ip": [ "127.0.0.1" ],
     "usage_directory": "/tmp",
     "home": "/home",
-    "main_groups": [ "", "genouest", "symbiose", "irisa"]
+    "main_groups": [ "", "genouest", "symbiose", "irisa"],
+    "quota": {
+        "home": {
+            "protocol": "http:",
+            "port": 8086,
+            "hostname": "gomngr",
+            "db": "goacct",
+            "series": "goacct.fixed.disk.home.*.user.#USER#"
+        },
+        "omaha": {
+            "protocol": "http:",
+            "port": 8086,
+            "hostname": "gomngr",
+            "db": "goacct",
+            "series": "goacct.fixed.disk.panasas-omaha.*.user.#USER#"
+        }
+    }    
  },
  "cloud": {
     "oneauth": ""

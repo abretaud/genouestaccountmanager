@@ -17,8 +17,24 @@
     </thead>
     <tbody>
       <tr ng-repeat="group in groups">
-        <td>{{group.name}}</td>
+        <td ng-click="show_group_users(group.name)">{{group.name}}</td>
         <td>{{group.gid}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<div class="row" ng-if="selectedGroup">
+  <h2>Users in group {{selectedGroup}}</h2>
+  <table datatable="ng" class="table table-striped">
+    <thead>
+      <th>User</th><th>Email</th>
+    </thead>
+    <tbody>
+      <tr ng-repeat="user in users">
+        <td><a ng-href="#/user/{{user.uid}}">{{user.uid}}</a></td>
+        <td>{{user.email}}</td>
       </tr>
     </tbody>
   </table>

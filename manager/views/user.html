@@ -52,6 +52,10 @@
               <textarea id="address" ng-model="user.address"></textarea>
             </div>
             <div class="form-group">
+              <label for="why">Why</label>
+              <textarea id="why" ng-model="user.why"></textarea>
+            </div>
+            <div class="form-group">
               <label for="lab">Laboratory</label>
               <input type="text" id="lab" ng-model="user.lab"></input>
             </div>
@@ -115,7 +119,7 @@
   </div>
   <div class="col-sm-6">
     <div class="row">
-        <div class="col-lg-6 col-md-6">
+        <div class="col-lg-6 col-md-6" ng-repeat="quota in quotas">
           <div class="panel panel-primary">
             <div class="panel-heading">
               <div class="row">
@@ -123,57 +127,13 @@
                   <i class="glyphicon glyphicon-user icon-5x"></i>
                 </div>
                 <div class="col-xs-9 text-right">
-                  <div class="huge">{{disk_home}}</div>
-                      <div>Home</div>
+                  <div class="huge">{{quota.name}}</div>
+                      <div>{{quota.name}}</div>
                 </div>
               </div>
             </div>
             <div class="panel-body">
-             <div>Quota: {{user.quota.disk_home_quota}}G <span ng-if="user.quota.disk_home_quota_expire">{{date_convert(user.quota.disk_home_quota_expire)}}</span> <i ng-if="session_user.is_admin" ng-click="quota_home_edit()" class="glyphicon glyphicon-pencil"> </i></div>
-             <div ng-if="do_quota_home_edit && session_user.is_admin && user.status == STATUS_ACTIVE">
-                 <form role="form" class="form-inline">
-                    <div class="form-group">
-                        <input class="form-control input-sm" type="text" id="quota_home" ng-model="user.quota.disk_home_quota"></input>
-                        <input class="form-control input-sm" type="date" id="quota_home_expire" ng-model="user.quota.disk_home_quota_expire"></input>
-                        <button class="btn btn-primary btn-sm" ng-click="update_quota_home()">Update</button>
-                    </div>
-                 </form>
-             </div>
-            </div>
-            <div class="panel-footer">
-                <span class="pull-left">{{date_convert(home_date)}}</span>
-                <div class="clearfix"></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-6 col-md-6">
-          <div class="panel panel-primary">
-            <div class="panel-heading">
-              <div class="row">
-                <div class="col-xs-3">
-                  <i class="glyphicon glyphicon-user icon-5x"></i>
-                </div>
-                <div class="col-xs-9 text-right">
-                  <div class="huge">{{disk_omaha}}</div>
-                      <div>Omaha</div>
-                </div>
-              </div>
-            </div>
-            <div class="panel-body">
-             <div>Quota: {{user.quota.disk_omaha_quota}}G <span ng-if="user.quota.disk_omaha_quota_expire">{{date_convert(user.quota.disk_omaha_quota_expire)}}</span> <i ng-if="session_user.is_admin" ng-click="quota_omaha_edit()" class="glyphicon glyphicon-pencil"> </i></div>
-             <div ng-if="do_quota_omaha_edit && session_user.is_admin && user.status == STATUS_ACTIVE">
-                 <form role="form" class="form-inline">
-                    <div class="form-group">
-                        <input class="form-control input-sm" type="text" id="quota_omaha" ng-model="user.quota.disk_omaha_quota"></input>
-                        <input class="form-control input-sm" type="date" id="quota_omaha_expire" ng-model="user.quota.disk_omaha_quota_expire"></input>
-                        <button class="btn btn-primary btn-sm" ng-click="update_quota_omaha()">Update</button>
-                    </div>
-                 </form>
-             </div>
-            </div>
-            <div class="panel-footer">
-                <span class="pull-left">{{date_convert(omaha_date)}}</span>
-                <div class="clearfix"></div>
+             <div>Quota: {{quota.value}}G</div>
             </div>
           </div>
         </div>
@@ -199,25 +159,6 @@
           <div id="secondarygroups">
             <h4 ng-repeat="secondarygroup in user.secondarygroups| orderBy:'name'"><span class="label label-primary">{{secondarygroup}} <span class="glyphicon glyphicon-trash" ng-click="delete_secondary_group(secondarygroup)"> </span></span></h4>
           </div>
-        </div>
-      </div>
-    </div>
-
-
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <h3 class="panel-title">Genocloud</h3>
-      </div>
-      <div class="panel-body">
-        <div>
-          <form role="form" class="user-form form-inline">
-            <div class="form-group" ng-if="! user.cloud">
-              <button type="button" class="btn btn-primary" ng-click="create_cloud_account()">Get a genocloud account</button>
-            </div>
-            <div class="form-group" ng-if="user.cloud">
-              <div class="btn btn-lg" confirm-delete on-confirm="delete_cloud_account()"></div>
-            </div>
-          </form>
         </div>
       </div>
     </div>

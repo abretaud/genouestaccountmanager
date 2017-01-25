@@ -85,8 +85,15 @@ angular.module('genouest', ['genouest.resources', 'ngSanitize', 'ngCookies', 'ng
       }
 ])
 .config(['$httpProvider', function ($httpProvider){
-    $httpProvider.interceptors.push( function($q){
+    $httpProvider.interceptors.push( function($q, $window){
         return {
+        'request': function (config) {
+                config.headers = config.headers || {};
+                if ($window.sessionStorage.token) {
+                    config.headers.Authorization = 'Bearer ' + $window.sessionStorage.token;
+                }
+                return config;
+            },
             'response': function(response){
                 return response;
             },
@@ -246,9 +253,20 @@ angular.module('genouest').controller('projectsmngrCtrl',
 
 angular.module('genouest').controller('groupsmngrCtrl',
   function($scope, $rootScope, $routeParams, $log, $location, Group, Auth, GOLog) {
+    $scope.selectedGroup = null;
+    $scope.users = [];
+
     Group.list().$promise.then(function(data) {
       $scope.groups = data;
     });
+
+    $scope.show_group_users = function(group_name) {
+        $scope.selectedGroup = group_name;
+        Group.get({name: group_name}).$promise.then(function(user_list){
+            $scope.users = user_list;
+        });
+    };
+
     $scope.new_group = '';
     $scope.add_group = function(){
       if($scope.new_group == '') {
@@ -272,6 +290,13 @@ angular.module('genouest').controller('usersmngrCtrl',
     User.list().$promise.then(function(data) {
       $scope.users = data;
     });
+
+    $scope.STATUS_PENDING_EMAIL = 'Waiting for email approval';
+    $scope.STATUS_PENDING_APPROVAL = 'Waiting for admin approval';
+    $scope.STATUS_ACTIVE = 'Active';
+    $scope.STATUS_EXPIRED = 'Expired';
+
+
     $scope.date_convert = function timeConverter(tsp){
       var a = new Date(tsp);
       var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -310,45 +335,24 @@ angular.module('genouest').controller('userextendCtrl',
 });
 
 angular.module('genouest').controller('usermngrCtrl',
-  function($scope, $rootScope, $routeParams, $log, $location, User, Group, Disk, Database, Web, Auth, GOLog) {
+  function($scope, $rootScope, $routeParams, $log, $location, User, Group, Quota, Database, Web, Auth, GOLog) {
     $scope.session_user = Auth.getUser();
     $scope.maingroups = ['genouest', 'irisa', 'symbiose'];
     $scope.selected_group = '';
-    $scope.do_quota_home_edit = false;
-
-    $scope.quota_home_edit = function() {
-        $scope.do_quota_home_edit = true;
-    }
-    $scope.update_quota_home = function() {
-        $scope.do_quota_home_edit = false;
-        User.update_quota({name: $scope.user.uid},{'disk': 'home', 'size': $scope.user.quota.disk_home_quota, 'expire': new Date($scope.user.quota.disk_home_quota_expire).getTime()}).$promise.then(function(data){
-          $scope.msg = data.message;
-        });
-    }
-
-    $scope.do_quota_omaha_edit = false;
-
-    $scope.quota_omaha_edit = function() {
-        $scope.do_quota_omaha_edit = true;
-    }
-    $scope.update_quota_omaha = function() {
-        $scope.do_quota_omaha_edit = false;
-        User.update_quota({name: $scope.user.uid}, {'disk': 'omaha', 'size': $scope.user.quota.disk_omaha_quota, 'expire': new Date($scope.user.quota.disk_omaha_quota_expire).getTime()}).$promise.then(function(data){
-          $scope.msg = data.message;
-        });
-    }
 
     $scope.change_group = function() {
       //console.log($scope.selected_group);
       $scope.user.group = $scope.selected_group.name;
     };
 
-    Disk.get({name: $routeParams.id}).$promise.then(function(data){
-      $scope.disk_home = data.home;
-      $scope.disk_omaha = data.omaha;
-      $scope.home_date = data.home_date;
-      $scope.omaha_date = data.omaha_date;
+    Quota.get({name: $routeParams.id, disk: 'home'}).$promise.then(function(data){
+      $scope.quotas.push(data);
     });
+    Quota.get({name: $routeParams.id, disk: 'omaha'}).$promise.then(function(data){
+      $scope.quotas.push(data);
+    });
+
+
     User.get({name: $routeParams.id}).$promise.then(function(user){
       if(user.is_admin) {
       Group.list().$promise.then(function(data) {
@@ -400,20 +404,6 @@ angular.module('genouest').controller('usermngrCtrl',
     Web.listowner({name: $routeParams.id}).$promise.then(function(data){
       $scope.websites = data;
     });
-
-    $scope.create_cloud_account = function() {
-      User.create_cloud({name: $scope.user.uid},{}).$promise.then(function(data){
-        $scope.msg = data.msg;
-        $scope.user.cloud = true;
-      });
-    };
-
-    $scope.delete_cloud_account = function() {
-      User.delete_cloud({name: $scope.user.uid}).$promise.then(function(data){
-        $scope.msg = data.msg;
-        $scope.user.cloud = false;
-      });
-    };
 
 
     $scope.add_secondary_group = function() {
@@ -543,7 +533,7 @@ angular.module('genouest').controller('usermngrCtrl',
 });
 
 angular.module('genouest').controller('userCtrl',
-  function($scope, $rootScope, $routeParams, $log, $location, User, Auth, Logout) {
+  function($scope, $rootScope, $routeParams, $log, $location, $window, User, Auth, Logout) {
 
     $scope.is_logged = false;
 
@@ -552,6 +542,10 @@ angular.module('genouest').controller('userCtrl',
          $scope.user = data.user;
          //$scope.user['is_admin'] = data.is_admin;
          $scope.is_logged = true;
+         if($window.sessionStorage != null) {
+             $window.sessionStorage.token = data.token;
+         }
+
          Auth.setUser($scope.user);
       }
       else {
@@ -562,6 +556,7 @@ angular.module('genouest').controller('userCtrl',
     });
 
     $scope.logout = function() {
+      delete $window.sessionStorage.token;
       Logout.get().$promise.then(function(){
         $scope.user = null;
         $scope.is_logged = false;
@@ -580,12 +575,12 @@ angular.module('genouest').controller('userCtrl',
 });
 
 angular.module('genouest').controller('loginCtrl',
-  function($scope, $rootScope, $routeParams, $log, $location, IP, User, Auth) {
+  function($scope, $rootScope, $routeParams, $log, $location, $window, IP, User, Auth) {
 
     var SUCCESS = 0;
     var ERROR = 1;
 
-    $scope.duration = 1;
+    $scope.duration = 365;
 
     IP.get().$promise.then(function(data) {
       var ips = data.ip.split(',');
@@ -630,7 +625,8 @@ angular.module('genouest').controller('loginCtrl',
         group: $scope.group,
         email: $scope.email,
         ip: $scope.ip,
-        duration: $scope.duration
+        duration: $scope.duration,
+        why: $scope.why
       }).$promise.then(function(data){
         $scope.msg = data.msg;
         $scope.msgstatus = data.status;
@@ -644,6 +640,9 @@ angular.module('genouest').controller('loginCtrl',
       User.authenticate({name: $scope.userid}, {password: $scope.password}).$promise.then(function(data) {
         if(data.user !== undefined && data.user !== null) {
           Auth.setUser(data.user);
+          if($window.sessionStorage != null) {
+              $window.sessionStorage.token = data.token;
+          }
           $rootScope.$broadcast('loginCtrl.login');
           $location.path('/');
         }

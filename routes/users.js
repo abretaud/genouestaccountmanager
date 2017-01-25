@@ -58,152 +58,27 @@ var STATUS_ACTIVE = 'Active';
 var STATUS_EXPIRED = 'Expired';
 
 
-router.post('/user/:id/quota', function(req, res){
+router.get('/group/:id', function(req, res){
     var sess = req.session;
     if(! sess.gomngr) {
-      res.status(401).send('Not authorized, need to login first');
+      res.status(401).send('Not authorized');
       return;
     }
-    users_db.findOne({_id: sess.gomngr}, function(err, session_user){
-
-      users_db.findOne({uid: req.param('id')}, function(err, user){
-        if(err){
-          res.status(404).send('User not found');
-          return;
+    users_db.findOne({_id: sess.gomngr}, function(err, user){
+        if(err || user == null){
+            res.status(404).send('User not found');
+            return;
         }
-        if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
-          user.is_admin = true;
+        if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
+            res.status(401).send('Not authorized');
+            return;
         }
-        else {
-          user.is_admin = false;
-        }
-
-        if(sess.gomngr == user._id || GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0){
-          user.history.push({'action': 'Quota update:'+req.param('disk')+','+req.param('size')+','+new Date(req.param('expire')), date: new Date().getTime()});
-          var elts = {history: user.history};
-          elts['quota.disk_'+req.param('disk')+'_quota'] = req.param('size');
-          elts['quota.disk_'+req.param('disk')+'_quota_expire'] = req.param('expire');
-          users_db.update({uid: user.uid},{'$set': elts
-                                           }, function(err){
-                                                res.json({'msg': 'Quota updated'});
-                                                res.end();
-                                            });
-        }
-        else {
-          res.status(401).send('Not authorized to access this user info');
-          return;
-        }
-
+        users_db.find({'$or': [{'secondarygroups': req.param('id')}, {'group': req.param('id')}]}, function(err, users_in_group){
+            res.send(users_in_group);
+            res.end();
         });
     });
-
-
 });
-
-
-router.post('/user/:id/cloud', function(req, res){
-  var sess = req.session;
-  if(! sess.gomngr) {
-    res.status(401).send('Not authorized, need to login first');
-    return;
-  }
-  users_db.findOne({_id: sess.gomngr}, function(err, session_user){
-
-    users_db.findOne({uid: req.param('id')}, function(err, user){
-      if(err){
-        res.status(404).send('User not found');
-        return;
-      }
-      if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
-        user.is_admin = true;
-      }
-      else {
-        user.is_admin = false;
-      }
-      if(sess.gomngr == user._id || GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0){
-        user.history.push({'action': 'genocloud creation', date: new Date().getTime()});
-            users_db.update({uid: user.uid},{'$set': {cloud: true, history: user.history}}, function(err){
-              var fid = new Date().getTime();
-              var script = "#!/bin/bash\n";
-              script += "set -e \n";
-              var password = Math.random().toString(36).substring(7);
-              script += CONFIG.cloud.script+" --create --user="+user.uid+" --password="+password+" --auth="+CONFIG.cloud.oneauth+" --email="+GENERAL_CONFIG.accounts+"\n";
-              var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
-              fs.writeFile(script_file, script, function(err) {
-                fs.chmodSync(script_file,0755);
-                var msg = CONFIG.message.cloudcreation.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', password)+"\n"+CONFIG.message.footer.join("\n");
-                var msg_html = CONFIG.message.cloudcreation.join("<br/>").replace('#UID#', user.uid).replace('#PASSWORD#', password)+"<br/>"+CONFIG.message.footer.join("<br/>");
-                var mailOptions = {
-                  from: MAIL_CONFIG.origin, // sender address
-                  to: user.email, // list of receivers
-                  subject: 'Genouest cloud creation', // Subject line
-                  text: msg,
-                  html: msg_html
-                };
-                transport.sendMail(mailOptions, function(error, response){
-                res.json({'msg': 'Account created, an email will be sent with credentials'});
-                res.end();
-                });
-              });
-
-            });
-      }
-      else {
-        res.status(401).send('Not authorized to access this user info');
-        return;
-      }
-
-    });
-
-  });
-});
-router.delete('/user/:id/cloud', function(req, res){
-  var sess = req.session;
-  if(! sess.gomngr) {
-    res.status(401).send('Not authorized, need to login first');
-    return;
-  }
-  users_db.findOne({_id: sess.gomngr}, function(err, session_user){
-
-    users_db.findOne({uid: req.param('id')}, function(err, user){
-      if(err){
-        res.status(404).send('User not found');
-        return;
-      }
-      if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
-        user.is_admin = true;
-      }
-      else {
-        user.is_admin = false;
-      }
-      if(sess.gomngr == user._id || GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0){
-        user.history.push({'action': 'genocloud deletion', date: new Date().getTime()});
-            users_db.update({uid: user.uid},{'$set': {cloud: false, history: user.history}}, function(err){
-              var fid = new Date().getTime();
-              var script = "#!/bin/bash\n";
-              script += "set -e \n";
-              var password = Math.random().toString(36).substring(7);
-              script += CONFIG.cloud.script+" --delete --user="+user.uid+" --auth="+CONFIG.cloud.oneauth+" --email="+GENERAL_CONFIG.accounts+"\n";
-              var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
-              fs.writeFile(script_file, script, function(err) {
-                fs.chmodSync(script_file,0755);
-                res.json({'msg': 'Account deleted with associated VMs'});
-                res.end();
-              });
-
-            });
-      }
-      else {
-        res.status(401).send('Not authorized to access this user info');
-        return;
-      }
-
-    });
-
-  });
-
-});
-
 
 router.post('/group/:id', function(req, res){
   var sess = req.session;
@@ -300,6 +175,7 @@ router.get('/user', function(req, res) {
     res.status(401).send('Not authorized');
     return;
   }
+
   users_db.findOne({_id: sess.gomngr}, function(err, user){
     if(err || user == null){
       res.status(404).send('User not found');
@@ -313,6 +189,7 @@ router.get('/user', function(req, res) {
       res.json(users);
     });
   });
+
 });
 
 
@@ -343,7 +220,7 @@ router.post('/user/:id/group/:group', function(req, res){
         }
       }
       user.secondarygroups.push(secgroup);
-      console.log(user.secondarygroups);
+      //console.log(user.secondarygroups);
       var fid = new Date().getTime();
       // Now add group
       goldap.change_user_groups(user, [secgroup], [], fid, function() {
@@ -654,7 +531,7 @@ router.get('/user/:id', function(req, res) {
 
     users_db.findOne({uid: req.param('id')}, function(err, user){
       if(err){
-        res.status(404).send('User not found');
+        res.status(404).send('User not found ' + err);
         return;
       }
       if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
@@ -663,17 +540,11 @@ router.get('/user/:id', function(req, res) {
       else {
         user.is_admin = false;
       }
-      if(user.quota == undefined) {
-          user.quota = {};
+      user.quota = []
+      for(var k in GENERAL_CONFIG.quota) {
+          user.quota.push(k);
       }
-      if(user.quota.disk_home_quota == undefined) {
-          user.quota.disk_home_quota = GENERAL_CONFIG.quota.home;
-          user.quota.disk_home_quota_expire = null;
-      }
-      if(user.quota.disk_omaha_quota == undefined) {
-          user.quota.disk_omaha_quota = GENERAL_CONFIG.quota.omaha;
-          user.quota.disk_omaha_quota_expire = null;
-      }
+
       if(sess.gomngr == user._id || GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0){
         res.json(user);
         return;
@@ -777,6 +648,11 @@ router.post('/user/:id', function(req, res) {
     res.send({'status': 1, 'msg': 'invalid data identifier, numeric and lowercase letters only'});
     return;
   }
+  if(req.param('why')=='' || req.param('why')==null || req.param('why')==undefined) {
+    res.send({'status': 1, 'msg': 'Missing field: Why do you need an account'});
+    return;
+  }
+
 
   users_db.findOne({uid: req.param('id')}, function(err, user){
       if(user){
@@ -798,6 +674,7 @@ router.post('/user/:id', function(req, res) {
         group: req.param('group'),
         secondarygroups: [],
         maingroup: 'genouest',
+        why: req.param('why'),
         ip: req.param('ip'),
         regkey: regkey,
         is_genouest: false,
@@ -805,7 +682,7 @@ router.post('/user/:id', function(req, res) {
         gidnumber: -1,
         cloud: false,
         duration: req.param('duration'),
-        expiration: new Date().getTime() + 1000*3600*24*365*req.param('duration'),
+        expiration: new Date().getTime() + 1000*3600*24*req.param('duration'),
         loginShell: '/bin/bash',
         history: [{action: 'register', date: new Date().getTime()}]
       }
@@ -1240,6 +1117,7 @@ router.put('/user/:id', function(req, res) {
         user.address = req.param('address');
         user.lab = req.param('lab');
         user.responsible = req.param('responsible');
+        user.why = req.param('why');
 
         var is_admin = false;
         if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {

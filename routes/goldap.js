@@ -1,6 +1,9 @@
 var CONFIG = require('config');
 var fs = require('fs');
-var LDAP = require('LDAP');
+//var LDAP = require('ldap-client');
+var http = require('http')
+var myldap = require('ldapjs');
+
 
 var monk = require('monk'),
     db = monk(CONFIG.mongo.host+':'+CONFIG.mongo.port+'/'+CONFIG.general.db),
@@ -9,12 +12,12 @@ var monk = require('monk'),
 
 var options = {
     uri: 'ldap://'+CONFIG.ldap.host, // string
-    version: 3, // integer, default is 3,
-    starttls: false, // boolean, default is false
+    //version: 3, // integer, default is 3,
+    //starttls: false, // boolean, default is false
     connecttimeout: -1, // seconds, default is -1 (infinite timeout), connect timeout
-    timeout: 5000, // milliseconds, default is 5000 (infinite timeout is unsupported), operation timeout
-    reconnect: true, // boolean, default is true,
-    backoffmax: 32 // seconds, default is 32, reconnect timeout
+    //timeout: 5000, // milliseconds, default is 5000 (infinite timeout is unsupported), operation timeout
+    //reconnect: true, // boolean, default is true,
+    //backoffmax: 32 // seconds, default is 32, reconnect timeout
 };
 
 
@@ -35,6 +38,70 @@ module.exports = {
   },
 
   bind: function(uid, password, callback) {
+    var body = JSON.stringify({
+        id: uid, password: password
+    });
+    /*
+    var request = new http.ClientRequest({
+        hostname: CONFIG.general.auth_host,
+        port: 5000,
+        path: "/api/auth/bind/"+uid,
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Content-Length": Buffer.byteLength(body)
+        }
+    })
+
+    request.end(body);
+    request.on('response', function (response) {
+        err = false;
+        if (response.statusCode != 200) {
+           err = true;
+        }
+        response.setEncoding('utf8');
+        response.on('data', function (chunk) {
+            token = JSON.parse(chunk)['token']
+            callback(err, token);
+        });
+     });
+     */
+     var client = myldap.createClient({
+       url: 'ldap://' +  CONFIG.ldap.host
+     });
+     client.bind(CONFIG.ldap.admin_cn + ',' + CONFIG.ldap.admin_dn, CONFIG.ldap.admin_password, function(err) {
+       if(err) {
+           console.log('Failed to bind as admin to ldap');
+           callback(err);
+       }
+       var opts = {
+          filter: '(uid=' + uid + ')',
+          scope: 'sub',
+          attributes: ['dn']
+        };
+
+        client.search('ou=people,dc=genouest,dc=org', opts, function(err, res) {
+            if(err) {
+                console.log('Could not find ' + uid);
+                callback(err);
+            }
+              res.on('searchEntry', function(entry) {
+                var user_dn = entry.object['dn'];
+                client.bind(user_dn, password, function(err) {
+                    callback(err);
+                });
+              });
+              res.on('searchReference', function(referral) {
+              });
+              res.on('error', function(err) {
+                console.log('error ' + err.message);
+                callback(err.message);
+              });
+              res.on('end', function(result) {
+              });
+            });
+             });
+
     var bind_options = {
       binddn: 'uid='+uid+'ou=people,'+CONFIG.ldap.dn,
       password: password
@@ -42,26 +109,35 @@ module.exports = {
 
     var fb_options = {
         base: CONFIG.ldap.dn,
-        filter: 'uid='+uid,
+        filter: '(uid='+uid+')',
         scope: 'sub',
         attrs: '',
         password: password
     }
-    var ldap = new LDAP(options);
-    ldap.open(function(err) {
-      //console.log(fb_options);
-      ldap.findandbind(fb_options, function(err, data) {
-      //ldap.simplebind(bind_options, function(err) {
+    //var ldap = new LDAP(options);
+    /*
+    var ldap = new LDAP({
+    uri: 'ldap://gomngr-openldap',
+    connect: function() {
+        this.bind({
+            binddn: 'cn=admin,dc=genouest,dc=org',
+            password: 'test'
+        }, function(err) {
+           console.log('ldap err: '+err);
+        });
+        this.findandbind(fb_options, function(err, data) {
         if(err) {
           console.log('Bind error: '+err);
         }
         else {
          console.log('Bind ok: '+uid)
         }
-        //ldap.close();
         callback(err);
-      });
+        });
+      }
     });
+    */
+
   },
 
 

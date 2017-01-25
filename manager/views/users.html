@@ -1,11 +1,67 @@
 <div class="row">
-
+  <h2>Pending email approval</h2>
   <table datatable="ng" class="table table-striped">
     <thead>
       <th>UID</th><th>Uid number</th><th>Email</th><th>Status</th><th>Expiration</th>
     </thead>
     <tbody>
-      <tr ng-repeat="user in users">
+      <tr ng-repeat="user in users | filter: { 'status': STATUS_PENDING_EMAIL}">
+        <td><a ng-href="#/user/{{user.uid}}">{{user.uid}}</a></td>
+        <td>{{user.uidnumber}}</td>
+        <td>{{user.email}}</td>
+        <td>{{user.status}}</td>
+        <td>{{date_convert(user.expiration)}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<div class="row">
+  <h2>Pending admin approval</h2>
+  <table datatable="ng" class="table table-striped">
+    <thead>
+      <th>UID</th><th>Uid number</th><th>Email</th><th>Status</th><th>Expiration</th>
+    </thead>
+    <tbody>
+      <tr ng-repeat="user in users | filter: { 'status': STATUS_PENDING_APPROVAL}">
+        <td><a ng-href="#/user/{{user.uid}}">{{user.uid}}</a></td>
+        <td>{{user.uidnumber}}</td>
+        <td>{{user.email}}</td>
+        <td>{{user.status}}</td>
+        <td>{{date_convert(user.expiration)}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<div class="row">
+  <h2>Active</h2>
+  <table datatable="ng" class="table table-striped">
+    <thead>
+      <th>UID</th><th>Uid number</th><th>Email</th><th>Status</th><th>Expiration</th>
+    </thead>
+    <tbody>
+      <tr ng-repeat="user in users | filter: { 'status': STATUS_ACTIVE}">
+        <td><a ng-href="#/user/{{user.uid}}">{{user.uid}}</a></td>
+        <td>{{user.uidnumber}}</td>
+        <td>{{user.email}}</td>
+        <td>{{user.status}}</td>
+        <td>{{date_convert(user.expiration)}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="row">
+  <h2>Expired</h2>
+  <table datatable="ng" class="table table-striped">
+    <thead>
+      <th>UID</th><th>Uid number</th><th>Email</th><th>Status</th><th>Expiration</th>
+    </thead>
+    <tbody>
+      <tr ng-repeat="user in users | filter: { 'status': 'STATUS_EXPIRED'}">
         <td><a ng-href="#/user/{{user.uid}}">{{user.uid}}</a></td>
         <td>{{user.uidnumber}}</td>
         <td>{{user.email}}</td>
