@@ -362,6 +362,7 @@ angular.module('genouest').controller('usermngrCtrl',
       //console.log($scope.selected_group);
       $scope.user.group = $scope.selected_group.name;
     };
+    $scope.quotas = [];
 
     Quota.get({name: $routeParams.id, disk: 'home'}).$promise.then(function(data){
       $scope.quotas.push(data);
