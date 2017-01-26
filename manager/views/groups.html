@@ -1,3 +1,4 @@
+<div class="alert alert-warning" ng-if="msg">{{msg}}</div>
 <div class="row">
   <h4>Group creation can require a few minutes to be effective</h4>
   <form role="form" class="user-form form-inline">
@@ -26,7 +27,7 @@
 
 
 <div class="row" ng-if="selectedGroup">
-  <h2>Users in group {{selectedGroup}}</h2>
+  <h2>Users in group {{selectedGroup}}  <button class="btn btn-danger btn-lg" ng-click="delete_group(selectedGroup)">DELETE</button></h2>
   <table datatable="ng" class="table table-striped">
     <thead>
       <th>User</th><th>Email</th>

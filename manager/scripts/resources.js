@@ -53,8 +53,14 @@
             method: 'GET',
             isArray: true,
             cache: false
-        }
-          });
+          },
+          delete: {
+              url: prefix+'/group/:name',
+              method: 'DELETE',
+              isArray: false,
+              cache: false
+          }
+        });
       }
 
       function Project($resource) {

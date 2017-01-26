@@ -216,6 +216,18 @@ module.exports = {
     });
   },
 
+  delete_group: function(group, fid, callback) {
+      var user_ldif = "";
+      user_ldif += "cn="+group.name+",ou=groups,"+CONFIG.ldap.dn+"\n";
+      user_ldif += "\n";
+      fs.writeFile(CONFIG.general.script_dir+'/'+group.name+"."+fid+".ldif", user_ldif, function(err) {
+        if(err) {
+            console.log(err);
+        }
+        callback(err);
+      });
+  },
+
   add: function(user, fid, callback) {
 
     var password = Math.random().toString(36).substring(7);

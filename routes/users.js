@@ -81,6 +81,60 @@ router.get('/group/:id', function(req, res){
     });
 });
 
+router.delete('/group/:id', function(req, res){
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, user){
+        if(err || user == null){
+          res.status(404).send('User not found');
+          return;
+        }
+        if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
+          res.status(401).send('Not authorized');
+          return;
+        }
+        groups_db.findOne({name: req.param('id')}, function(err, group){
+          if(err || !group) {
+            res.status(403).send('Group does not exists');
+            return;
+          }
+          users_db.find({'$or': [{'secondarygroups': req.param('id')}, {'group': req.param('id')}]}, function(err, users_in_group){
+              if(users_in_group && users_in_group.length > 0){
+                  res.status(403).send('Group has some users, cannot delete it');
+                  return;
+              }
+              groups_db.remove({'name': req.param('id')}, function(err){
+                  var fid = new Date().getTime();
+                  goldap.delete_group(group, fid, function(err){
+
+                    var script = "#!/bin/bash\n";
+                    script += "set -e \n"
+                    script += "ldapdelete -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+group.name+"."+fid+".ldif\n";
+                    var script_file = CONFIG.general.script_dir+'/'+group.name+"."+fid+".update";
+                    fs.writeFile(script_file, script, function(err) {
+                      fs.chmodSync(script_file,0755);
+                      group.fid = fid;
+                      events_db.insert({'date': new Date().getTime(), 'action': 'delete group ' + req.param('id') , 'logs': [group.name+"."+fid+".update"]}, function(err){});
+                      res.send({'msg': 'group ' + req.param('id')+ ' deleted'});
+                      res.end();
+                      return;
+                    });
+                  });
+
+
+              });
+          });
+
+        });
+    });
+});
+
+
+
+
 router.post('/group/:id', function(req, res){
   var sess = req.session;
   if(! sess.gomngr) {

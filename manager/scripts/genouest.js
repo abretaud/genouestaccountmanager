@@ -279,6 +279,7 @@ angular.module('genouest').controller('groupsmngrCtrl',
     });
 
     $scope.show_group_users = function(group_name) {
+        $scope.msg = '';
         $scope.selectedGroup = group_name;
         Group.get({name: group_name}).$promise.then(function(user_list){
             $scope.users = user_list;
@@ -299,6 +300,19 @@ angular.module('genouest').controller('groupsmngrCtrl',
           $scope.msg = error.data;
         });
       });
+    }
+    $scope.delete_group = function(group_name) {
+        Group.delete({name: group_name}).$promise.then(function(data){
+            $scope.msg = data.msg;
+            Group.list().$promise.then(function(data) {
+              $scope.groups = data;
+            }, function(error){
+              $scope.msg = error.data;
+            });
+        },function(error){
+            console.log(error);
+            $scope.msg = error.data;
+        });
     }
 
 });
