@@ -133,7 +133,7 @@ angular.module('genouest').controller('logsCtrl',
           return time;
         }
       $scope.get_status = function(status){
-          if(status!=0) {
+          if(status!=0 && status!=undefined) {
               return "alert alert-warning";
           }
       }
