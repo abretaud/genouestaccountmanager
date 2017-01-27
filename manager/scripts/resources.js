@@ -181,7 +181,7 @@
                 method: 'GET',
                 isArray: false,
                 cache: false
-            }
+            },
             list: {
               url: prefix+'/user',
               method: 'GET',

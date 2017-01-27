@@ -76,7 +76,7 @@ router.get('/user/:id/subscribed', function(req, res){
             res.end();
         }
         else {
-            notif.subscribed(user.email, req.param('message'), function(is_subscribed) {
+            notif.subscribed(user.email, function(is_subscribed) {
                   res.send({'subscribed': is_subscribed});
                   res.end();
             });
