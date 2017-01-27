@@ -49,7 +49,12 @@ router.get('/quota/:user/:id', function(req, res) {
             // {"results":[{"series":[{"name":"goacct.fixed.disk.home.user.osallou","columns":["time","last"],"values":[["2017-01-25T04:00:10Z",6.737533e+06]]},{"name":"goacct.fixed.disk.home_capacity.user.osallou","columns":["time","last"],"values":[["2017-01-25T04:00:10Z",1.048576e+08]]}]}]}
             var points = JSON.parse(body);
             var series = points.results[0]['series'];
-
+            // If no stat available
+            if(series == undefined) {
+               res.status(404);
+               res.end();
+               return;
+            }
             for(var s=0;s<series.length;s++){
                   quotas.push(series[s]['values'][0][1] / 1000000)
             }
