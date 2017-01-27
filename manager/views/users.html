@@ -61,7 +61,7 @@
       <th>UID</th><th>Uid number</th><th>Email</th><th>Status</th><th>Expiration</th>
     </thead>
     <tbody>
-      <tr ng-repeat="user in users | filter: { 'status': 'STATUS_EXPIRED'}">
+      <tr ng-repeat="user in users | filter: { 'status': STATUS_EXPIRED}">
         <td><a ng-href="#/user/{{user.uid}}">{{user.uid}}</a></td>
         <td>{{user.uidnumber}}</td>
         <td>{{user.email}}</td>
