@@ -569,7 +569,7 @@ router.get('/user/:id/activate', function(req, res) {
             var fid = new Date().getTime();
             goldap.add(user, fid, function(err) {
               if(!err){
-                users_db.update({uid: req.param('id')},{'$set': {status: STATUS_ACTIVE, uidnumber: minuid, gidnumber: mingid}, '$push': { history: {action: 'validation', date: new Date().getTime()}} }, function(err){
+                users_db.update({uid: req.param('id')},{'$set': {status: STATUS_ACTIVE, uidnumber: minuid, gidnumber: mingid, expiration: new Date().getTime() + 1000*3600*24*user.duration}, '$push': { history: {action: 'validation', date: new Date().getTime()}} }, function(err){
                   groups_db.update({'name': user.group}, {'$set': { 'gid': user.gidnumber}}, {upsert:true}, function(err){
                     var script = "#!/bin/bash\n";
                     script += "set -e \n"
@@ -1252,6 +1252,7 @@ router.put('/user/:id', function(req, res) {
         user.lab = req.param('lab');
         user.responsible = req.param('responsible');
         user.why = req.param('why');
+        user.duration = req.param('duration');
 
         var is_admin = false;
         if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
