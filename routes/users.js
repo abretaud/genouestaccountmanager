@@ -1044,7 +1044,7 @@ router.get('/user/:id/renew/:regkey', function(req, res){
     var regkey = req.param('regkey');
     if(user.regkey == regkey) {
       user.history.push({'action': 'extend validity period', date: new Date().getTime()});
-      var expiration = new Date().getTime() + 1000*3600*24*365*user.duration;
+      var expiration = new Date().getTime() + 1000*3600*24*user.duration;
       users_db.update({uid: user.uid},{'$set': {expiration: expiration, history: user.history}}, function(err){
          events_db.insert({'date': new Date().getTime(), 'action': 'Extend validity period: ' + req.param('id') , 'logs': []}, function(err){});
 
@@ -1088,7 +1088,7 @@ router.get('/user/:id/renew', function(req, res){
           }
           else {
             user.history.push({'action': 'reactivate', date: new Date().getTime()});
-            users_db.update({uid: user.uid},{'$set': {status: STATUS_ACTIVE, expiration: (new Date().getTime() + 1000*3600*24*365*user.duration), history: user.history}}, function(err){
+            users_db.update({uid: user.uid},{'$set': {status: STATUS_ACTIVE, expiration: (new Date().getTime() + 1000*3600*24*user.duration), history: user.history}}, function(err){
               var script = "#!/bin/bash\n";
               script += "set -e \n"
               script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
@@ -1210,7 +1210,7 @@ router.put('/user/:id', function(req, res) {
   ip: req.param('ip'),
   regkey: regkey,
   is_genouest: false,
-  expiration: new Date().getTime() + 1000*3600*24*365*req.param('duration'),
+  expiration: new Date().getTime() + 1000*3600*24*req.param('duration'),
   loginShell: '/bin/bash',
   history: [{action: 'register', date: new Date().getTime()}]
   */
