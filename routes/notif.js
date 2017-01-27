@@ -12,6 +12,20 @@ mc = new mcapi.Mailchimp(CONFIG.mailchimp.apikey);
 
 module.exports = {
 
+    subscribed: function(email, callback) {
+        mc.lists.memberInfo({id: CONFIG.mailchimp.list, emails:[{email: email}]}, function(data) {
+            if(data && data.success_count == 1 && data.data[0].status == 'subscribed'){
+                callback(true);
+                return;
+            }
+            else {
+                callback(false);
+                return;
+            }
+        });
+
+    },
+
   add: function(email, callback) {
     if(email==undefined ||email==null || email=='') {
       callback();
@@ -21,7 +35,7 @@ module.exports = {
       events_db.insert({'date': new Date().getTime(), 'action': 'add ' + email + 'to mailing list' , 'logs': []}, function(err){});
       callback();
     }, function(error) {
-      events_db.insert({'date': new Date().getTime(), 'action': 'subscription error ' + email + 'to mailing list' , 'logs': []}, function(err){});
+      events_db.insert({'date': new Date().getTime(), 'action': 'subscription error ' + email + ' to mailing list' , 'logs': []}, function(err){});
       console.log("Failed to add "+email+" to mailing list");
     });
   },
@@ -32,7 +46,7 @@ module.exports = {
     }
     try {
         mc.lists.unsubscribe({id: CONFIG.mailchimp.list, email:{email: email}, delete_member: true}, function(data) {
-            events_db.insert({'date': new Date().getTime(), 'action': 'unsubscribe ' + email + 'from mailing list' , 'logs': []}, function(err){});
+            events_db.insert({'date': new Date().getTime(), 'action': 'unsubscribe ' + email + ' from mailing list' , 'logs': []}, function(err){});
             callback();
         });
     }

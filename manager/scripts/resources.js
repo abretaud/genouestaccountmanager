@@ -176,6 +176,12 @@
 
       function User($resource) {
         return $resource(prefix+'/user', {}, {
+            is_subscribed: {
+                url: prefix+'/user/:name/subscribed',
+                method: 'GET',
+                isArray: false,
+                cache: false
+            }
             list: {
               url: prefix+'/user',
               method: 'GET',

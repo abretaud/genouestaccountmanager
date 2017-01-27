@@ -80,6 +80,7 @@ app.post('/user/:id/cloud', users);
 app.post('/user/:id/quota', users);
 app.delete('/user/:id/cloud', users);
 app.post('/user/:id/group/:group', users);
+app.get('/user/:id/subscribed', users);
 app.delete('/user/:id/group/:group', users);
 app.delete('/user/:id', users);
 app.get('/project', projects);

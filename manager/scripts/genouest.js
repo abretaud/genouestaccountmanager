@@ -404,6 +404,9 @@ angular.module('genouest').controller('usermngrCtrl',
       else {
         $scope.user = user;
       }
+      User.is_subscribed({name: user.uid}).$promise.then(function(data){
+          $scope.subscribed = data.subscribed;
+      });
 
     });
     $scope.STATUS_PENDING_EMAIL = 'Waiting for email approval';

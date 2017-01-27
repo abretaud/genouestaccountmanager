@@ -59,6 +59,31 @@ var STATUS_ACTIVE = 'Active';
 var STATUS_EXPIRED = 'Expired';
 
 
+router.get('/user/:id/subscribed', function(req, res){
+    var sess = req.session;
+    if(! sess.gomngr) {
+      res.status(401).send('Not authorized');
+      return;
+    }
+    users_db.findOne({uid: req.param('id')}, function(err, user){
+        if(!user) {
+            res.send({msg: 'User does not exists'})
+            res.end();
+            return;
+        }
+        if(user.email == undefined || user.email == ''){
+            res.send({'subscribed': false});
+            res.end();
+        }
+        else {
+            notif.subscribed(user.email, req.param('message'), function(is_subscribed) {
+                  res.send({'subscribed': is_subscribed});
+                  res.end();
+            });
+        }
+    });
+});
+
 router.get('/group/:id', function(req, res){
     var sess = req.session;
     if(! sess.gomngr) {
@@ -220,9 +245,26 @@ router.get('/group', function(req, res){
 });
 
 router.post('/message', function(req, res){
-  notif.send(req.param('subject'), req.param('message'), function() {
-    res.send(null);
-  });
+    var sess = req.session;
+    if(! sess.gomngr) {
+      res.status(401).send('Not authorized');
+      return;
+    }
+
+    users_db.findOne({_id: sess.gomngr}, function(err, user){
+      if(err || user == null){
+        res.status(404).send('User not found');
+        return;
+      }
+      if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
+        res.status(401).send('Not authorized');
+        return;
+      }
+
+      notif.send(req.param('subject'), req.param('message'), function() {
+        res.send(null);
+      });
+    });
 });
 
 // Get users listing - for admin
@@ -471,111 +513,131 @@ router.delete('/user/:id', function(req, res){
 
 // activate user
 router.get('/user/:id/activate', function(req, res) {
-  users_db.findOne({uid: req.param('id')}, function(err, user){
-    if(!user) {
-      res.send({msg: 'User does not exists'})
-      res.end();
-      return;
-    }
-    if(user.maingroup == undefined || user.group == undefined) {
-      res.send({msg: 'group or main group directory are not set'});
-      res.end();
-      return;
-    }
-    user.password = Math.random().toString(36).substring(7);
-    var minuid = 1000;
-    var mingid = 1000;
-    users_db.find({}, { limit: 1 , sort: { uidnumber: -1 }}, function(err, data){
-      if(!err && data && data.length>0){
-        minuid = data[0].uidnumber+1;
-      }
-      groups_db.find({}, { sort: { gid: -1 }}, function(err, data){
-        if(!err && data && data.length>0){
-          var gfound = false;
-          for(var g=0; g<data.length;g++){
-            if(data[g].name == user.group) {
-              console.log('Group exists, use it '+data[g].gid);
-              console.log(data[g]);
-              mingid = data[g].gid;
-              gfound = true;
-              break;
-            }
-          }
-          if(!gfound) {
-            mingid = data[0].gid+1;
-          }
-        }
-        user.uidnumber = minuid;
-        user.gidnumber = mingid;
-        var fid = new Date().getTime();
-        goldap.add(user, fid, function(err) {
-          if(!err){
-            users_db.update({uid: req.param('id')},{'$set': {status: STATUS_ACTIVE, uidnumber: minuid, gidnumber: mingid}, '$push': { history: {action: 'validation', date: new Date().getTime()}} }, function(err){
-              groups_db.update({'name': user.group}, {'$set': { 'gid': user.gidnumber}}, {upsert:true}, function(err){
-                var script = "#!/bin/bash\n";
-                script += "set -e \n"
-                script += "ldapadd -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
-                script += "if [ -e "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+"."+fid+".ldif"+" ]; then\n"
-                script += "\tldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+"."+fid+".ldif\n";
-                script += "fi\n"
-                script += "sleep 3\n";
-                script += "mkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh\n";
-                script += "ln -s /index/ClusterDocumentation/README "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/README\n";
-                script += "touch "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/authorized_keys\n";
-                script += "echo \"Host *\" > "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/config\n";
-                script += "echo \"  StrictHostKeyChecking no\" >> "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/config\n";
-                script += "echo \"   UserKnownHostsFile=/dev/null\" >> "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/config\n";
-                script += "chmod 700 "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh\n";
-                script += "mkdir -p /omaha-beach/"+user.uid+"\n";
-                script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
-                script += "chown -R "+user.uid+":"+user.group+" /omaha-beach/"+user.uid+"\n";
-                var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
-                fs.writeFile(script_file, script, function(err) {
-                  fs.chmodSync(script_file,0755);
-                  notif.add(user.email, function(){
-                    var msg_activ = CONFIG.message.activation.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
-                    var msg_activ_html = CONFIG.message.activation.join("<br/>").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"<br/>"+CONFIG.message.footer.join("<br/>");
-                    var mailOptions = {
-                      from: MAIL_CONFIG.origin, // sender address
-                      to: user.email, // list of receivers
-                      subject: 'Genouest account activation', // Subject line
-                      text: msg_activ, // plaintext body
-                      html: msg_activ_html // html body
-                    };
-                    events_db.insert({'date': new Date().getTime(), 'action': 'activate user ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
 
-                    if(transport!==null) {
-                      transport.sendMail(mailOptions, function(error, response){
-                        if(error){
-                          console.log(error);
+    var sess = req.session;
+    if(! sess.gomngr) {
+      res.status(401).send('Not authorized');
+      return;
+    }
+
+    users_db.findOne({_id: sess.gomngr}, function(err, user){
+      if(err || user == null){
+        res.status(404).send('User not found');
+        return;
+      }
+      if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
+        res.status(401).send('Not authorized');
+        return;
+      }
+
+      users_db.findOne({uid: req.param('id')}, function(err, user){
+        if(!user) {
+          res.send({msg: 'User does not exists'})
+          res.end();
+          return;
+        }
+        if(user.maingroup == undefined || user.group == undefined) {
+          res.send({msg: 'group or main group directory are not set'});
+          res.end();
+          return;
+        }
+        user.password = Math.random().toString(36).substring(7);
+        var minuid = 1000;
+        var mingid = 1000;
+        users_db.find({}, { limit: 1 , sort: { uidnumber: -1 }}, function(err, data){
+          if(!err && data && data.length>0){
+            minuid = data[0].uidnumber+1;
+          }
+          groups_db.find({}, { sort: { gid: -1 }}, function(err, data){
+            if(!err && data && data.length>0){
+              var gfound = false;
+              for(var g=0; g<data.length;g++){
+                if(data[g].name == user.group) {
+                  console.log('Group exists, use it '+data[g].gid);
+                  console.log(data[g]);
+                  mingid = data[g].gid;
+                  gfound = true;
+                  break;
+                }
+              }
+              if(!gfound) {
+                mingid = data[0].gid+1;
+              }
+            }
+            user.uidnumber = minuid;
+            user.gidnumber = mingid;
+            var fid = new Date().getTime();
+            goldap.add(user, fid, function(err) {
+              if(!err){
+                users_db.update({uid: req.param('id')},{'$set': {status: STATUS_ACTIVE, uidnumber: minuid, gidnumber: mingid}, '$push': { history: {action: 'validation', date: new Date().getTime()}} }, function(err){
+                  groups_db.update({'name': user.group}, {'$set': { 'gid': user.gidnumber}}, {upsert:true}, function(err){
+                    var script = "#!/bin/bash\n";
+                    script += "set -e \n"
+                    script += "ldapadd -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
+                    script += "if [ -e "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+"."+fid+".ldif"+" ]; then\n"
+                    script += "\tldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+'/group_'+user.group+"_"+user.uid+"."+fid+".ldif\n";
+                    script += "fi\n"
+                    script += "sleep 3\n";
+                    script += "mkdir -p "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh\n";
+                    script += "ln -s /index/ClusterDocumentation/README "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/README\n";
+                    script += "touch "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/authorized_keys\n";
+                    script += "echo \"Host *\" > "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/config\n";
+                    script += "echo \"  StrictHostKeyChecking no\" >> "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/config\n";
+                    script += "echo \"   UserKnownHostsFile=/dev/null\" >> "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh/config\n";
+                    script += "chmod 700 "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"/.ssh\n";
+                    script += "mkdir -p /omaha-beach/"+user.uid+"\n";
+                    script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+'/'+user.uid+"\n";
+                    script += "chown -R "+user.uid+":"+user.group+" /omaha-beach/"+user.uid+"\n";
+                    var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
+                    fs.writeFile(script_file, script, function(err) {
+                      fs.chmodSync(script_file,0755);
+                      notif.add(user.email, function(){
+                        var msg_activ = CONFIG.message.activation.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
+                        var msg_activ_html = CONFIG.message.activation.join("<br/>").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"<br/>"+CONFIG.message.footer.join("<br/>");
+                        var mailOptions = {
+                          from: MAIL_CONFIG.origin, // sender address
+                          to: user.email, // list of receivers
+                          subject: 'Genouest account activation', // Subject line
+                          text: msg_activ, // plaintext body
+                          html: msg_activ_html // html body
+                        };
+                        events_db.insert({'date': new Date().getTime(), 'action': 'activate user ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
+
+                        if(transport!==null) {
+                          transport.sendMail(mailOptions, function(error, response){
+                            if(error){
+                              console.log(error);
+                            }
+                            res.send({msg: 'Activation in progress', fid: fid});
+                            res.end();
+                            return;
+                          });
                         }
-                        res.send({msg: 'Activation in progress', fid: fid});
-                        res.end();
-                        return;
+                        else {
+                          res.send({msg: 'Activation in progress', fid: fid});
+                          res.end();
+                          return;
+                        }
                       });
-                    }
-                    else {
-                      res.send({msg: 'Activation in progress', fid: fid});
-                      res.end();
-                      return;
-                    }
+                    });
                   });
                 });
-              });
+
+              }
+              else {
+                res.send({msg: err});
+              }
             });
 
-          }
-          else {
-            res.send({msg: err});
-          }
+
+
+          });
         });
 
-
-
       });
-    });
 
-  });
+
+    });
 
 });
 
@@ -1266,7 +1328,7 @@ router.put('/user/:id', function(req, res) {
           }
           else {
             users_db.update({_id: user._id}, user, function(err){
-              events_db.insert({'date': new Date().getTime(), 'action': 'activate user ' + req.param('id') , 'logs': []}, function(err){});
+              events_db.insert({'date': new Date().getTime(), 'action': 'Update user info ' + req.param('id') , 'logs': []}, function(err){});
 
               user.fid = null;
               res.send(user);
