@@ -60,8 +60,9 @@ function timeConverter(tsp){
 users_db.find({status: STATUS_ACTIVE, expiration: {$lt: (new Date().getTime())}},{uid: 1}, function(err, users){
   var mail_sent = 0;
   for(var i=0;i<users.length;i++){
-    var user = users[i];
-    console.log('User: '+user.uid);
+    (function(index) {
+    var user = users[index];
+    console.log('User: ' + user.uid + 'has expired');
     var msg_activ = "User "+user.uid+" has expired, updating account";
     var msg_activ_html = msg_activ;
     var mailOptions = {
@@ -77,6 +78,7 @@ users_db.find({status: STATUS_ACTIVE, expiration: {$lt: (new Date().getTime())}}
         }
         var fid = new Date().getTime();
         goldap.reset_password(user, fid, function(err) {
+            if(err) { console.log(user.uid + ': failed to reset password') }
             user.history.push({'action': 'expire', date: new Date().getTime()});
             users_db.update({uid: user.uid},{'$set': {status: STATUS_EXPIRED, expiration: new Date().getTime(), history: user.history}}, function(err){
               var script = "#!/bin/bash\n";
@@ -105,7 +107,7 @@ users_db.find({status: STATUS_ACTIVE, expiration: {$lt: (new Date().getTime())}}
         });
 
     });
-
+  }(i));
   }
   if(mail_sent == users.length) {
     process.exit(code=0);

@@ -60,8 +60,9 @@ function timeConverter(tsp){
 users_db.find({status: STATUS_ACTIVE, expiration: {$lt: (new Date().getTime() + 1000*3600*24*60)}},{uid: 1}, function(err, users){
   var mail_sent = 0;
   for(var i=0;i<users.length;i++){
-    var user = users[i];
-    console.log('User: '+user.uid);
+    (function(index){
+    var user = users[index];
+    console.log('User will expire: '+user.uid);
     var link = CONFIG.general.url +
                 encodeURI('/manager/index.html#/user/'+user.uid+'/renew/'+user.regkey);
     var msg_activ = CONFIG.message.expiration.join("\n").replace('#LINK#', link).replace("#EXPIRE#", timeConverter(user.expiration)).replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
@@ -82,7 +83,7 @@ users_db.find({status: STATUS_ACTIVE, expiration: {$lt: (new Date().getTime() + 
           process.exit(code=0);
         }
     });
-
+  }(i));
   }
   if(mail_sent == users.length) {
     process.exit(code=0);
