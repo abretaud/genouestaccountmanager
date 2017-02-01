@@ -384,6 +384,11 @@ angular.module('genouest').controller('usermngrCtrl',
     Quota.get({name: $routeParams.id, disk: 'omaha'}).$promise.then(function(data){
       $scope.quotas.push(data);
     });
+    Quota.get({name: $routeParams.id, disk: 'galaxy'}).$promise.then(function(data){
+      //data['value'] = data['value'] * 1000000
+      $scope.quotas.push(data);
+    });
+
 
 
     User.get({name: $routeParams.id}).$promise.then(function(user){
