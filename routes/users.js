@@ -492,6 +492,21 @@ router.delete('/user/:id', function(req, res){
                 }
                 events_db.insert({'date': new Date().getTime(), 'action': 'delete user ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
 
+                var msg_activ ="User " + req.param('id') + "has been deleted by " + session_user.uid;
+                var msg_activ_html = msg_activ;
+                var mailOptions = {
+                  from: MAIL_CONFIG.origin, // sender address
+                  to:  GENERAL_CONFIG.accounts, // list of receivers
+                  subject: 'Genouest account deletion: ' +req.param('id'), // Subject line
+                  text: msg_activ, // plaintext body
+                  html: msg_activ_html // html body
+                };
+
+                if(transport!==null) {
+                  transport.sendMail(mailOptions, function(error, response){
+                  });
+                }
+
                 res.send({message: 'User deleted', fid: fid});
                 res.end();
                 return;
