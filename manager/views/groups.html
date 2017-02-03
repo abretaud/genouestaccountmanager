@@ -6,6 +6,9 @@
       <input placeholder="group name" type="text" ng-model="new_group"/>
     </div>
     <div class="form-group">
+      <input placeholder="group owner id" type="text" ng-model="new_group_user_id"/>
+    </div>
+    <div class="form-group">
       <button type="button" class="btn btn-primary" ng-click="add_group()">Create</button>
     </div>
     <div class="alert" ng-if="msg">{{msg}}</div>
@@ -14,20 +17,34 @@
 <div class="row">
   <table datatable="ng" class="table table-striped">
     <thead>
-      <th>Group</th><th>gid</th>
+      <th>Group</th><th>gid</th><th>owner</th>
     </thead>
     <tbody>
       <tr ng-repeat="group in groups">
-        <td ng-click="show_group_users(group.name)">{{group.name}}</td>
+        <td ng-click="show_group_users(group)">{{group.name}}</td>
         <td>{{group.gid}}</td>
+        <td>{{group.owner}}</td>
       </tr>
     </tbody>
   </table>
 </div>
 
+<div class="row" ng-if="selectedGroup">
+    <form role="form" class="user-form form-inline">
+      <div class="form-group">
+        <input placeholder="group name" type="text" ng-model="selectedGroup.name" disabled/>
+      </div>
+      <div class="form-group">
+        <input placeholder="group owner id" type="text" ng-model="selectedGroup.owner"/>
+      </div>
+      <div class="form-group">
+        <button type="button" class="btn btn-primary" ng-click="update_group()">Update</button>
+      </div>
+    </form>
+</div>
 
 <div class="row" ng-if="selectedGroup">
-  <h2>Users in group {{selectedGroup}}  <button class="btn btn-danger btn-lg" ng-click="delete_group(selectedGroup)">DELETE</button></h2>
+  <h2>Users in group {{selectedGroup.name}}  <button class="btn btn-danger btn-lg" ng-click="delete_group(selectedGroup)">DELETE</button></h2>
   <table datatable="ng" class="table table-striped">
     <thead>
       <th>User</th><th>Email</th>

@@ -59,6 +59,12 @@
               method: 'DELETE',
               isArray: false,
               cache: false
+          },
+          update: {
+              url: prefix+'/group/:name',
+              method: 'PUT',
+              isArray: false,
+              cache: false
           }
         });
       }

@@ -8,11 +8,18 @@ var monk = require('monk'),
     users_db = db.get('users'),
     events_db = db.get('events');
 
-mc = new mcapi.Mailchimp(CONFIG.mailchimp.apikey);
+mc = null;
+if(CONFIG.mailchimp.apikey){
+    mc = new mcapi.Mailchimp(CONFIG.mailchimp.apikey);
+}
 
 module.exports = {
 
     subscribed: function(email, callback) {
+        if(mc == null){
+            callback(false);
+            return;
+        }
         mc.lists.memberInfo({id: CONFIG.mailchimp.list, emails:[{email: email}]}, function(data) {
             if(data && data.success_count == 1 && data.data[0].status == 'subscribed'){
                 callback(true);
@@ -27,7 +34,7 @@ module.exports = {
     },
 
   add: function(email, callback) {
-    if(email==undefined ||email==null || email=='') {
+    if(email==undefined ||email==null || email=='' || mc==null) {
       callback();
       return;
     }
@@ -40,7 +47,7 @@ module.exports = {
     });
   },
   remove: function(email, callback) {
-    if(email==undefined ||email==null || email=='') {
+    if(email==undefined ||email==null || email=='' || mc==null) {
       callback();
       return;
     }
@@ -57,7 +64,7 @@ module.exports = {
   },
   modify: function(oldemail, newemail, callback) {
     console.log("Update email " + oldemail + " ==> " + newemail);
-    if(newemail==undefined ||newemail==null || newemail=='') {
+    if(newemail==undefined ||newemail==null || newemail=='' || mc==null) {
       callback();
       return;
     }

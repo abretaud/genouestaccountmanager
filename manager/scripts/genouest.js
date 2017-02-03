@@ -278,20 +278,33 @@ angular.module('genouest').controller('groupsmngrCtrl',
       $scope.groups = data;
     });
 
-    $scope.show_group_users = function(group_name) {
+    $scope.show_group_users = function(group) {
         $scope.msg = '';
-        $scope.selectedGroup = group_name;
+        var group_name = group.name;
+        $scope.selectedGroup = group;
         Group.get({name: group_name}).$promise.then(function(user_list){
             $scope.users = user_list;
         });
     };
 
     $scope.new_group = '';
+
+    $scope.update_group = function(){
+        Group.update({name: $scope.selectedGroup.name},{owner: $scope.selectedGroup.owner}).$promise.then(function(data){
+          $scope.msg = '';
+          Group.list().$promise.then(function(data) {
+            $scope.msg = 'Group updated';
+          }, function(error){
+            $scope.msg = error.data;
+          });
+        });
+    };
+
     $scope.add_group = function(){
       if($scope.new_group == '') {
         return;
       }
-      Group.add({name: $scope.new_group},{}).$promise.then(function(data){
+      Group.add({name: $scope.new_group},{owner: $scope.new_group_user_id}).$promise.then(function(data){
         $scope.msg = '';
         GOLog.add(data.name, data.fid, 'Add group '+data.name);
         Group.list().$promise.then(function(data) {

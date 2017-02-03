@@ -51,6 +51,7 @@ app.get('/log', logs);
 app.post('/message', users);
 app.get('/group', users);
 app.post('/group/:id', users);
+app.put('/group/:id', users)
 app.delete('/group/:id', users);
 app.get('/group/:id', users);
 app.get('/user', users);

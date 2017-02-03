@@ -158,7 +158,34 @@ router.delete('/group/:id', function(req, res){
 });
 
 
-
+router.put('/group/:id', function(req, res){
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, user){
+    if(err || user == null){
+      res.status(404).send('User not found');
+      return;
+    }
+    if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
+      res.status(401).send('Not authorized');
+      return;
+    }
+    groups_db.findOne({name: req.param('id')}, function(err, group){
+      var owner = req.param('owner');
+      if(! group) {
+        res.status(404).send('Group does not exists');
+        return;
+      }
+      groups_db.update({name: group.name}, {'$set':{'owner': owner}}, function(err, data){
+         res.send(data);
+         res.end();
+      });
+    });
+  });
+});
 
 router.post('/group/:id', function(req, res){
   var sess = req.session;
@@ -176,6 +203,7 @@ router.post('/group/:id', function(req, res){
       return;
     }
     groups_db.findOne({name: req.param('id')}, function(err, group){
+      var owner = req.param('owner');
       if(group) {
         res.status(403).send('Group already exists');
         return;
@@ -187,7 +215,7 @@ router.post('/group/:id', function(req, res){
           mingid = data[0].gid+1;
         }
         var fid = new Date().getTime();
-        group = {name: req.param('id'), gid: mingid};
+        group = {name: req.param('id'), gid: mingid, owner: owner};
         groups_db.insert(group, function(err){
           goldap.add_group(group, fid, function(err){
 
