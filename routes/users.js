@@ -202,7 +202,7 @@ router.post('/group/:id', function(req, res){
       res.status(401).send('Not authorized');
       return;
     }
-    groups_db.findOne({name: req.param('id')}, function(err, group){
+    groups_db.findOne({name: new RegExp(req.param('id'), 'i')}, function(err, group){
       var owner = req.param('owner');
       if(group) {
         res.status(403).send('Group already exists');
@@ -605,6 +605,9 @@ router.get('/user/:id/activate', function(req, res) {
               }
               if(!gfound) {
                 mingid = data[0].gid+1;
+                res.send({msg: 'Group does not exists, please create it first'})
+                res.end();
+                return
               }
             }
             user.uidnumber = minuid;

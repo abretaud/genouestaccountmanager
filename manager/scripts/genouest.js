@@ -312,7 +312,9 @@ angular.module('genouest').controller('groupsmngrCtrl',
         }, function(error){
           $scope.msg = error.data;
         });
-      });
+    }, function(error){
+        $scope.msg = error.data;
+    });
     }
     $scope.delete_group = function(group_name) {
         Group.delete({name: group_name}).$promise.then(function(data){
