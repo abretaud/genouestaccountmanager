@@ -958,7 +958,52 @@ router.get('/user/:id/expire', function(req, res){
   });
 
 });
+router.post('/user/:id/passwordreset', function(req, res){
+  var sess = req.session;
+  if(! sess.gomngr) {
+    res.status(401).send('Not authorized');
+    return;
+  }
+  users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+      if(session_user.uid != req.param('id')) {
+         res.send({message: 'Not authorized'});
+         return;
+      }
+  users_db.findOne({uid: req.param('id')}, function(err, user){
+    if(err || !user) {
+      res.status(404).send('User does not exists:'+req.param('id'));
+      res.end();
+      return;
+    }
+    if(user.status != STATUS_ACTIVE){
+      res.status(401).send("Your account is not active");
+      res.end();
+      return;
+    }
+    user.password=req.param('password');
+    events_db.insert({'date': new Date().getTime(), 'action': 'user ' + req.param('id') + ' password update request', 'logs': []}, function(err){});
+        var fid = new Date().getTime();
+        goldap.reset_password(user, fid, function(err) {
+        if(err){
+          res.send({message: 'Error during operation'});
+          return;
+        }
+        else {
+            var script = "#!/bin/bash\n";
+            script += "set -e \n"
+            script += "ldapmodify -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
+            var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
+            fs.writeFile(script_file, script, function(err) {
+              fs.chmodSync(script_file,0755);
+              res.send({message:'Password updated'});
+              return;
+           });
+        }
+    });
 
+  });
+  });
+});
 //app.get('/user/:id/passwordreset', users);
 router.get('/user/:id/passwordreset', function(req, res){
   var key = Math.random().toString(36).substring(7);

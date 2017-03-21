@@ -386,12 +386,26 @@ angular.module('genouest').controller('usermngrCtrl',
     $scope.session_user = Auth.getUser();
     $scope.maingroups = ['genouest', 'irisa', 'symbiose'];
     $scope.selected_group = '';
+    $scope.password1 = '';
+    $scope.password2 = '';
 
     $scope.change_group = function() {
       //console.log($scope.selected_group);
       $scope.user.group = $scope.selected_group.name;
     };
     $scope.quotas = [];
+
+    $scope.update_password = function() {
+        if(($scope.password1 != $scope.password2) || ($scope.password1=="")) {
+            $scope.msg = "Passwords are not identical";
+            return;
+        }
+        User.update_password({name: $routeParams.id},{password: $scope.password1}).$promise.then(function(data){
+            $scope.msg = data.message;
+        });
+        $scope.msg = '';
+
+    };
 
     Quota.get({name: $routeParams.id, disk: 'home'}).$promise.then(function(data){
       $scope.quotas.push(data);

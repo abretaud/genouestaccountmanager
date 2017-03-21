@@ -76,6 +76,7 @@ app.get('/user/:id/renew/:regkey', users);
 app.get('/user/:id/activate', users);
 app.get('/user/:id/confirm', users);
 app.get('/user/:id/passwordreset', users);
+app.post('/user/:id/passwordreset', users);
 app.get('/user/:id/passwordreset/:key', users);
 app.post('/user/:id/cloud', users);
 app.post('/user/:id/quota', users);

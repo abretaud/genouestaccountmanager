@@ -272,6 +272,12 @@
               isArray: false,
               cache: false
             },
+            update_password: {
+              url: prefix+'/user/:name/passwordreset',
+              method: 'POST',
+              isArray: false,
+              cache: false
+            },
             add_group: {
               url: prefix+'/user/:name/group/:group',
               method: 'POST',
