@@ -1397,6 +1397,7 @@ router.put('/user/:id', function(req, res) {
                       script += "fi\n";
                       script += "mv "+CONFIG.general.home+"/"+user.oldmaingroup+"/"+user.oldgroup+"/"+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/\n";
                       script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/"+user.uid+"\n";
+                      events_db.insert({'date': new Date().getTime(), 'action': 'change group from ' + user.oldmaingroup + '/' + user.oldgroup + ' to ' + user.maingroup + '/' + user.group , 'logs': []}, function(err){});
                     }
                   }
                   var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
