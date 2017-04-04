@@ -99,14 +99,24 @@
                 </select>
               </div>
 
-              <div class="form-group">
+              <div class="form-group" ng-if="session_user.is_admin">
                 <div class="checkbox">
                   <label>
                     <input ng-model="user.is_genouest" type="checkbox"> Staff member
                   </label>
                 </div>
               </div>
+              <div class="form-group" ng-if="session_user.is_admin">
+                <div class="checkbox">
+                  <label>
+                    <input ng-model="user.is_fake" type="checkbox"> Fake/internal account
+                  </label>
+                </div>
+              </div>
+
             </div>
+
+
             <div ng-if="! session_user.is_admin">
               <div class="form-group">
                 <label for="group">Group</label>

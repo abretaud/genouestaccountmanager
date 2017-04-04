@@ -69,7 +69,6 @@ router.get('/quota/:user/:id', function(req, res) {
     hreq.end();
     hreq.on('connect', function(res, socket, head) {
         socket.on('data', function(chunk) {
-            console.log("##RECEVIED "+chunk);
             var points = JSON.parse(chunk.toString());
             var series = points[0]['series'];
 

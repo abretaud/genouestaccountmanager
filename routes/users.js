@@ -575,12 +575,12 @@ router.get('/user/:id/activate', function(req, res) {
 
       users_db.findOne({uid: req.param('id')}, function(err, user){
         if(!user) {
-          res.send({msg: 'User does not exists'})
+          res.status(403).send('User does not exists')
           res.end();
           return;
         }
         if(user.maingroup == undefined || user.group == undefined) {
-          res.send({msg: 'group or main group directory are not set'});
+          res.status(403).send('group or main group directory are not set');
           res.end();
           return;
         }
@@ -605,7 +605,7 @@ router.get('/user/:id/activate', function(req, res) {
               }
               if(!gfound) {
                 mingid = data[0].gid+1;
-                res.send({msg: 'Group does not exists, please create it first'})
+                res.status(403).send('Group does not exists, please create it first')
                 res.end();
                 return
               }
@@ -700,6 +700,9 @@ router.get('/user/:id', function(req, res) {
       if(err){
         res.status(404).send('User not found ' + err);
         return;
+      }
+      if(user.is_fake===undefined) {
+        user.is_fake = false;
       }
       if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
         user.is_admin = true;
@@ -846,6 +849,7 @@ router.post('/user/:id', function(req, res) {
         ip: req.param('ip'),
         regkey: regkey,
         is_genouest: false,
+        is_fake: false,
         uidnumber: -1,
         gidnumber: -1,
         cloud: false,
@@ -1303,7 +1307,8 @@ router.put('/user/:id', function(req, res) {
   is_genouest: false,
   expiration: new Date().getTime() + 1000*3600*24*req.param('duration'),
   loginShell: '/bin/bash',
-  history: [{action: 'register', date: new Date().getTime()}]
+  history: [{action: 'register', date: new Date().getTime()}],
+  is_fake: false
   */
 
   var sess = req.session;
@@ -1334,9 +1339,17 @@ router.put('/user/:id', function(req, res) {
         user.lastname = req.param('lastname');
         user.oldemail = user.email;
         user.email = req.param('email');
+        if(user.is_fake === undefined) {
+            user.is_fake = false;
+        }
+        if(session_user.is_admin){
+           user.is_fake = req.param('is_fake');
+        }
         if(user.email == '' || user.firstname == '' || user.lastname == '') {
-          res.status(403).send('Some mandatory fields are empty');
-          return;
+          if(! user.is_fake) {  
+              res.status(403).send('Some mandatory fields are empty');
+              return;
+          }
         }
         user.loginShell = req.param('loginShell').trim();
         user.address = req.param('address');
@@ -1349,7 +1362,6 @@ router.put('/user/:id', function(req, res) {
         if(GENERAL_CONFIG.admin.indexOf(session_user.uid) >= 0) {
           is_admin = true;
         }
-
 
         user.history.push({'action': 'update info', date: new Date().getTime()});
 
@@ -1405,7 +1417,7 @@ router.put('/user/:id', function(req, res) {
                     events_db.insert({'date': new Date().getTime(), 'action': 'User info modification: ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
 
                     fs.chmodSync(script_file,0755);
-                    if(user.oldemail!=user.email) {
+                    if(user.oldemail!=user.email && !user.is_fake) {
                       notif.modify(user.oldemail, user.email, function() {
                         user.fid = fid;
                         res.send(user);

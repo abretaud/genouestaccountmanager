@@ -169,9 +169,11 @@ module.exports = {
     user_ldif += "replace: givenName\n";
     user_ldif += "givenName: "+user.firstname+"\n";
     user_ldif += "-\n";
-    user_ldif += "replace: mail\n";
-    user_ldif += "mail: "+user.email+"\n";
-    user_ldif += "-\n";
+    if(! user.is_fake) {
+        user_ldif += "replace: mail\n";
+        user_ldif += "mail: "+user.email+"\n";
+        user_ldif += "-\n";
+    }
     user_ldif += "replace: loginShell\n";
     user_ldif += "loginShell: /bin/bash\n";
 

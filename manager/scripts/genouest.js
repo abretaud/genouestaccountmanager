@@ -577,6 +577,9 @@ angular.module('genouest').controller('usermngrCtrl',
       User.activate({name: $scope.user.uid}).$promise.then(function (data){
         GOLog.add($scope.user.uid, data.fid, "Activate user "+$scope.user.uid);
         $scope.user.status = $scope.STATUS_ACTIVE;
+        $scope.msg = data.msg;
+      }, function(error){
+          $scope.msg = error.data;
       });
     };
 
@@ -587,12 +590,14 @@ angular.module('genouest').controller('usermngrCtrl',
         if(data.fid!=null){
           GOLog.add($scope.user.uid, data.fid, "Update user "+$scope.user.uid);
         }
+        
       }, function(error){
         $scope.msg = error.data;
       });
     };
 
     $scope.update_ssh = function() {
+      $scope.ssh_message = "";
       User.update_ssh({name: $scope.user.uid}, {ssh: $scope.user.ssh}).$promise.then(function(data) {
         $scope.user = data;
         $scope.ssh_message = "SSH key added";
