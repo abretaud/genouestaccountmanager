@@ -1373,6 +1373,10 @@ router.put('/user/:id', function(req, res) {
             return;
           }
           if(session_user.is_admin){
+            if(user.secondarygroups.indexOf(group.name) != -1) {
+                res.status(403).send('Group '+req.param('group')+' is already a secondary group, please remove user from secondary group first!');
+                return;
+            }
             user.oldgroup = user.group;
             user.oldgidnumber = user.gidnumber;
             user.oldmaingroup = user.maingroup;

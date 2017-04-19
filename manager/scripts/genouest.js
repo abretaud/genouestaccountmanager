@@ -586,6 +586,7 @@ angular.module('genouest').controller('usermngrCtrl',
     $scope.update_info = function() {
       $scope.msg = "";
       User.update({name: $scope.user.uid}, $scope.user).$promise.then(function(data) {
+        $scope.msg = "User info updated";
         $scope.user = data;
         if(data.fid!=null){
           GOLog.add($scope.user.uid, data.fid, "Update user "+$scope.user.uid);
