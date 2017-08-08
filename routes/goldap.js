@@ -133,18 +133,14 @@ module.exports = {
     -
     delete: description
     */
-    if(user.firstname == '' || user.lastname == '') {
+    if(! user.is_fake && (user.firstname == '' || user.lastname == '')) {
       console.log('firstname or lastname empty');
       callback();
       return;
     }
     var user_ldif = "";
     user_ldif += "dn: uid="+user.uid+",ou=people,"+CONFIG.ldap.dn+"\n";
-    //user_ldif += "dn: cn="+user.firstname+" "+user.lastname+",ou=people,"+CONFIG.ldap.dn+"\n";
     user_ldif += "changetype: modify\n";
-    //user_ldif += "replace: cn\n";
-    //user_ldif += "cn: "+user.firstname+" "+user.lastname+"\n";
-    //user_ldif += "-\n";
     user_ldif += "replace: sn\n";
     user_ldif += "sn: "+user.lastname+"\n";
     user_ldif += "-\n";
@@ -166,9 +162,11 @@ module.exports = {
       //user_ldif += "replace: mail\n";
       //user_ldif += "mail: "+user.email+"\n";
     }
+    if(user.firstname) {
     user_ldif += "replace: givenName\n";
     user_ldif += "givenName: "+user.firstname+"\n";
     user_ldif += "-\n";
+    }
     if(! user.is_fake) {
         user_ldif += "replace: mail\n";
         user_ldif += "mail: "+user.email+"\n";
