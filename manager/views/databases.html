@@ -24,7 +24,7 @@
       </div>
       <div class="panel-body">
          <input  ng-model="db_name" placeholder="database name"/>
-         <input  ng-model="db_owner" placeholder="owner uid"/>
+         <select ng-model="db_owner" ng-options="user.uid for user in users"></select>
          <select  ng-model="db_type">
              <option value="mysql">MySQL</option>
              <option value="postgresql">Postgres</option>
