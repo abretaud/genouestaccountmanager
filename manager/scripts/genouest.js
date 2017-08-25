@@ -184,11 +184,11 @@ angular.module('genouest').controller('databasesmngrCtrl',
       };
 
       $scope.declare_db = function(){
-          
           Database.add({name: $scope.db_name},{
               owner: db_owner,
               type: db_type,
-              host: db_host
+              host: db_host,
+              create: false
           }).$promise.then(function(){
               $scope.db_name = null;
               $scope.db_owner = null;
@@ -551,7 +551,7 @@ angular.module('genouest').controller('usermngrCtrl',
 
     $scope.database_add = function(){
       $scope.dbmsg = '';
-      Database.add({name: $scope.database},{}).$promise.then(function(data){
+      Database.add({name: $scope.database},{create: true}).$promise.then(function(data){
         $scope.dbmsg = data.message;
         Database.listowner({name: $routeParams.id}).$promise.then(function(data){
           $scope.databases = data;
