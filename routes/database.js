@@ -168,7 +168,7 @@ router.post('/database/:id', function(req, res) {
     if(req.param['owner']){
         owner = req.param['owner']
     }
-    if(req.param['create'] == false || (req.param['type'] := undefined && req.param['type'] != mysql)){
+    if(req.param['create'] == false || (req.param['type'] != undefined && req.param['type'] != mysql)){
         create_db = false;
     }
 
@@ -280,42 +280,42 @@ router.delete('/database/:id', function(req, res) {
 
   users_db.findOne({_id: sess.gomngr}, function(err, session_user){
 
-    if(CONFIG.general.admin.indexOf(session_user.uid) >= 0) {
-      session_user.is_admin = true;
-    }
-    else {
-      session_user.is_admin = false;
-    }
-    var filter = {name: req.param('id')};
-    if(!session_user.is_admin) {
-      filter['owner'] = session_user.uid;
-    }
+        if(CONFIG.general.admin.indexOf(session_user.uid) >= 0) {
+          session_user.is_admin = true;
+        }
+        else {
+          session_user.is_admin = false;
+        }
+        var filter = {name: req.param('id')};
+        if(!session_user.is_admin) {
+          filter['owner'] = session_user.uid;
+        }
 
 
-    databases_db.findOne({name: req.param('id')}, function(err, database){
-      if(! database || (database.type!==undefined && database.type != 'mysql')) {
-          databases_db.remove(filter, function(err){
-              events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'deleted by ' +  sess.gomngr, 'logs': []}, function(err){});
-              res.send({message: ''});
-              res.end();
-              return;
-          });
-      }
-      else {
-        databases_db.remove(filter, function(err){
-            var sql = "DROP USER '"+req.param('id')+"'@'%';\n";
-            connection.query(sql, function(err, results) {
-              sql = "DROP DATABASE "+req.param('id')+";\n";
-              connection.query(sql, function(err, results) {
-                events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'deleted by ' +  sess.gomngr, 'logs': []}, function(err){});
-                res.send({message: ''});
-                res.end();
-                return;
-              });
-            });
+        databases_db.findOne({name: req.param('id')}, function(err, database){
+            if(! database || (database.type!==undefined && database.type != 'mysql')) {
+                databases_db.remove(filter, function(err){
+                    events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'deleted by ' +  sess.gomngr, 'logs': []}, function(err){});
+                    res.send({message: ''});
+                    res.end();
+                    return;
+                 });
+            }
+            else {
+                databases_db.remove(filter, function(err){
+                    var sql = "DROP USER '"+req.param('id')+"'@'%';\n";
+                    connection.query(sql, function(err, results) {
+                        sql = "DROP DATABASE "+req.param('id')+";\n";
+                        connection.query(sql, function(err, results) {
+                            events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'deleted by ' +  sess.gomngr, 'logs': []}, function(err){});
+                            res.send({message: ''});
+                            res.end();
+                            return;
+                        });
+                    });
+                });
+            }
         });
-    }
-
   });
 });
 
