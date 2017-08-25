@@ -151,10 +151,44 @@ router.post('/database/:id', function(req, res) {
     return;
   }
   users_db.findOne({_id: sess.gomngr}, function(err, session_user){
-    db = {
-      owner: session_user.uid,
-      name: req.param('id')
+
+      if(CONFIG.general.admin.indexOf(session_user.uid) >= 0) {
+        session_user.is_admin = true;
+      }
+      else {
+        session_user.is_admin = false;
+      }
+
+    if (req.param['owner']!=undefined && req.param['owner'] != session_user.uid && ! session_user.is_admin){
+        res.status(401).send('Not authorized, cant declare a database for a different user');
+        return;
     }
+    var owner = session_user.uid;
+    var create_db = true;
+    if(req.param['owner']){
+        owner = req.param['owner']
+    }
+    if(req.param['create'] == false || (req.param['type'] := undefined && req.param['type'] != mysql)){
+        create_db = false;
+    }
+
+    var db_type = 'mysql';
+    if(req.param['type'] != undefined && req.param['type']) {
+        db_type = req.param['type'];
+    }
+
+    var db_host = CONFIG.mysql.host;
+    if(req.param['host']!=undefined && req.param['host']){
+        db_host = req.param['host']
+    }
+
+    db = {
+      owner: owner,
+      name: req.param('id'),
+      type: db_type,
+      host: db_host
+    }
+
     if (!req.param('id').match(/^[0-9a-z_]+$/)) {
       res.send({database: null, message: 'Database name must be alphanumeric [0-9a-z_]'});
       res.end();
@@ -168,57 +202,69 @@ router.post('/database/:id', function(req, res) {
       }
       else {
         databases_db.insert(db, function(err){
-            var sql = "CREATE DATABASE "+req.param('id')+";\n";
-            connection.query(sql, function(err, results) {
-              if (err) {
-                events_db.insert({'date': new Date().getTime(), 'action': 'database creation error ' + req.param('id') , 'logs': []}, function(err){});
-                res.send({message: 'Creation error: '+err});
-                res.end();
-                return
-              }
-              var password = Math.random().toString(36).substring(10);
-              sql = "CREATE USER '"+req.param('id')+"'@'%' IDENTIFIED BY '"+password+"';\n";
-              connection.query(sql, function(err, results) {
-                if (err) {
-                  res.send({message: 'Failed to create user'});
-                  res.end();
-                  return
-                }
-                sql = "GRANT ALL PRIVILEGES ON "+req.param('id')+".* TO '"+req.param('id')+"'@'%'\n";
+            if(! create_db){
+                events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'declared by ' +  sess.gomngr, 'logs': []}, function(err){});
+
+                    res.send({message:'Database declared'});
+                    return;
+
+            }
+            else {
+                var sql = "CREATE DATABASE "+req.param('id')+";\n";
                 connection.query(sql, function(err, results) {
                   if (err) {
-                    res.send({message: 'Failed to grant access to user'});
+                    events_db.insert({'date': new Date().getTime(), 'action': 'database creation error ' + req.param('id') , 'logs': []}, function(err){});
+                    res.send({message: 'Creation error: '+err});
                     res.end();
                     return
                   }
-                  // Now send message
-                  var msg = "Database created:\n";
-                  msg += " Host: " + CONFIG.mysql.host+"\n";
-                  msg += " Database: " + req.param('id')+"\n";
-                  msg += " User: " + req.param('id')+"\n";
-                  msg += " Password: " + password+"\n";
-                  var mailOptions = {
-                    from: CONFIG.mail.origin, // sender address
-                    to: session_user.email+","+CONFIG.general.accounts, // list of receivers
-                    subject: 'Database creation', // Subject line
-                    text: msg, // plaintext body
-                    html: msg // html body
-                  };
-                  events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'created by ' +  sess.gomngr, 'logs': []}, function(err){});
-
-                  if(transport!==null) {
-                    transport.sendMail(mailOptions, function(error, response){
-                      if(error){
-                        console.log(error);
+                  var password = Math.random().toString(36).substring(10);
+                  sql = "CREATE USER '"+req.param('id')+"'@'%' IDENTIFIED BY '"+password+"';\n";
+                  connection.query(sql, function(err, results) {
+                    if (err) {
+                      res.send({message: 'Failed to create user'});
+                      res.end();
+                      return
+                    }
+                    sql = "GRANT ALL PRIVILEGES ON "+req.param('id')+".* TO '"+req.param('id')+"'@'%'\n";
+                    connection.query(sql, function(err, results) {
+                      if (err) {
+                        res.send({message: 'Failed to grant access to user'});
+                        res.end();
+                        return
                       }
-                      res.send({message:'Database created, credentials will be sent by mail'});
-                      return;
-                    });
-                  }
-                });
-              });
+                      // Now send message
+                      var msg = "Database created:\n";
+                      msg += " Host: " + CONFIG.mysql.host+"\n";
+                      msg += " Database: " + req.param('id')+"\n";
+                      msg += " User: " + req.param('id')+"\n";
+                      msg += " Password: " + password+"\n";
+                      var mailOptions = {
+                        from: CONFIG.mail.origin, // sender address
+                        to: session_user.email+","+CONFIG.general.accounts, // list of receivers
+                        subject: 'Database creation', // Subject line
+                        text: msg, // plaintext body
+                        html: msg // html body
+                      };
+                      events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'created by ' +  sess.gomngr, 'logs': []}, function(err){});
 
-          });
+                      if(transport!==null) {
+                        transport.sendMail(mailOptions, function(error, response){
+                          if(error){
+                            console.log(error);
+                          }
+                          res.send({message:'Database created, credentials will be sent by mail'});
+                          return;
+                        });
+                      }
+                    });
+                  });
+
+              }); // end connection.query
+          }
+
+
+
         });
       }
     });
@@ -245,20 +291,31 @@ router.delete('/database/:id', function(req, res) {
       filter['owner'] = session_user.uid;
     }
 
-    databases_db.remove(filter, function(err){
 
-        var sql = "DROP USER '"+req.param('id')+"'@'%';\n";
-        connection.query(sql, function(err, results) {
-          sql = "DROP DATABASE "+req.param('id')+";\n";
-          connection.query(sql, function(err, results) {
-            events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'deleted by ' +  sess.gomngr, 'logs': []}, function(err){});
-            res.send({message: ''});
-            res.end();
-            return;
+    databases_db.findOne({name: req.param('id')}, function(err, database){
+      if(! database || (database.type!==undefined && database.type != 'mysql')) {
+          databases_db.remove(filter, function(err){
+              events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'deleted by ' +  sess.gomngr, 'logs': []}, function(err){});
+              res.send({message: ''});
+              res.end();
+              return;
           });
+      }
+      else {
+        databases_db.remove(filter, function(err){
+            var sql = "DROP USER '"+req.param('id')+"'@'%';\n";
+            connection.query(sql, function(err, results) {
+              sql = "DROP DATABASE "+req.param('id')+";\n";
+              connection.query(sql, function(err, results) {
+                events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'deleted by ' +  sess.gomngr, 'logs': []}, function(err){});
+                res.send({message: ''});
+                res.end();
+                return;
+              });
+            });
         });
+    }
 
-    });
   });
 });
 

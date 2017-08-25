@@ -4,14 +4,34 @@
 <div class="row">
   <table datatable="ng" class="table table-striped">
     <thead>
-      <th>Name</th><th>Owner</th><th>Change Owner</th>
+      <th>Name</th><th>Owner</th><th>Type</th><th>Host</th><th>Change Owner</th>
     </thead>
     <tbody>
       <tr ng-repeat="database in databases">
         <td>{{database.name}}</td>
         <td><a ng-href="#/user/{{database.owner}}">{{database.owner}}</a></td>
+        <td>{{database.type}}</td>
+        <td>{{database.host}}</td>
         <td><select ng-model="database.newowner" ng-options="user.uid for user in users" ng-change="changeOwner(database.name, database.owner, database.newowner.uid)"></select></td>
       </tr>
     </tbody>
   </table>
+</div>
+<div class="row">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Declare existing database (no creation)</h3>
+      </div>
+      <div class="panel-body">
+         <input  ng-model="db_name" placeholder="database name"/>
+         <input  ng-model="db_owner" placeholder="owner uid"/>
+         <select  ng-model="db_type">
+             <option value="mysql">MySQL</option>
+             <option value="postgresql">Postgres</option>
+             <option value="mongo">Mongo</option>
+         </select>
+         <input ng-model="db_host" placeholder="hostname where is database"/>
+         <button type="button" class="btn btn-primary" ng-click="declare_db()">Change password</button>
+      </div>
+    </div>
 </div>

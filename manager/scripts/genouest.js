@@ -151,6 +151,20 @@ angular.module('genouest').controller('logsCtrl',
 angular.module('genouest').controller('databasesmngrCtrl',
     function ($scope, $rootScope, User, Auth, Database) {
       $scope.user = Auth.getUser();
+      /*
+      <input  ng-model="db_name" placeholder="database name"/>
+      <input  ng-model="db_owner" placeholder="owner uid"/>
+      <select  ng-model="db_type">
+          <option value="mysql">MySQL</option>
+          <option value="postgresql">Postgres</option>
+          <option value="mongo">Mongo</option>
+      </select>
+      <input ng-model="db_host" placeholder="hostname where is database"/>
+      */
+      $scope.db_name = null;
+      $scope.db_owner = null;
+      $scope.db_type = 'mysql';
+      $scope.db_host = null;
 
       Database.list().$promise.then(function(data){
         $scope.databases = data;
@@ -168,6 +182,22 @@ angular.module('genouest').controller('databasesmngrCtrl',
           });
         });
       };
+
+      $scope.declare_db = function(){
+          Database.add({name: $scope.db_name},{
+              owner: db_owner,
+              type: db_type,
+              host: db_host
+          }).$promise.then(function(){
+              $scope.db_name = null;
+              $scope.db_owner = null;
+              $scope.db_type = 'mysql';
+              $scope.db_host = null;
+              Database.list().$promise.then(function(data){
+                $scope.databases = data;
+              });
+          });
+      }
 
     });
 
@@ -591,7 +621,7 @@ angular.module('genouest').controller('usermngrCtrl',
         if(data.fid!=null){
           GOLog.add($scope.user.uid, data.fid, "Update user "+$scope.user.uid);
         }
-        
+
       }, function(error){
         $scope.msg = error.data;
       });
