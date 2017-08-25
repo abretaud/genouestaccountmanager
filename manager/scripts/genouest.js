@@ -184,6 +184,7 @@ angular.module('genouest').controller('databasesmngrCtrl',
       };
 
       $scope.declare_db = function(){
+          
           Database.add({name: $scope.db_name},{
               owner: db_owner,
               type: db_type,
@@ -197,6 +198,7 @@ angular.module('genouest').controller('databasesmngrCtrl',
                 $scope.databases = data;
               });
           });
+          
       }
 
     });

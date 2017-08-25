@@ -12,7 +12,7 @@
         <td><a ng-href="#/user/{{database.owner}}">{{database.owner}}</a></td>
         <td>{{database.type}}</td>
         <td>{{database.host}}</td>
-        <td><select ng-model="database.newowner" ng-options="user.uid for user in users" ng-change="changeOwner(database.name, database.owner, database.newowner.uid)"></select></td>
+        <td><select ng-model="database.newowner" ng-options="user.uid for user in users | orderBy:'uid'" ng-change="changeOwner(database.name, database.owner, database.newowner.uid)"></select></td>
       </tr>
     </tbody>
   </table>
@@ -24,7 +24,8 @@
       </div>
       <div class="panel-body">
          <input  ng-model="db_name" placeholder="database name"/>
-         <select ng-model="db_owner" ng-options="user.uid for user in users"></select>
+         <select ng-model="db_owner" ng-options="user.uid for user in users | orderBy:'uid'"></select>
+
          <select  ng-model="db_type">
              <option value="mysql">MySQL</option>
              <option value="postgresql">Postgres</option>
