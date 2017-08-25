@@ -29,7 +29,7 @@ router.put('/web/:id/owner/:old/:new', function(req, res) {
       return;
     }
     web_db.update({_id: req.param('id')},{'$set': {owner: req.param('new')}}, function(err){
-    events_db.insert({'date': new Date().getTime(), 'action': 'change website ' + req.param('id') + ' owner to ' + req.param('new')  , 'logs': []}, function(err){});
+    events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'change website ' + req.param('id') + ' owner to ' + req.param('new')  , 'logs': []}, function(err){});
 
       res.send({message: 'Owner changed from '+req.param('old')+' to '+req.param('new')})
     });
@@ -107,7 +107,7 @@ router.post('/web/:id', function(req, res) {
       description: req.param('description')
     }
     web_db.insert(web, function(err){
-      events_db.insert({'date': new Date().getTime(), 'action': 'register new web site ' + req.param('id') , 'logs': []}, function(err){});
+      events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'register new web site ' + req.param('id') , 'logs': []}, function(err){});
 
       res.send({web: web, message: ''});
     });
@@ -134,7 +134,7 @@ router.delete('/web/:id', function(req, res) {
       filter['owner'] = session_user.uid;
     }
     web_db.remove(filter, function(err){
-        events_db.insert({'date': new Date().getTime(), 'action': 'remove web site ' + req.param('id') , 'logs': []}, function(err){});
+        events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'remove web site ' + req.param('id') , 'logs': []}, function(err){});
 
         res.send(null);
     });

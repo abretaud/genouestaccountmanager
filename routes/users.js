@@ -142,7 +142,7 @@ router.delete('/group/:id', function(req, res){
                     fs.writeFile(script_file, script, function(err) {
                       fs.chmodSync(script_file,0755);
                       group.fid = fid;
-                      events_db.insert({'date': new Date().getTime(), 'action': 'delete group ' + req.param('id') , 'logs': [group.name+"."+fid+".update"]}, function(err){});
+                      events_db.insert({'owner': user.uid, 'date': new Date().getTime(), 'action': 'delete group ' + req.param('id') , 'logs': [group.name+"."+fid+".update"]}, function(err){});
                       res.send({'msg': 'group ' + req.param('id')+ ' deleted'});
                       res.end();
                       return;
@@ -224,7 +224,7 @@ router.post('/group/:id', function(req, res){
             script += "ldapadd -h "+CONFIG.ldap.host+" -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+group.name+"."+fid+".ldif\n";
             var script_file = CONFIG.general.script_dir+'/'+group.name+"."+fid+".update";
             fs.writeFile(script_file, script, function(err) {
-              events_db.insert({'date': new Date().getTime(), 'action': 'create group ' + req.param('id') , 'logs': [group.name+"."+fid+".update"]}, function(err){});
+              events_db.insert({'owner': user.uid, 'date': new Date().getTime(), 'action': 'create group ' + req.param('id') , 'logs': [group.name+"."+fid+".update"]}, function(err){});
 
               fs.chmodSync(script_file,0755);
               group.fid = fid;
@@ -367,7 +367,7 @@ router.post('/user/:id/group/:group', function(req, res){
               res.end();
               return;
             }
-            events_db.insert({'date': new Date().getTime(), 'action': 'add user ' + req.param('id') + ' to secondary  group ' + req.param('group') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
+            events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'add user ' + req.param('id') + ' to secondary  group ' + req.param('group') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
             res.send({message: 'User added to group', fid: fid});
             res.end();
             return;
@@ -434,7 +434,7 @@ router.delete('/user/:id/group/:group', function(req, res){
               res.end();
               return;
             }
-            events_db.insert({'date': new Date().getTime(), 'action': 'remove user ' + req.param('id') + ' from secondary  group ' + req.param('group') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
+            events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'remove user ' + req.param('id') + ' from secondary  group ' + req.param('group') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
             res.send({message: 'User removed from group', fid: fid});
             res.end();
             return;
@@ -472,7 +472,7 @@ router.delete('/user/:id', function(req, res){
             res.end();
             return;
           }
-          events_db.insert({'date': new Date().getTime(), 'action': 'delete user ' + req.param('id') , 'logs': []}, function(err){});
+          events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'delete user ' + req.param('id') , 'logs': []}, function(err){});
 
           res.send({message: 'User deleted'});
           res.end();
@@ -518,7 +518,7 @@ router.delete('/user/:id', function(req, res){
                   res.end();
                   return;
                 }
-                events_db.insert({'date': new Date().getTime(), 'action': 'delete user ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
+                events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'delete user ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
 
                 var msg_activ ="User " + req.param('id') + "has been deleted by " + session_user.uid;
                 var msg_activ_html = msg_activ;
@@ -563,12 +563,12 @@ router.get('/user/:id/activate', function(req, res) {
       return;
     }
 
-    users_db.findOne({_id: sess.gomngr}, function(err, user){
-      if(err || user == null){
+    users_db.findOne({_id: sess.gomngr}, function(err, session_user){
+      if(err || session_user == null){
         res.status(404).send('User not found');
         return;
       }
-      if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
+      if(GENERAL_CONFIG.admin.indexOf(session_user.uid) < 0){
         res.status(401).send('Not authorized');
         return;
       }
@@ -647,7 +647,7 @@ router.get('/user/:id/activate', function(req, res) {
                           text: msg_activ, // plaintext body
                           html: msg_activ_html // html body
                         };
-                        events_db.insert({'date': new Date().getTime(), 'action': 'activate user ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
+                        events_db.insert({'owner': session_user.uid,'date': new Date().getTime(), 'action': 'activate user ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
 
                         if(transport!==null) {
                           transport.sendMail(mailOptions, function(error, response){
@@ -759,7 +759,7 @@ router.get('/user/:id/confirm', function(req, res) {
             text: 'New account registration waiting for approval: '+uid, // plaintext body
             html: 'New account registration waiting for approval: '+uid // html body
           };
-          events_db.insert({'date': new Date().getTime(), 'action': 'user confirmed email:' + req.param('id') , 'logs': []}, function(err){});
+          events_db.insert({'owner': user.uid, 'date': new Date().getTime(), 'action': 'user confirmed email:' + req.param('id') , 'logs': []}, function(err){});
           if(transport!==null) {
             transport.sendMail(mailOptions, function(error, response){
               if(error){
@@ -929,7 +929,7 @@ router.get('/user/:id/expire', function(req, res){
 
               var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
               fs.writeFile(script_file, script, function(err) {
-                events_db.insert({'date': new Date().getTime(), 'action': 'user expiration:' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
+                events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'user expiration:' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
 
                 fs.chmodSync(script_file,0755);
                 // Now remove from mailing list
@@ -985,7 +985,7 @@ router.post('/user/:id/passwordreset', function(req, res){
       return;
     }
     user.password=req.param('password');
-    events_db.insert({'date': new Date().getTime(), 'action': 'user ' + req.param('id') + ' password update request', 'logs': []}, function(err){});
+    events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'user ' + req.param('id') + ' password update request', 'logs': []}, function(err){});
         var fid = new Date().getTime();
         goldap.reset_password(user, fid, function(err) {
         if(err){
@@ -1042,7 +1042,7 @@ router.get('/user/:id/passwordreset', function(req, res){
         text: msg,
         html: html_msg
       };
-      events_db.insert({'date': new Date().getTime(), 'action': 'user ' + req.param('id') + ' password reset request', 'logs': []}, function(err){});
+      events_db.insert({'owner': user.uid, 'date': new Date().getTime(), 'action': 'user ' + req.param('id') + ' password reset request', 'logs': []}, function(err){});
 
       if(transport!==null) {
         transport.sendMail(mailOptions, function(error, response){
@@ -1096,7 +1096,7 @@ router.get('/user/:id/passwordreset/:key', function(req, res){
                 text: msg,
                 html: msg_html
               };
-              events_db.insert({'date': new Date().getTime(), 'action': 'user password' + req.param('id') + ' reset confirmation', 'logs': [user.uid+"."+fid+".update"]}, function(err){});
+              events_db.insert({'owner': user.uid,'date': new Date().getTime(), 'action': 'user password' + req.param('id') + ' reset confirmation', 'logs': [user.uid+"."+fid+".update"]}, function(err){});
 
               if(transport!==null) {
                 transport.sendMail(mailOptions, function(error, response){
@@ -1141,7 +1141,7 @@ router.get('/user/:id/renew/:regkey', function(req, res){
       user.history.push({'action': 'extend validity period', date: new Date().getTime()});
       var expiration = new Date().getTime() + 1000*3600*24*user.duration;
       users_db.update({uid: user.uid},{'$set': {expiration: expiration, history: user.history}}, function(err){
-         events_db.insert({'date': new Date().getTime(), 'action': 'Extend validity period: ' + req.param('id') , 'logs': []}, function(err){});
+         events_db.insert({'owner': user.uid,'date': new Date().getTime(), 'action': 'Extend validity period: ' + req.param('id') , 'logs': []}, function(err){});
 
         res.send({message: 'Account validity period extended', expiration: expiration});
         return;
@@ -1192,7 +1192,7 @@ router.get('/user/:id/renew', function(req, res){
               script += "fi\n";
               var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
               fs.writeFile(script_file, script, function(err) {
-                events_db.insert({'date': new Date().getTime(), 'action': 'Reactivate user ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
+                events_db.insert({'owner': session_user.uid,'date': new Date().getTime(), 'action': 'Reactivate user ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
 
                 fs.chmodSync(script_file,0755);
                 notif.add(user.email, function(){
@@ -1276,7 +1276,7 @@ router.put('/user/:id/ssh', function(req, res) {
           var fid = new Date().getTime();
           var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
           fs.writeFile(script_file, script, function(err) {
-            events_db.insert({'date': new Date().getTime(), 'action': 'SSH key update: ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
+            events_db.insert({'owner': session_user.uid,'date': new Date().getTime(), 'action': 'SSH key update: ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
 
             fs.chmodSync(script_file,0755);
             user.fid = fid;
@@ -1346,7 +1346,7 @@ router.put('/user/:id', function(req, res) {
            user.is_fake = req.param('is_fake');
         }
         if(user.email == '' || user.firstname == '' || user.lastname == '') {
-          if(! user.is_fake) {  
+          if(! user.is_fake) {
               res.status(403).send('Some mandatory fields are empty');
               return;
           }
@@ -1413,12 +1413,12 @@ router.put('/user/:id', function(req, res) {
                       script += "fi\n";
                       script += "mv "+CONFIG.general.home+"/"+user.oldmaingroup+"/"+user.oldgroup+"/"+user.uid+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/\n";
                       script += "chown -R "+user.uid+":"+user.group+" "+CONFIG.general.home+"/"+user.maingroup+"/"+user.group+"/"+user.uid+"\n";
-                      events_db.insert({'date': new Date().getTime(), 'action': 'change group from ' + user.oldmaingroup + '/' + user.oldgroup + ' to ' + user.maingroup + '/' + user.group , 'logs': []}, function(err){});
+                      events_db.insert({'owner': session_user.uid,'date': new Date().getTime(), 'action': 'change group from ' + user.oldmaingroup + '/' + user.oldgroup + ' to ' + user.maingroup + '/' + user.group , 'logs': []}, function(err){});
                     }
                   }
                   var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
                   fs.writeFile(script_file, script, function(err) {
-                    events_db.insert({'date': new Date().getTime(), 'action': 'User info modification: ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
+                    events_db.insert({'owner': session_user.uid,'date': new Date().getTime(), 'action': 'User info modification: ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
 
                     fs.chmodSync(script_file,0755);
                     if(user.oldemail!=user.email && !user.is_fake) {
@@ -1437,7 +1437,7 @@ router.put('/user/:id', function(req, res) {
           }
           else {
             users_db.update({_id: user._id}, user, function(err){
-              events_db.insert({'date': new Date().getTime(), 'action': 'Update user info ' + req.param('id') , 'logs': []}, function(err){});
+              events_db.insert({'owner': session_user.uid,'date': new Date().getTime(), 'action': 'Update user info ' + req.param('id') , 'logs': []}, function(err){});
 
               user.fid = null;
               res.send(user);

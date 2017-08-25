@@ -90,7 +90,7 @@ router.put('/database/:id/owner/:old/:new', function(req, res) {
       return;
     }
     databases_db.update({name: req.param('id')},{'$set': {owner: req.param('new')}}, function(err){
-      events_db.insert({'date': new Date().getTime(), 'action': 'database changed from '+req.param('old')+' to '+req.param('new'), 'logs': []}, function(err){});
+      events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'database changed from '+req.param('old')+' to '+req.param('new'), 'logs': []}, function(err){});
       res.send({message: 'Owner changed from '+req.param('old')+' to '+req.param('new')});
       res.end();
       return;
@@ -203,7 +203,7 @@ router.post('/database/:id', function(req, res) {
       else {
         databases_db.insert(db, function(err){
             if(! create_db){
-                events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'declared by ' +  sess.gomngr, 'logs': []}, function(err){});
+                events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ ' declared by ' +  session_user.uid, 'logs': []}, function(err){});
 
                     res.send({message:'Database declared'});
                     return;
@@ -213,7 +213,7 @@ router.post('/database/:id', function(req, res) {
                 var sql = "CREATE DATABASE "+req.param('id')+";\n";
                 connection.query(sql, function(err, results) {
                   if (err) {
-                    events_db.insert({'date': new Date().getTime(), 'action': 'database creation error ' + req.param('id') , 'logs': []}, function(err){});
+                    events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'database creation error ' + req.param('id') , 'logs': []}, function(err){});
                     res.send({message: 'Creation error: '+err});
                     res.end();
                     return
@@ -246,7 +246,7 @@ router.post('/database/:id', function(req, res) {
                         text: msg, // plaintext body
                         html: msg // html body
                       };
-                      events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'created by ' +  sess.gomngr, 'logs': []}, function(err){});
+                      events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ ' created by ' +  session_user.uid, 'logs': []}, function(err){});
 
                       if(transport!==null) {
                         transport.sendMail(mailOptions, function(error, response){
@@ -295,7 +295,7 @@ router.delete('/database/:id', function(req, res) {
         databases_db.findOne({name: req.param('id')}, function(err, database){
             if(! database || (database.type!==undefined && database.type != 'mysql')) {
                 databases_db.remove(filter, function(err){
-                    events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'deleted by ' +  sess.gomngr, 'logs': []}, function(err){});
+                    events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ ' deleted by ' +  session_user.uid, 'logs': []}, function(err){});
                     res.send({message: ''});
                     res.end();
                     return;
@@ -307,7 +307,7 @@ router.delete('/database/:id', function(req, res) {
                     connection.query(sql, function(err, results) {
                         sql = "DROP DATABASE "+req.param('id')+";\n";
                         connection.query(sql, function(err, results) {
-                            events_db.insert({'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ 'deleted by ' +  sess.gomngr, 'logs': []}, function(err){});
+                            events_db.insert({'owner': session_user.uid,'date': new Date().getTime(), 'action': 'database ' + req.param('id')+ ' deleted by ' +  session_user.uid, 'logs': []}, function(err){});
                             res.send({message: ''});
                             res.end();
                             return;

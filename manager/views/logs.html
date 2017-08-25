@@ -1,11 +1,12 @@
 <div class="row">
   <table datatable="ng" class="table table-striped">
     <thead>
-      <th>ID</th><th>Date</th><th>Action</th><th>Logs</th>
+      <th>ID</th><th>Owner</th><th>Date</th><th>Action</th><th>Logs</th>
     </thead>
     <tbody>
       <tr ng-repeat="log in logs">
         <td ng-class="get_status(log.status)">{{log._id}}</td>
+        <td>{{log.owner}}</td>
         <td>{{date_convert(log.date)}}</td>
         <td>{{log.action}}</td>
         <td><span ng-repeat="event in log.logs"><div ng-click="getlog(log._id, event)">{{event}}</div>
