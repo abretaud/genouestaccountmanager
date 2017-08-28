@@ -185,9 +185,9 @@ angular.module('genouest').controller('databasesmngrCtrl',
 
       $scope.declare_db = function(){
           Database.add({name: $scope.db_name},{
-              owner: db_owner,
-              type: db_type,
-              host: db_host,
+              owner: $scope.db_owner,
+              type: $scope.db_type,
+              host: $scope.db_host,
               create: false
           }).$promise.then(function(){
               $scope.db_name = null;
