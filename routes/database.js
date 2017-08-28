@@ -159,27 +159,27 @@ router.post('/database/:id', function(req, res) {
         session_user.is_admin = false;
       }
 
-    if (req.param['owner']!=undefined && req.param['owner'] != session_user.uid && ! session_user.is_admin){
+    if (req.param('owner')!=undefined && req.param('owner') != session_user.uid && ! session_user.is_admin){
         res.status(401).send('Not authorized, cant declare a database for a different user');
         return;
     }
     var owner = session_user.uid;
     var create_db = true;
-    if(req.param['owner']){
-        owner = req.param['owner']
+    if(req.param('owner')){
+        owner = req.param('owner')
     }
-    if(req.param['create'] == false || (req.param['type'] != undefined && req.param['type'] != mysql)){
+    if(req.param('create') == false || (req.param('type') != undefined && req.param('type') != mysql)){
         create_db = false;
     }
 
     var db_type = 'mysql';
-    if(req.param['type'] != undefined && req.param['type']) {
-        db_type = req.param['type'];
+    if(req.param('type') != undefined && req.param('type')) {
+        db_type = req.param('type');
     }
 
     var db_host = CONFIG.mysql.host;
-    if(req.param['host']!=undefined && req.param['host']){
-        db_host = req.param['host']
+    if(req.param('host')!=undefined && req.param('host')){
+        db_host = req.param('host');
     }
 
     db = {
