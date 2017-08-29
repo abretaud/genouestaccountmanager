@@ -189,7 +189,7 @@ router.post('/database/:id', function(req, res) {
       host: db_host
     }
 
-    if (!req.param('id').match(/^[0-9a-z_]+$/)) {
+    if (create_db && !req.param('id').match(/^[0-9a-z_]+$/)) {
       res.send({database: null, message: 'Database name must be alphanumeric [0-9a-z_]'});
       res.end();
       return;
