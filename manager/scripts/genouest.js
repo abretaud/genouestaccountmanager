@@ -166,6 +166,9 @@ angular.module('genouest').controller('databasesmngrCtrl',
       $scope.db_type = 'mysql';
       $scope.db_host = null;
 
+      $scope.owner_db_name = null;
+      $scope.owner_db_owner = null;
+
       Database.list().$promise.then(function(data){
         $scope.databases = data;
       });
@@ -173,14 +176,21 @@ angular.module('genouest').controller('databasesmngrCtrl',
         $scope.users = data;
       });
 
-      $scope.changeOwner = function(db, oldowner, newowner){
+      $scope.change_owner = function(){
         $scope.msg = '';
-        Database.changeowner({name: db, old: oldowner, new: newowner},{}).$promise.then(function(data){
+        if($scope.owner_db_name === undefined || $scope.owner_db_owner === undefined){
+            console.log("no database or owner selected");
+            return;
+        }
+        c
+        Database.changeowner({name: $scope.owner_db_name.name, old: $scope.owner_db_name.owner, new: $scope.owner_db_owner.uid},{}).$promise.then(function(data){
           $scope.msg = data.message;
           Database.list().$promise.then(function(data){
             $scope.databases = data;
           });
         });
+
+
       };
 
       $scope.declare_db = function(){
@@ -198,7 +208,7 @@ angular.module('genouest').controller('databasesmngrCtrl',
                 $scope.databases = data;
               });
           });
-          
+
       }
 
     });
@@ -206,6 +216,8 @@ angular.module('genouest').controller('databasesmngrCtrl',
 angular.module('genouest').controller('webmngrCtrl',
     function ($scope, $rootScope, User, Auth, Web) {
       $scope.user = Auth.getUser();
+      $scope.owner_web_name = null;
+      $scope.owner_web_owner = null;
 
       Web.list().$promise.then(function(data){
         $scope.websites = data;
@@ -214,16 +226,20 @@ angular.module('genouest').controller('webmngrCtrl',
         $scope.users = data;
       });
 
-      $scope.changeOwner = function(db, oldowner, newowner){
+      $scope.change_owner = function(){
         $scope.msg = '';
-        Web.changeowner({name: db, old: oldowner, new: newowner},{}).$promise.then(function(data){
+        if($scope.owner_web_name === undefined || $scope.owner_web_owner === undefined){
+            console.log("no web or owner selected");
+            return;
+        }
+
+        Web.changeowner({name: $scope.owner_web_name.name, old: $scope.owner_web_name.owner, new: $scope.owner_web_owner.uid},{}).$promise.then(function(data){
           $scope.msg = data.message;
           Web.list().$promise.then(function(data){
-            $scope.databases = data;
+            $scope.websites = data;
           });
         });
-      };
-
+    };
     });
 
 

@@ -17,3 +17,17 @@
     </tbody>
   </table>
 </div>
+
+
+<div class="row">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Change web site owner</h3>
+      </div>
+      <div class="panel-body">
+         <select  ng-model="owner_web_name" ng-options="web.name for web in websites | orderBy:'name'"></select>
+         <select ng-model="owner_web_owner" ng-options="user.uid for user in users | orderBy:'uid'"></select>
+         <button type="button" class="btn btn-primary" ng-click="change_owner()">Modify</button>
+      </div>
+    </div>
+</div>
