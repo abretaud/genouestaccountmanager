@@ -90,7 +90,7 @@ router.put('/database/:id/owner/:old/:new', function(req, res) {
       return;
     }
     databases_db.update({name: req.param('id')},{'$set': {owner: req.param('new')}}, function(err){
-      events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'database changed from '+req.param('old')+' to '+req.param('new'), 'logs': []}, function(err){});
+      events_db.insert({'owner': session_user.uid, 'date': new Date().getTime(), 'action': 'database ' + req.param('id') + ' changed from ' + req.param('old') + ' to ' + req.param('new'), 'logs': []}, function(err){});
       res.send({message: 'Owner changed from '+req.param('old')+' to '+req.param('new')});
       res.end();
       return;
