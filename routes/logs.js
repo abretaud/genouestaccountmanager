@@ -37,6 +37,24 @@ router.get('/log', function(req, res){
     });
 });
 
+router.get('/log/user/:id', function(req, res){
+    var sess = req.session;
+    if(! sess.gomngr) {
+      res.status(401).send('Not authorized');
+      return;
+    }
+    users_db.findOne({_id: sess.gomngr}, function(err, user){
+          if(err || user == null){
+            res.status(404).send('User not found');
+            return;
+          }
+        events_db.find({'owner': user.uid}, function(err, events){
+            res.send(events);
+            res.end();
+        });
+    });
+});
+
 router.get('/log/status/:id/:status', function(req, res){
     events_db.update({'logs': req.param('id')}, {'$set':{'status': parseInt(req.param('status'))}}, function(err){});
     res.end();

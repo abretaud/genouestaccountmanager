@@ -8,18 +8,24 @@
 
       function GOActionLog($resource) {
         return $resource(prefix+'/log', {}, {
-          get: {
-            url: prefix+'/log/:event',
-            method: 'GET',
-            isArray: false,
-            cache: false
-        },
-          list: {
-              url: prefix+'/log',
-              method: 'GET',
-              isArray: true,
-              cache: false
-          }
+            get: {
+                url: prefix+'/log/:event',
+                method: 'GET',
+                isArray: false,
+                cache: false
+            },
+            list: {
+                  url: prefix+'/log',
+                  method: 'GET',
+                  isArray: true,
+                  cache: false
+            },
+            user_list: {
+                  url: prefix+'/log/user/:id',
+                  method: 'GET',
+                  isArray: true,
+                  cache: false
+            }
         });
       }
 

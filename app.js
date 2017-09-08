@@ -16,6 +16,7 @@ var web = require('./routes/web');
 var logs = require('./routes/logs');
 var projects = require('./routes/projects');
 var quota = require('./routes/quota');
+var plugin = require('./routes/plugin');
 
 var CONFIG = require('config');
 
@@ -47,6 +48,7 @@ app.get('/', routes);
 app.get('/ip', users);
 app.get('/log/status/:id/:status', logs);
 app.get('/log/:id', logs);
+app.get('/log/user/:id', logs);
 app.get('/log', logs);
 app.post('/message', users);
 app.get('/group', users);
@@ -90,6 +92,12 @@ app.post('/project', projects);
 app.post('/project/:id', projects);
 app.delete('/project/:id', projects);
 app.get('/quota/:user/:id', quota);
+app.get('/plugin', plugin);
+app.get('/plugin/:id', plugin);
+app.get('/plugin/:id/:user', plugin);
+app.post('/plugin/:id/:user', plugin);
+app.post('/plugin/:id/:user/activate', plugin);
+app.post('/plugin/:id/:user/deactivate', plugin);
 
 app.get('/auth', auth);
 app.post('/auth/:id', auth);

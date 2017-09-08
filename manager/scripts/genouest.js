@@ -430,12 +430,41 @@ angular.module('genouest').controller('userextendCtrl',
 });
 
 angular.module('genouest').controller('usermngrCtrl',
-  function($scope, $rootScope, $routeParams, $log, $location, User, Group, Quota, Database, Web, Auth, GOLog) {
+  function($scope, $rootScope, $routeParams, $log, $http, $location, User, Group, Quota, Database, Web, Auth, GOLog) {
     $scope.session_user = Auth.getUser();
     $scope.maingroups = ['genouest', 'irisa', 'symbiose'];
     $scope.selected_group = '';
     $scope.password1 = '';
     $scope.password2 = '';
+    $scope.plugins = [];
+    $scope.plugin_data = {};
+    $http({
+      method: 'GET',
+      url: '../plugin'
+    }).then(function successCallback(response) {
+        $scope.plugins = response.data;
+      }, function errorCallback(response) {
+          console.log("Failed to get plugins ");
+      });
+
+
+    $scope.plugin_update = function(plugin) {
+        // TODO send update to plugin with plugin_data
+        // plugin is in charge of setting plugin_data.plugin content that will be posted
+        console.log("should update " + plugin);
+        console.log($scope.plugin_data[plugin]);
+        $scope.plugin_data[plugin].alert = null;
+        $http({
+          method: 'POST',
+          url: '../plugin/' + plugin + '/' + $scope.user.uid,
+          data: $scope.plugin_data[plugin]
+        }).then(function successCallback(response) {
+            console.log('data updated');
+          }, function errorCallback(response) {
+              console.log("Failed to update plugin "+plugin+": "+response.data);
+              $scope.plugin_data[plugin].alert = response.data;
+          });
+    }
 
     $scope.change_group = function() {
       //console.log($scope.selected_group);
@@ -489,6 +518,19 @@ angular.module('genouest').controller('usermngrCtrl',
       User.is_subscribed({name: user.uid}).$promise.then(function(data){
           $scope.subscribed = data.subscribed;
       });
+
+      for(var i=0;i<$scope.plugins.length;i++){
+          (function(cntr) {
+          $http({
+            method: 'GET',
+            url: $scope.plugins[cntr].url+ '/' + user.uid
+          }).then(function successCallback(response) {
+              $scope.plugin_data[$scope.plugins[cntr].name] = response.data;
+            }, function errorCallback(response) {
+                console.log("Failed to get info from plugin "+$scope.plugins[cntr].url);
+            });
+        })(i);
+      };
 
     });
     $scope.STATUS_PENDING_EMAIL = 'Waiting for email approval';
@@ -657,9 +699,10 @@ angular.module('genouest').controller('usermngrCtrl',
 });
 
 angular.module('genouest').controller('userCtrl',
-  function($scope, $rootScope, $routeParams, $log, $location, $window, User, Auth, Logout) {
+  function($scope, $rootScope, $routeParams, $log, $location, $window, User, Auth, Logout, GOActionLog) {
 
     $scope.is_logged = false;
+    $scope.events = [];
 
     User.is_authenticated().$promise.then(function(data) {
       if(data.user !== undefined && data.user !== null) {
@@ -671,6 +714,10 @@ angular.module('genouest').controller('userCtrl',
          }
 
          Auth.setUser($scope.user);
+         GOActionLog.user_list({'id': data.user.uid}).$promise.then(function(data){
+             $scope.events = data;
+
+         });
       }
       else {
         if($location.path().indexOf("renew") == -1 && $location.path().indexOf("pending") == -1) {
