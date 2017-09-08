@@ -301,7 +301,7 @@
     <div>
       <h2>History</h2>
       <div ng-repeat="hist in events">
-        <span>{{hist.date}}:  {{hist.action}}</span>
+        <span>{{date_convert(hist.date)}}:  {{hist.action}}</span>
       </div>
     </div>
   </div>

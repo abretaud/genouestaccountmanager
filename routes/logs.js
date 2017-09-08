@@ -48,7 +48,7 @@ router.get('/log/user/:id', function(req, res){
             res.status(404).send('User not found');
             return;
           }
-        events_db.find({'owner': user.uid}, function(err, events){
+        events_db.find({'owner': req.param('id')}, function(err, events){
             res.send(events);
             res.end();
         });
