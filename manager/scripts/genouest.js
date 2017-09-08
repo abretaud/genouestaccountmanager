@@ -566,7 +566,7 @@ angular.module('genouest').controller('usermngrCtrl',
       $scope.websites = data;
     });
 
-    GOActionLog.user_list({'id': data.user.uid}).$promise.then(function(data){
+    GOActionLog.user_list({'id': $routeParams.id}).$promise.then(function(data){
         $scope.events = data;
 
     });
