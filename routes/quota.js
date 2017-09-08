@@ -65,7 +65,7 @@ router.get('/quota/:user/:id', function(req, res) {
             if(quotas.length==1){
                 quotas.push(0);
             }
-            res.send({'name': req.param('id'), 'value': quotas[0], 'max': 0});
+            res.send({'name': req.param('id'), 'value': quotas[0], 'max': quotas[1]});
 
             res.end();
         });
