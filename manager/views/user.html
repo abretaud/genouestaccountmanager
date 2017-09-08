@@ -153,7 +153,7 @@
               </div>
             </div>
             <div class="panel-body">
-             <div>Quota: {{quota.value}}G</div>
+             <div>Quota: {{quota.value | number: 2}} / {{quota.max | number: 2}} G</div>
             </div>
           </div>
         </div>

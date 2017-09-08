@@ -58,8 +58,15 @@ router.get('/quota/:user/:id', function(req, res) {
             for(var s=0;s<series.length;s++){
                   quotas.push(series[s]['values'][0][1] / 1000000)
             }
+            if(quotas.length==0){
+                quotas.push(0);
+                quotas.push(0);
+            }
+            if(quotas.length==1){
+                quotas.push(0);
+            }
+            res.send({'name': req.param('id'), 'value': quotas[0], 'max': 0});
 
-            res.send({'name': req.param('id'), 'value': quotas.join('/')})
             res.end();
         });
     });
