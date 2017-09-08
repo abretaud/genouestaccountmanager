@@ -430,12 +430,13 @@ angular.module('genouest').controller('userextendCtrl',
 });
 
 angular.module('genouest').controller('usermngrCtrl',
-  function($scope, $rootScope, $routeParams, $log, $http, $location, User, Group, Quota, Database, Web, Auth, GOLog) {
+  function($scope, $rootScope, $routeParams, $log, $http, $location, User, Group, Quota, Database, Web, Auth, GOLog, GOActionLog) {
     $scope.session_user = Auth.getUser();
     $scope.maingroups = ['genouest', 'irisa', 'symbiose'];
     $scope.selected_group = '';
     $scope.password1 = '';
     $scope.password2 = '';
+    $scope.events = [];
     $scope.plugins = [];
     $scope.plugin_data = {};
     $http({
@@ -563,6 +564,11 @@ angular.module('genouest').controller('usermngrCtrl',
 
     Web.listowner({name: $routeParams.id}).$promise.then(function(data){
       $scope.websites = data;
+    });
+
+    GOActionLog.user_list({'id': data.user.uid}).$promise.then(function(data){
+        $scope.events = data;
+
     });
 
 
@@ -699,10 +705,9 @@ angular.module('genouest').controller('usermngrCtrl',
 });
 
 angular.module('genouest').controller('userCtrl',
-  function($scope, $rootScope, $routeParams, $log, $location, $window, User, Auth, Logout, GOActionLog) {
+  function($scope, $rootScope, $routeParams, $log, $location, $window, User, Auth, Logout) {
 
     $scope.is_logged = false;
-    $scope.events = [];
 
     User.is_authenticated().$promise.then(function(data) {
       if(data.user !== undefined && data.user !== null) {
@@ -714,10 +719,6 @@ angular.module('genouest').controller('userCtrl',
          }
 
          Auth.setUser($scope.user);
-         GOActionLog.user_list({'id': data.user.uid}).$promise.then(function(data){
-             $scope.events = data;
-
-         });
       }
       else {
         if($location.path().indexOf("renew") == -1 && $location.path().indexOf("pending") == -1) {
