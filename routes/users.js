@@ -4,8 +4,21 @@ var bcrypt = require('bcryptjs');
 var fs = require('fs');
 var escapeshellarg = require('escapeshellarg');
 
+var Promise = require('promise');
+
 var CONFIG = require('config');
 var GENERAL_CONFIG = CONFIG.general;
+
+var plugins = CONFIG.plugins;
+if(plugins === undefined){
+    plugins = [];
+}
+var plugins_modules = {};
+var plugins_info = [];
+for(var i=0;i<plugins.length;i++){
+    plugins_modules[plugins[i].name] = require('../plugins/'+plugins[i].name);
+    plugins_info.push({'name': plugins[i].name, 'url': '../plugin/' + plugins[i].name})
+}
 
 var nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
@@ -58,6 +71,21 @@ var STATUS_PENDING_APPROVAL = 'Waiting for admin approval';
 var STATUS_ACTIVE = 'Active';
 var STATUS_EXPIRED = 'Expired';
 
+var send_notif = function(fid, errors) {
+    return new Promise(function (resolve, reject){
+        if(transport!==null) {
+          transport.sendMail(mailOptions, function(error, response){
+            if(error){
+              console.log(error);
+            }
+            resolve(errors);
+          });
+        }
+        else {
+          resolve(errors);
+        }
+    });
+};
 
 router.get('/user/:id/subscribed', function(req, res){
     var sess = req.session;
@@ -76,6 +104,7 @@ router.get('/user/:id/subscribed', function(req, res){
             res.end();
         }
         else {
+            events_db.insert({'owner': req.param('id'), 'date': new Date().getTime(), 'action': 'User email subscription ' + req.param('id') , 'logs': []}, function(err){});
             notif.subscribed(user.email, function(is_subscribed) {
                   res.send({'subscribed': is_subscribed});
                   res.end();
@@ -179,6 +208,7 @@ router.put('/group/:id', function(req, res){
         res.status(404).send('Group does not exists');
         return;
       }
+      events_db.insert({'owner': user.uid, 'date': new Date().getTime(), 'action': 'group owner modification ' + group.name + ' to ' +owner, 'logs': []}, function(err){});
       groups_db.update({name: group.name}, {'$set':{'owner': owner}}, function(err, data){
          res.send(data);
          res.end();
@@ -209,7 +239,7 @@ router.post('/group/:id', function(req, res){
         return;
       }
       var mingid = 1000;
-      //groups_db.findOne(sort=[('gid', -1)], function(err, data){
+
       groups_db.find({}, { limit: 1 , sort: { gid: -1 }}, function(err, data){
         if(!err && data && data.length>0){
           mingid = data[0].gid+1;
@@ -302,6 +332,30 @@ router.get('/user', function(req, res) {
     res.status(401).send('Not authorized');
     return;
   }
+  /*
+  users_db.findOne({_id: sess.gomngr}).then(function(user){
+      if(user == null){
+        res.status(404).send('User not found');
+        return;
+      }
+      if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
+        res.status(401).send('Not authorized');
+        return;
+      }
+  }, function(err){
+      console.log("err:" + err);
+      res.status(404).send('User not found');
+      return;
+  }).then(function(){
+      users_db.find({}).then(function(users){
+        res.json(users);
+        return
+        }, function(err){
+        console.log("err:" + err);
+        res.json([]);
+    });
+  });
+  */
 
   users_db.findOne({_id: sess.gomngr}, function(err, user){
     if(err || user == null){
@@ -316,6 +370,7 @@ router.get('/user', function(req, res) {
       res.json(users);
     });
   });
+
 
 });
 
@@ -400,7 +455,7 @@ router.delete('/user/:id/group/:group', function(req, res){
       }
       var present = false;
       var newgroup = [];
-      console.log(user);
+      // console.log(user);
       for(var g=0;g < user.secondarygroups.length;g++){
         if(secgroup == user.secondarygroups[g]) {
           present = true;
@@ -649,21 +704,25 @@ router.get('/user/:id/activate', function(req, res) {
                         };
                         events_db.insert({'owner': session_user.uid,'date': new Date().getTime(), 'action': 'activate user ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
 
-                        if(transport!==null) {
-                          transport.sendMail(mailOptions, function(error, response){
-                            if(error){
-                              console.log(error);
-                            }
-                            res.send({msg: 'Activation in progress', fid: fid});
+                        var plugin_call = function(plugin_info, user, data){
+                            return new Promise(function (resolve, reject){
+                                var res = plugins_modules[plugin_info.name].activate(user, data);
+                                resolve(res);
+                            });
+                        };
+                        Promise.all(plugins_info.map(function(plugin_info){
+                            return plugin_call(plugin_info, user.uid, user);
+                        })).then(function(results){
+                            return send_notif(fid, []);
+                        }, function(err){
+                            return send_notif(fid, err);
+                        }).then(function(errs){
+                            res.send({msg: 'Activation in progress', fid: fid, error: errs});
                             res.end();
                             return;
-                          });
-                        }
-                        else {
-                          res.send({msg: 'Activation in progress', fid: fid});
-                          res.end();
-                          return;
-                        }
+                        });
+
+
                       });
                     });
                   });
@@ -858,6 +917,9 @@ router.post('/user/:id', function(req, res) {
         loginShell: '/bin/bash',
         history: [{action: 'register', date: new Date().getTime()}]
       }
+
+      events_db.insert({'owner': req.param('id'), 'date': new Date().getTime(), 'action': 'user registration ' + req.param('id') , 'logs': []}, function(err){});
+
       var uid = req.param('id');
       users_db.insert(user);
       var link = GENERAL_CONFIG.url +
@@ -935,13 +997,26 @@ router.get('/user/:id/expire', function(req, res){
                 // Now remove from mailing list
                 try {
                   notif.remove(user.email, function(err){
-                      res.send({message: 'Operation in progress', fid: fid});
-                      res.end();
-                      return;
+                      var plugin_call = function(plugin_info, user){
+                          return new Promise(function (resolve, reject){
+                              var res = plugins_modules[plugin_info.name].deactivate(user);
+                              resolve(res);
+                          });
+                      };
+                      Promise.all(plugins_info.map(function(plugin_info){
+                          return plugin_call(plugin_info, user.uid);
+                      })).then(function(data){
+                          res.send({message: 'Operation in progress', fid: fid, error: []});
+                          res.end();
+                          return;
+                      }, function(errs){
+                          res.send({message: 'Operation in progress', fid: fid, error: errs});
+                          res.end();
+                      });
                     });
                 }
                 catch(err) {
-                    res.send({message: 'Operation in progress, user not in mailing list', fid: fid});
+                    res.send({message: 'Operation in progress, user not in mailing list', fid: fid, error: error});
                     res.end();
                     return;
                 }
@@ -1193,7 +1268,6 @@ router.get('/user/:id/renew', function(req, res){
               var script_file = CONFIG.general.script_dir+'/'+user.uid+"."+fid+".update";
               fs.writeFile(script_file, script, function(err) {
                 events_db.insert({'owner': session_user.uid,'date': new Date().getTime(), 'action': 'Reactivate user ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
-
                 fs.chmodSync(script_file,0755);
                 notif.add(user.email, function(){
                   var msg_activ = CONFIG.message.reactivation.join("\n").replace('#UID#', user.uid).replace('#PASSWORD#', user.password).replace('#IP#', user.ip)+"\n"+CONFIG.message.footer.join("\n");
@@ -1206,21 +1280,23 @@ router.get('/user/:id/renew', function(req, res){
                     text: msg_activ, // plaintext body
                     html: msg_activ_html // html body
                   };
-                  if(transport!==null) {
-                    transport.sendMail(mailOptions, function(error, response){
-                      if(error){
-                        console.log(error);
-                      }
-                      res.send({msg: 'Activation in progress', fid: fid});
+                  var plugin_call = function(plugin_info, user, data){
+                      return new Promise(function (resolve, reject){
+                          var res = plugins_modules[plugin_info.name].activate(user, data);
+                          resolve(res);
+                      });
+                  };
+                  Promise.all(plugins_info.map(function(plugin_info){
+                      return plugin_call(plugin_info, user.uid, user);
+                  })).then(function(results){
+                      return send_notif(fid, []);
+                  }, function(err){
+                      return send_notif(fid, err);
+                  }).then(function(errs){
+                      res.send({msg: 'Activation in progress', fid: fid, error: errs});
                       res.end();
                       return;
-                    });
-                  }
-                  else {
-                    res.send({msg: 'Activation in progress', fid: fid});
-                    res.end();
-                    return;
-                  }
+                  });
                 });
               });
 

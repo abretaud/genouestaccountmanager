@@ -11,6 +11,7 @@ var Promise = require('promise');
 var activate_user = function(user, data){
     return new Promise(function (resolve, reject){
         console.log('activate ' + user);
+
         users_db.findOne({'uid': user}, function(err, data){
             if(err){ reject(err)};
             console.log('done');
@@ -22,6 +23,7 @@ var activate_user = function(user, data){
 var deactivate_user = function(user, data){
     return new Promise(function (resolve, reject){
         console.log('deactivate ' + user);
+
         users_db.findOne({'uid': user}, function(err, data){
             if(err){ reject(err)};
             console.log('done');
@@ -44,7 +46,6 @@ var set_user_info = function(user, data){
         console.log("should do something to update");
         users_db.findOne({'uid': user}, function(err, data){
             if(err){ reject(err)};
-            events_db.insert({'owner': user.uid,'date': new Date().getTime(), 'action': 'plugin test modificiation' , 'logs': []}, function(err){});
             resolve({'my': "should do something to update"});
         });
     });
@@ -69,7 +70,7 @@ module.exports = {
         // return {'msg': 'nothing to do'};
     },
     template: function(){
-        return "<div>hello {{user.uid}}</div><div><input ng-model=\"plugin_data.test.my\"></input> <button ng-click=\"plugin_update('test')\" class=\"button\">Update</button></div>";
+        return "<div>hello {{user.uid}}</div><div><input ng-model=\"plugin_data.test0.my\"></input> <button ng-click=\"plugin_update('test0')\" class=\"button\">Update</button></div>";
     },
     get_data: function(user){
         return get_user_info(user);

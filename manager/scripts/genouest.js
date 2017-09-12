@@ -444,6 +444,7 @@ angular.module('genouest').controller('usermngrCtrl',
       url: '../plugin'
     }).then(function successCallback(response) {
         $scope.plugins = response.data;
+        console.log($scope.plugins);
       }, function errorCallback(response) {
           console.log("Failed to get plugins ");
       });
@@ -461,6 +462,7 @@ angular.module('genouest').controller('usermngrCtrl',
           data: $scope.plugin_data[plugin]
         }).then(function successCallback(response) {
             console.log('data updated');
+            $scope.plugin_data[plugin] = response.data;
           }, function errorCallback(response) {
               console.log("Failed to update plugin "+plugin+": "+response.data);
               $scope.plugin_data[plugin].alert = response.data;
