@@ -68,12 +68,11 @@ router.get('/plugin/:id/:user', function(req, res) {
         user.is_admin = false;
       }
       else {
-          user.is_admin = true;
+        user.is_admin = true;
       }
-      plugins_modules[req.param('id')].get_data(req.param('user')).then(function(result){
-            res.send(result);
+      plugins_modules[req.param('id')].get_data(req.param('user'), user.uid).then(function(result){
+        res.send(result);
       });
-
     });
 
   //res.send(plugins_modules[req.param('id')].get_data(req.param('user')));
@@ -95,14 +94,13 @@ router.post('/plugin/:id/:user', function(req, res) {
       user.is_admin = false;
     }
     else {
-        user.is_admin = true;
+      user.is_admin = true;
     }
-    plugins_modules[req.param('id')].set_data(req.param('user'), req.body).then(function(result){
-        res.send(result);
+    plugins_modules[req.param('id')].set_data(req.param('user'), req.body, user.uid).then(function(result){
+      res.send(result);
     }, function(err){
-        res.status(400).send(err);
+      res.status(400).send(err);
     });
-
   });
 
 
