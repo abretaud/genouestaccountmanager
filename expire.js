@@ -11,14 +11,28 @@ var goldap = require('./routes/goldap.js');
 var notif = require('./routes/notif.js');
 var fs = require('fs');
 
+var Promise = require('promise');
+
 var monk = require('monk'),
     db = monk(CONFIG.mongo.host+':'+CONFIG.mongo.port+'/'+CONFIG.general.db),
     users_db = db.get('users');
+    events_db = db.get('events');
 
 var nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
 var MAIL_CONFIG = CONFIG.mail;
 var transport = null;
+
+var plugins = CONFIG.plugins;
+if(plugins === undefined){
+    plugins = [];
+}
+var plugins_modules = {};
+var plugins_info = [];
+for(var i=0;i<plugins.length;i++){
+    plugins_modules[plugins[i].name] = require('./plugins/'+plugins[i].name);
+    plugins_info.push({'name': plugins[i].name, 'url': '../plugin/' + plugins[i].name})
+}
 
 
 if(MAIL_CONFIG.host !== 'fake') {
@@ -85,24 +99,38 @@ users_db.find({status: STATUS_ACTIVE, expiration: {$lt: (new Date().getTime())}}
               script += "set -e \n"
               script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
               var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
-              fs.writeFile(script_file, script, function(err) {
-                fs.chmodSync(script_file,0755);
-                // Now remove from mailing list
-                try {
-                  notif.remove(user.email, function(err){
-                      mail_sent++;
-                      if(mail_sent == users.length) {
-                        process.exit(code=0);
-                      }
-                    });
-                }
-                catch(err) {
-                    mail_sent++;
-                    if(mail_sent == users.length) {
-                      process.exit(code=0);
+              events_db.insert({'owner': 'cron', 'date': new Date().getTime(), 'action': 'user ' + req.param('id')+ 'deactivated by cron', 'logs': []}, function(err){});
+
+              var plugin_call = function(plugin_info, user){
+                  return new Promise(function (resolve, reject){
+                      var res = plugins_modules[plugin_info.name].deactivate(user);
+                      resolve(res);
+                  });
+              };
+              Promise.all(plugins_info.map(function(plugin_info){
+                  return plugin_call(plugin_info, user.uid);
+              })).then(function(results){
+                  fs.writeFile(script_file, script, function(err) {
+                    fs.chmodSync(script_file,0755);
+                    // Now remove from mailing list
+                    try {
+                      notif.remove(user.email, function(err){
+                          mail_sent++;
+                          if(mail_sent == users.length) {
+                            process.exit(code=0);
+                          }
+                        });
                     }
-                }
+                    catch(err) {
+                        mail_sent++;
+                        if(mail_sent == users.length) {
+                          process.exit(code=0);
+                        }
+                    }
+                  });
               });
+
+
             });
         });
 
