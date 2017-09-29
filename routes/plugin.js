@@ -22,7 +22,8 @@ var plugins_modules = {};
 var plugins_info = [];
 for(var i=0;i<plugins.length;i++){
     plugins_modules[plugins[i].name] = require('../plugins/'+plugins[i].name);
-    plugins_info.push({'name': plugins[i].name, 'url': '../plugin/' + plugins[i].name})
+    if(plugins[i].display_name === undefined) { plugins[i]['display_name'] = plugins[i].name; }
+    plugins_info.push({'name': plugins[i].name, 'url': '../plugin/' + plugins[i].name, 'display_name': plugins[i]['display_name']})
 }
 /**
 Plugins must provide functions:

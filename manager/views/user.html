@@ -139,6 +139,7 @@
 
   </div>
   <div class="col-sm-6">
+    <!--
     <div class="row">
         <div class="col-lg-6 col-md-6" ng-repeat="quota in quotas">
           <div class="panel panel-primary">
@@ -159,6 +160,7 @@
         </div>
 
     </div>
+    -->
     <div class="panel panel-default">
           <div class="panel-heading">
             <h3 class="panel-title">Home directory</h3>
@@ -288,7 +290,7 @@
     <div ng-repeat="template in plugins">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">{{template.name}}</h3>
+            <h3 class="panel-title">{{template.display_name}}</h3>
           </div>
           <div class="panel-body">
               <div ng-if="plugin_data[template.name].alert" class="alert alert-warning">
