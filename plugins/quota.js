@@ -38,8 +38,7 @@ var get_quota = function(quota) {
             var series = points.results[0]['series'];
             // If no stat available
             if(series == undefined) {
-               res.status(404);
-               res.end();
+               resolve({'msg': 'no data'});
                return;
             }
             for(var s=0;s<series.length;s++){
