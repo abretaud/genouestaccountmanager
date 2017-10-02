@@ -104,7 +104,6 @@ router.get('/user/:id/subscribed', function(req, res){
             res.end();
         }
         else {
-            events_db.insert({'owner': req.param('id'), 'date': new Date().getTime(), 'action': 'User email subscription ' + req.param('id') , 'logs': []}, function(err){});
             notif.subscribed(user.email, function(is_subscribed) {
                   res.send({'subscribed': is_subscribed});
                   res.end();
