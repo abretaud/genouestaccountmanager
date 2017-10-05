@@ -27,7 +27,7 @@
             "series": "goacct.fixed.disk.panasas-omaha.*.user.#USER#"
         }
     },
-    "plugin_script_folder": "/tmp/scripts"
+    "plugin_script_dir": "/tmp/scripts"
  },
  "mongo": {
     "host": "localhost",
