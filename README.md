@@ -90,6 +90,24 @@ Cron must be executed as root as it needs to create home etc.... Cron task may r
 Example:
 
     * * * * * /opt/gomngr/genouestaccountmanager/bin/gomngr.sh   /opt/gomngr/scripts http://127.0.0.1:3000 # URL to account manager
+    
+To manage user account expiration, add the following script to your cron:
+
+    0 3 1 * * /opt/gomngr/genouestaccountmanager/test_expiration.sh >> /opt/gomngr/genouestaccountmanager/test_expiration.log 2>&1
+    0 3 2 * * /opt/gomngr/genouestaccountmanager/expire.sh >> /opt/gomngr/genouestaccountmanager/expiration.log 2>&1
+
+test_expiration check if user will expire *soon* and sends an email to the user so that he extends his account if needed.
+expiration deactivates accounts if their expiration date is reached.
+
+
+## Mailing
+
+Users are subcsribed to a mailing list based on their email address. The email address of account is *MANDATORY*.
+This is used to broadcast messages to all users. Mailing list is using mailchimp.
+
+Standard smtp configuration is used for user notifications.
+
+If you wish to use other mailing list system, or no mailing list, one can replace the routes/notif.js, replacing functions content by your own api or empty calls.
 
 ## Stopping
 
