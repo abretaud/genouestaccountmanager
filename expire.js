@@ -76,7 +76,7 @@ users_db.find({status: STATUS_ACTIVE, expiration: {$lt: (new Date().getTime())}}
   for(var i=0;i<users.length;i++){
     (function(index) {
     var user = users[index];
-    console.log('User: ' + user.uid + 'has expired');
+    console.log('User: ' + user.uid + ' has expired');
     var msg_activ = "User "+user.uid+" has expired, updating account";
     var msg_activ_html = msg_activ;
     var mailOptions = {
@@ -91,6 +91,8 @@ users_db.find({status: STATUS_ACTIVE, expiration: {$lt: (new Date().getTime())}}
           console.log(error);
         }
         var fid = new Date().getTime();
+        var new_password = Math.random().toString(36).substring(7);
+        user.password = new_password;
         goldap.reset_password(user, fid, function(err) {
             if(err) { console.log(user.uid + ': failed to reset password') }
             user.history.push({'action': 'expire', date: new Date().getTime()});
@@ -99,7 +101,7 @@ users_db.find({status: STATUS_ACTIVE, expiration: {$lt: (new Date().getTime())}}
               script += "set -e \n"
               script += "ldapmodify -cx -w "+CONFIG.ldap.admin_password+" -D "+CONFIG.ldap.admin_cn+","+CONFIG.ldap.admin_dn+" -f "+CONFIG.general.script_dir+"/"+user.uid+"."+fid+".ldif\n";
               var script_file = CONFIG.general.script_dir+'/'+user.uid+"_"+fid+".update";
-              events_db.insert({'owner': 'cron', 'date': new Date().getTime(), 'action': 'user ' + req.param('id')+ 'deactivated by cron', 'logs': []}, function(err){});
+              events_db.insert({'owner': 'cron', 'date': new Date().getTime(), 'action': 'user ' + user.uid + ' deactivated by cron', 'logs': []}, function(err){ return;});
 
               var plugin_call = function(plugin_info, user){
                   return new Promise(function (resolve, reject){
@@ -107,9 +109,11 @@ users_db.find({status: STATUS_ACTIVE, expiration: {$lt: (new Date().getTime())}}
                       resolve(res);
                   });
               };
+              console.log('call plugins');
               Promise.all(plugins_info.map(function(plugin_info){
                   return plugin_call(plugin_info, user.uid);
               })).then(function(results){
+                  console.log('after plugins');
                   fs.writeFile(script_file, script, function(err) {
                     fs.chmodSync(script_file,0755);
                     // Now remove from mailing list

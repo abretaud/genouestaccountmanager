@@ -128,7 +128,7 @@
     ]
     },
     "plugins": [
-        {"name": "test"}
+        {"name": "test", "display_name": "for testing"}
     ]
 
 }

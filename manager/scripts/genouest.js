@@ -486,7 +486,7 @@ angular.module('genouest').controller('usermngrCtrl',
         $scope.msg = '';
 
     };
-
+    /*
     Quota.get({name: $routeParams.id, disk: 'home'}).$promise.then(function(data){
       $scope.quotas.push(data);
     });
@@ -497,6 +497,7 @@ angular.module('genouest').controller('usermngrCtrl',
       //data['value'] = data['value'] * 1000000
       $scope.quotas.push(data);
     });
+    */
 
 
 
