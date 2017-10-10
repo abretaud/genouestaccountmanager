@@ -37,7 +37,9 @@ function handleDisconnect() {
   });
 }
 
+if (CONFIG.mysql.host != null) {
 handleDisconnect();
+}
 
 
 var nodemailer = require('nodemailer');
