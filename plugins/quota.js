@@ -58,13 +58,13 @@ var get_quota = function(quota) {
     });
 };
 
-var get_user_info = function(user){
+var get_user_info = function(userId){
     return new Promise(function (resolve, reject){
     var quotas = [];
     var quota_name = null;
     var quota_names = [];
     for(var key in GENERAL_CONFIG.quota) {
-       quota_names.push({'quota_name': key, 'user': user});
+       quota_names.push({'quota_name': key, 'user': userId});
     }
     var res = Promise.all(quota_names.map(get_quota)).then(function(values){
         resolve({'quotas': values});
@@ -75,12 +75,12 @@ var get_user_info = function(user){
 
 module.exports = {
 
-    activate: function(user, data){
+    activate: function(userId, data, adminId){
         return new Promise(function (resolve, reject){
             resolve({'msg': 'nothing to do'});
         });
     },
-    deactivate: function(user){
+    deactivate: function(userId, data, adminId){
        return new Promise(function (resolve, reject){
             resolve({'msg': 'nothing to do'});
         });
@@ -106,10 +106,10 @@ module.exports = {
                  '</div>';
         return template;
     },
-    get_data: function(user){
-        return get_user_info(user);
+    get_data: function(userId, adminId){
+        return get_user_info(userId);
     },
-    set_data: function(user, data){
+    set_data: function(userId, data, adminId){
         return {'msg': 'nothing to do'};
     }
 }

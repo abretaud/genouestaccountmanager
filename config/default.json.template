@@ -26,7 +26,8 @@
             "db": "goacct",
             "series": "goacct.fixed.disk.panasas-omaha.*.user.#USER#"
         }
-    }
+    },
+    "plugin_script_dir": "/tmp/scripts"
  },
  "mongo": {
     "host": "localhost",

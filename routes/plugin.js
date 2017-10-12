@@ -69,12 +69,11 @@ router.get('/plugin/:id/:user', function(req, res) {
         user.is_admin = false;
       }
       else {
-          user.is_admin = true;
+        user.is_admin = true;
       }
-      plugins_modules[req.param('id')].get_data(req.param('user')).then(function(result){
-            res.send(result);
+      plugins_modules[req.param('id')].get_data(req.param('user'), user.uid).then(function(result){
+        res.send(result);
       });
-
     });
 
   //res.send(plugins_modules[req.param('id')].get_data(req.param('user')));
@@ -96,14 +95,13 @@ router.post('/plugin/:id/:user', function(req, res) {
       user.is_admin = false;
     }
     else {
-        user.is_admin = true;
+      user.is_admin = true;
     }
-    plugins_modules[req.param('id')].set_data(req.param('user'), req.body).then(function(result){
-        res.send(result);
+    plugins_modules[req.param('id')].set_data(req.param('user'), req.body, user.uid).then(function(result){
+      res.send(result);
     }, function(err){
-        res.status(400).send(err);
+      res.status(400).send(err);
     });
-
   });
 
 
@@ -118,62 +116,4 @@ router.post('/plugin/:id/:user', function(req, res) {
   */
 
 });
-
-router.post('/plugin/:id/:user/activate', function(req, res) {
-  console.log("activate plugin");
-  var sess = req.session;
-  if(! sess.gomngr) {
-    res.status(401).send('Not authorized');
-    return;
-  }
-  users_db.findOne({_id: sess.gomngr}, function(err, user){
-    if(err || user == null){
-      res.status(404).send('User not found');
-      return;
-    }
-    if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
-      user.is_admin = false;
-    }
-    else {
-        user.is_admin = true;
-    }
-    plugins_modules[req.param('id')].activate(req.param('user'), req.body).then(function(result){
-        res.send(result);
-    }, function(err){
-        res.status(400).send(err);
-    });
-
-  });
-  //res.send(plugins_modules[req.param('id')].activate(req.param('user'), req.body));
-});
-
-router.post('/plugin/:id/:user/deactivate', function(req, res) {
-  console.log("deactivate plugin");
-  var sess = req.session;
-  if(! sess.gomngr) {
-    res.status(401).send('Not authorized');
-    return;
-  }
-  users_db.findOne({_id: sess.gomngr}, function(err, user){
-    if(err || user == null){
-      res.status(404).send('User not found');
-      return;
-    }
-    if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
-      user.is_admin = false;
-    }
-    else {
-        user.is_admin = true;
-    }
-    plugins_modules[req.param('id')].deactivate(req.param('user'), req.body).then(function(result){
-        res.send(result);
-    }, function(err){
-        res.status(400).send(err);
-    });
-  });
-
-
-  //res.send(plugins_modules[req.param('id')].deactivate(req.param('user')));
-});
-
 module.exports = router;
