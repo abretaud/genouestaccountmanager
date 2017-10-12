@@ -877,6 +877,13 @@ router.post('/user/:id', function(req, res) {
     res.send({'status': 1, 'msg': 'invalid data identifier, numeric and lowercase letters only'});
     return;
   }
+
+  if (req.param('id').length > 12) {
+    res.send({'status': 1, 'msg': 'user id too long, must be < 12 characters'});
+    res.end();
+    return;
+  }
+
   if(req.param('why')=='' || req.param('why')==null || req.param('why')==undefined) {
     res.send({'status': 1, 'msg': 'Missing field: Why do you need an account'});
     return;
