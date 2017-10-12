@@ -157,7 +157,12 @@ module.exports = {
       user_ldif += "-\n";
       }
       user_ldif += "replace: homeDirectory\n";
-      user_ldif += 'homeDirectory: '+CONFIG.general.home+'/'+user.maingroup+'/'+user.group+'/'+user.uid+"\n";
+      if(user.maingroup!="" & user.maingroup!=null) {
+          user_ldif += 'homeDirectory: '+CONFIG.general.home+'/'+user.maingroup+'/'+user.group+'/'+user.uid+"\n";
+      }
+      else {
+          user_ldif += 'homeDirectory: '+CONFIG.general.home+'/'+user.group+'/'+user.uid+"\n";
+      }
       user_ldif += "-\n";
       //user_ldif += "replace: mail\n";
       //user_ldif += "mail: "+user.email+"\n";
@@ -244,7 +249,12 @@ module.exports = {
     }
     user_ldif += "givenName: "+user.firstname+"\n";
     user_ldif += "mail: "+user.email+"\n";
-    user_ldif += 'homeDirectory: '+CONFIG.general.home+'/'+user.maingroup+'/'+user.group+'/'+user.uid+"\n";
+    if(user.maingroup!="" & user.maingroup!=null) {
+        user_ldif += 'homeDirectory: '+CONFIG.general.home+'/'+user.maingroup+'/'+user.group+'/'+user.uid+"\n";
+    }
+    else {
+        user_ldif += 'homeDirectory: '+CONFIG.general.home+'/'+user.group+'/'+user.uid+"\n";
+    }
     user_ldif += "loginShell: /bin/bash\n";
     user_ldif += "userpassword: "+user.password+"\n";
     user_ldif += "uidNumber: "+user.uidnumber+"\n";
