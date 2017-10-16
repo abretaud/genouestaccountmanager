@@ -129,6 +129,10 @@
     },
     "plugins": [
         {"name": "test", "display_name": "for testing"}
-    ]
-
+    ],
+    "plugin_config" : {
+        "test": {
+            "parameter1" : "test1"
+        }
+    }
 }
