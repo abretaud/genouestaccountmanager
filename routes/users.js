@@ -71,7 +71,7 @@ var STATUS_PENDING_APPROVAL = 'Waiting for admin approval';
 var STATUS_ACTIVE = 'Active';
 var STATUS_EXPIRED = 'Expired';
 
-var send_notif = function(fid, errors) {
+var send_notif = function(mailOptions, fid, errors) {
     return new Promise(function (resolve, reject){
         if(transport!==null) {
           transport.sendMail(mailOptions, function(error, response){
@@ -712,9 +712,9 @@ router.get('/user/:id/activate', function(req, res) {
                         Promise.all(plugins_info.map(function(plugin_info){
                             return plugin_call(plugin_info, user.uid, user, session_user.uid);
                         })).then(function(results){
-                            return send_notif(fid, []);
+                            return send_notif(mailOptions, fid, []);
                         }, function(err){
-                            return send_notif(fid, err);
+                            return send_notif(mailOptions, fid, err);
                         }).then(function(errs){
                             res.send({msg: 'Activation in progress', fid: fid, error: errs});
                             res.end();
@@ -877,6 +877,13 @@ router.post('/user/:id', function(req, res) {
     res.send({'status': 1, 'msg': 'invalid data identifier, numeric and lowercase letters only'});
     return;
   }
+
+  if (req.param('id').length > 12) {
+    res.send({'status': 1, 'msg': 'user id too long, must be < 12 characters'});
+    res.end();
+    return;
+  }
+
   if(req.param('why')=='' || req.param('why')==null || req.param('why')==undefined) {
     res.send({'status': 1, 'msg': 'Missing field: Why do you need an account'});
     return;
@@ -1288,9 +1295,9 @@ router.get('/user/:id/renew', function(req, res){
                   Promise.all(plugins_info.map(function(plugin_info){
                       return plugin_call(plugin_info, user.uid, user, session_user.uid);
                   })).then(function(results){
-                      return send_notif(fid, []);
+                      return send_notif(mailOptions, fid, []);
                   }, function(err){
-                      return send_notif(fid, err);
+                      return send_notif(mailOptions, fid, err);
                   }).then(function(errs){
                       res.send({msg: 'Activation in progress', fid: fid, error: errs});
                       res.end();
