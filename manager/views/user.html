@@ -300,7 +300,7 @@
       </div>
     </div>
     <div ng-repeat="template in plugins">
-        <div class="panel panel-default">
+        <div ng-if="!template.admin_only || session_user.is_admin" class="panel panel-default">
           <div class="panel-heading">
             <h3 class="panel-title">{{template.display_name}}</h3>
           </div>
