@@ -51,7 +51,15 @@ var get_quota = function(quota) {
             if(quotas.length==1){
                 quotas.push(0);
             }
-            resolve({'name': quota_name, 'value': quotas[0], 'max': quotas[1]});
+            warning = null;
+            error = null;
+            if(quotas[0]/quotas[1] > 0.99) {
+              error = quota_name + " quota reached!";
+            }
+            else if(quotas[0]/quotas[1] > 0.8) {
+              warning = quota_name + " quota using more than 80% of use";
+            }
+            resolve({'name': quota_name, 'value': quotas[0], 'max': quotas[1], 'warning': warning, 'error': error});
             //return {'name': req.param('id'), 'value': quotas[0], 'max': quotas[1]}
         });
     });
@@ -67,7 +75,13 @@ var get_user_info = function(userId){
        quota_names.push({'quota_name': key, 'user': userId});
     }
     var res = Promise.all(quota_names.map(get_quota)).then(function(values){
-        resolve({'quotas': values});
+        var errors = [];
+        var warnings = [];
+        for(var i=0;i<values.length;i++) {
+            if(values[i].warning) { warnings.push(values[i].warning); }
+            if(values[i].error) { errors.push(values[i].error); }
+        }
+        resolve({'quotas': values, 'warnings': warnings, 'errors': errors});
     });
     });
 };

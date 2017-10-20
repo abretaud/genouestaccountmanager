@@ -25,6 +25,18 @@
     </div>
   </div>
 </div>
+<div ng-repeat="template in plugins">
+   <div ng-if="plugin_data[template.name].warnings && plugin_data[template.name].warnings.length>0" class="alert alert-warning">
+        <div ng-repeat="warning in plugin_data[template.name].warnings">
+                  <strong>Warning!</strong> {{warning}}
+        </div>
+   </div>
+   <div ng-if="plugin_data[template.name].errors && plugin_data[template.name].errors.length>0" class="alert alert-danger">
+        <div ng-repeat="error in plugin_data[template.name].errors">
+                  <strong>Alert!</strong> {{error}}
+        </div>
+   </div>
+</div>
 <div class="label label-warning" ng-if="msg">{{msg}}</div>
 <div class="row">
   <div class="col-sm-6">
