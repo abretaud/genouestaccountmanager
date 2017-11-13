@@ -100,6 +100,12 @@ app.post('/plugin/:id/:user/deactivate', plugin);
 
 app.get('/auth', auth);
 app.post('/auth/:id', auth);
+app.get('/u2f/register/:id', auth);
+app.post('/u2f/register/:id', auth);
+app.get('/u2f/auth/:id', auth);
+app.post('/u2f/auth/:id', auth);
+app.get('/mail/auth/:id', auth);
+app.post('/mail/auth/:id', auth);
 app.get('/logout', auth);
 
 // catch 404 and forward to error handler

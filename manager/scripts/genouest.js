@@ -430,7 +430,7 @@ angular.module('genouest').controller('userextendCtrl',
 });
 
 angular.module('genouest').controller('usermngrCtrl',
-  function($scope, $rootScope, $routeParams, $log, $http, $location, User, Group, Quota, Database, Web, Auth, GOLog, GOActionLog) {
+  function($scope, $rootScope, $routeParams, $log, $http, $location, $window, $timeout, User, Group, Quota, Database, Web, Auth, GOLog, GOActionLog) {
     $scope.session_user = Auth.getUser();
     $scope.maingroups = ['genouest', 'irisa', 'symbiose'];
     $scope.selected_group = '';
@@ -439,6 +439,7 @@ angular.module('genouest').controller('usermngrCtrl',
     $scope.events = [];
     $scope.plugins = [];
     $scope.plugin_data = {};
+    $scope.u2f = null;
     $http({
       method: 'GET',
       url: '../plugin'
@@ -449,6 +450,43 @@ angular.module('genouest').controller('usermngrCtrl',
           console.log("Failed to get plugins ");
       });
 
+      $scope.register_u2f = function(){
+          console.log($window.u2f);
+          $http({
+            method: 'GET',
+            url: '/u2f/register/' + $scope.user.uid
+          }).then(function successCallback(response) {
+              var registrationRequest = response.data.registrationRequest;
+              $scope.u2f = "Please insert your key and press button";
+              $timeout(function() {
+                  $window.u2f.register(registrationRequest.appId, [registrationRequest], [], function(registrationResponse) {
+                        if(registrationResponse.errorCode) {
+                            console.log("Association failed");
+                            $scope.u2f = "Assocation failed";
+                            $scope.$apply();
+                            return;
+                        }
+                        // Send this registration response to the registration verification server endpoint
+                        var data = {
+                            registrationRequest: registrationRequest,
+                            registrationResponse: registrationResponse
+                        }
+
+                        $http({
+                          method: 'POST',
+                          url: '/u2f/register/' + $scope.user.uid,
+                          data: data
+                        }).then(function successCallback(response) {
+                            $scope.u2f = null;
+                            $scope.user.u2f = {'publicKey': response.data.publicKey};
+                        });
+                  });
+              }, 5000);
+              //console.log(registrationRequest);
+            }, function errorCallback(response) {
+                console.log("Failed to get u2f registration request");
+            });
+      };
 
     $scope.plugin_update = function(plugin) {
         // TODO send update to plugin with plugin_data
@@ -708,7 +746,7 @@ angular.module('genouest').controller('usermngrCtrl',
 });
 
 angular.module('genouest').controller('userCtrl',
-  function($scope, $rootScope, $routeParams, $log, $location, $window, User, Auth, Logout) {
+  function($scope, $rootScope, $routeParams, $log, $location, $window, $http, User, Auth, Logout) {
 
     $scope.is_logged = false;
 
@@ -750,12 +788,17 @@ angular.module('genouest').controller('userCtrl',
 });
 
 angular.module('genouest').controller('loginCtrl',
-  function($scope, $rootScope, $routeParams, $log, $location, $window, IP, User, Auth) {
+  function($scope, $rootScope, $routeParams, $log, $location, $window, $http, $timeout, IP, User, Auth) {
 
     var SUCCESS = 0;
     var ERROR = 1;
 
     $scope.duration = 365;
+
+    $scope.double_auth = false;
+    $scope.mail_token = null;
+    $scope.u2f = null;
+    $scope.uid = null;
 
     IP.get().$promise.then(function(data) {
       var ips = data.ip.split(',');
@@ -811,15 +854,86 @@ angular.module('genouest').controller('loginCtrl',
       });
     };
 
+    $scope.request_email_token = function(){
+        $http({
+          method: 'GET',
+          url: '/mail/auth/' + $scope.uid
+        }).then(function successCallback(response) {
+              $scope.msg = "Mail token request send";
+        });
+    };
+
+    $scope.validate_email_token = function(){
+        var data = {'token': $scope.mail_token};
+        $http({
+          method: 'POST',
+          url: '/mail/auth/' + $scope.uid,
+          data: data
+        }).then(function successCallback(response) {
+              Auth.setUser(response.data.user);
+              $rootScope.$broadcast('loginCtrl.login');
+              $location.path('/');
+              return;
+        });
+    };
+
     $scope.auth = function() {
       User.authenticate({name: $scope.userid}, {password: $scope.password}).$promise.then(function(data) {
         if(data.user !== undefined && data.user !== null) {
-          Auth.setUser(data.user);
-          if($window.sessionStorage != null) {
-              $window.sessionStorage.token = data.token;
+          $scope.uid = data.user.uid;
+          if(data.double_auth){
+              $scope.double_auth=true;
+              $http({
+                method: 'GET',
+                url: '/u2f/auth/' + data.user.uid,
+              }).then(function successCallback(response) {
+                  $scope.u2f = response.data.authRequest;
+                  $timeout(function(){
+                      $window.u2f.sign($scope.u2f.appId, $scope.u2f.challenge, [$scope.u2f], function(authResponse) {
+                          // Send this authentication response to the authentication verification server endpoint
+                          if(authResponse.errorCode) {
+                              console.log("Failed to sign challenge with device");
+                              console.log(authResponse);
+                              $scope.msg = "Failed to authenticate with device";
+                              $scope.msgstatus = ERROR;
+                              $scope.$apply();
+                              return;
+                          };
+                          var u2fdata = {
+                              'authRequest': $scope.u2f,
+                              'authResponse': authResponse
+                          }
+                          $http({
+                            method: 'POST',
+                            url: '/u2f/auth/' + data.user.uid,
+                            data: u2fdata
+                          }).then(function successCallback(authResponse) {
+                                if(authResponse.errorCode) {
+                                    console.log("Failed to validate token with device");
+                                    console.log(authResponse);
+                                    $scope.msg = "Failed to authenticate with device";
+                                    $scope.msgstatus = ERROR;
+                                    $scope.$apply();
+                                    return;
+                                };
+                                Auth.setUser(data.user);
+                                $rootScope.$broadcast('loginCtrl.login');
+                                $location.path('/');
+                                return;
+                          });
+                      });
+                  }, 5000);
+              });
+              return;
           }
-          $rootScope.$broadcast('loginCtrl.login');
-          $location.path('/');
+          else {
+              Auth.setUser(data.user);
+              if($window.sessionStorage != null) {
+                  $window.sessionStorage.token = data.token;
+              }
+              $rootScope.$broadcast('loginCtrl.login');
+              $location.path('/');
+          }
         }
         else {
           $scope.msg = data.msg;

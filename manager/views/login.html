@@ -10,15 +10,27 @@
                <!-- <img class="profile-img" src="https://lh5.googleusercontent.com/-b0-k99FZlyE/AAAAAAAAAAI/AAAAAAAAAAA/eu7opA4byxI/photo.jpg?sz=120"
                     alt="">
                -->
-                <img class="profile-img" src="/images/logo_GenOuest_74x60.png" alt=""/>
-                <form class="form-signin">
-                <input ng-model="userid" type="text" class="form-control" placeholder="User id" required autofocus>
-                <input ng-model="password" type="password" class="form-control" placeholder="Password" required>
-                <button class="btn btn-lg btn-primary btn-block" type="button" ng-click="auth()">
-                    Sign in</button>
-                <span class="lost">Lost your password ?<button class="btn btn-warning" type="button" ng-click="password_reset_request()">RESET</button></span>
+                <div ng-if="! double_auth">
+                    <img class="profile-img" src="/images/logo_GenOuest_74x60.png" alt=""/>
+                    <form class="form-signin">
+                    <input ng-model="$parent.userid" type="text" class="form-control" placeholder="User id" required autofocus>
+                    <input ng-model="$parent.password" type="password" class="form-control" placeholder="Password" required>
+                    <button class="btn btn-lg btn-primary btn-block" type="button" ng-click="auth()">
+                        Sign in</button>
+                    <span class="lost">Lost your password ?<button class="btn btn-warning" type="button" ng-click="password_reset_request()">RESET</button></span>
 
-                </form>
+                    </form>
+                </div>
+                <div ng-if="double_auth">
+                    <div>Double authentication is needed for admin access!!</div>
+                    <div>Insert your u2f device and press device....</div>
+                    <div>Or request a temporary email token</div>
+                    <form class="form-signin">
+                        <button type="button" class="btn btn-primary" ng-click="request_email_token()">Request token</button>
+                        <input ng-model="$parent.mail_token" type="text" class="form-control" placeholder="Token received by mail" autofocus/>
+                        <button type="button" class="btn btn-primary" ng-click="validate_email_token()">Check token</button>
+                    </form>
+                </div>
             </div>
         </div>
         <div class="col-sm-6">

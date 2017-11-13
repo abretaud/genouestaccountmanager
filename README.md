@@ -1,5 +1,10 @@
 # Genouest Manager
 
+## Requirements
+
+LDAP users are expected to have DNS startnig with uid= and not cn=.
+For an existing LDAP database, users should be migrated to match this DN.
+
 ## Config
 
 All configuration is in config/default.json
@@ -14,6 +19,9 @@ and manager/index.html:
 
     <base href="/manager/" /> => <base href="/gomngr/manager/" />
 
+
+Optional double authentication for administrators with cnofig parameter double_authentication_for_admin.
+It provides additional authentication via U2F devices or temporary email tokens.
 
 ## Installation
 

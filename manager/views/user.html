@@ -163,6 +163,16 @@
     -->
     <div class="panel panel-default">
           <div class="panel-heading">
+            <h3 class="panel-title">Authentication</h3>
+          </div>
+          <div class="panel-body">
+              <span ng-if="user.u2f.publicKey" class="label label-success"><span class="glyphicon glyphicon-ok"> </span> U2F</span>
+              <button ng-if="! user.u2f.publicKey" ng-click="register_u2f()">Register U2F key</button>
+              <span ng-if="u2f">{{u2f}}</span>
+          </div>
+    </div>
+    <div class="panel panel-default">
+          <div class="panel-heading">
             <h3 class="panel-title">Home directory</h3>
           </div>
           <div class="panel-body">

@@ -71,7 +71,7 @@ var STATUS_PENDING_APPROVAL = 'Waiting for admin approval';
 var STATUS_ACTIVE = 'Active';
 var STATUS_EXPIRED = 'Expired';
 
-var send_notif = function(fid, errors) {
+var send_notif = function(fid, errors, mailOptions) {
     return new Promise(function (resolve, reject){
         if(transport!==null) {
           transport.sendMail(mailOptions, function(error, response){
@@ -712,9 +712,9 @@ router.get('/user/:id/activate', function(req, res) {
                         Promise.all(plugins_info.map(function(plugin_info){
                             return plugin_call(plugin_info, user.uid, user);
                         })).then(function(results){
-                            return send_notif(fid, []);
+                            return send_notif(fid, [], mailOptions);
                         }, function(err){
-                            return send_notif(fid, err);
+                            return send_notif(fid, err, mailOptions);
                         }).then(function(errs){
                             res.send({msg: 'Activation in progress', fid: fid, error: errs});
                             res.end();
@@ -1288,9 +1288,9 @@ router.get('/user/:id/renew', function(req, res){
                   Promise.all(plugins_info.map(function(plugin_info){
                       return plugin_call(plugin_info, user.uid, user);
                   })).then(function(results){
-                      return send_notif(fid, []);
+                      return send_notif(fid, [], mailOptions);
                   }, function(err){
-                      return send_notif(fid, err);
+                      return send_notif(fid, err, mailOptions);
                   }).then(function(errs){
                       res.send({msg: 'Activation in progress', fid: fid, error: errs});
                       res.end();

@@ -1,5 +1,6 @@
 {
   "general": {
+    "double_authentication_for_admin": true,
     "db": "gomngr",
     "url": "http://localhost:3000",
     "admin": [ "osallou" ],
