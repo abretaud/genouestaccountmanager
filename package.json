@@ -26,6 +26,7 @@
     "nodemailer": "^1.3.0",
     "nodemailer-smtp-transport": "^0.1.13",
     "promise": "^8.0.1",
-    "serve-favicon": "~2.1.3"
+    "serve-favicon": "~2.1.3",
+    "u2f": "^0.1.3"
   }
 }
