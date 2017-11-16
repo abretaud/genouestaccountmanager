@@ -66,7 +66,13 @@ All other users will use standard registration process via WEB UI and admin wil 
 If an LDAP database already contains users, one need to:
 
 * Check that users DN are like "uid=XXX,ou=..." and not "cn=xx yyy,ou=", else users DNs should be modified
-* Import groups and users in gomngr database to sync gomgnr and ldap.
+* Import groups and users in gomngr database to sync gomgnr and ldap, to do so you can try the import_from_ldap script
+
+    node import_from_ldap.js --test # Check first with no import
+    # If everything is fine
+    node import_from_ldap.js --import --admin admin_user_id # Check first with no import
+
+Users will not be added to mailchimp mailing list.
 
 ## Running
 
