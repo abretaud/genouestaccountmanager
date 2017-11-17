@@ -63,6 +63,10 @@ router.get('/ssh/:id/private', function(req, res) {
             res.end();
             return;
         }
+        if(CONFIG.general.admin.indexOf(user.uid) >= 0){
+            res.status(401).send('[admin user] not authorized to download private key');
+            return;
+        }
         if(user._id != sess.gomngr){
             res.status(401).send('Not authorized');
             return;
