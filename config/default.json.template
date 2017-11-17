@@ -28,7 +28,8 @@
             "db": "goacct",
             "series": "goacct.fixed.disk.panasas-omaha.*.user.#USER#"
         }
-    }
+    },
+    "plugin_script_dir": "/tmp/scripts"
  },
  "mongo": {
     "host": "localhost",
@@ -129,7 +130,11 @@
     ]
     },
     "plugins": [
-        {"name": "test", "display_name": "for testing"}
-    ]
-
+        {"name": "test", "display_name": "for testing", "admin_only":false}
+    ],
+    "plugin_config" : {
+        "test": {
+            "parameter1" : "test1"
+        }
+    }
 }

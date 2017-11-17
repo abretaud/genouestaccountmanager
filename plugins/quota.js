@@ -53,13 +53,14 @@ var get_quota = function(quota) {
             }
             warning = null;
             error = null;
-            if(quotas[1] > 0 && quotas[0]/quotas[1] > 0.99) {
+
+            if(quotas[0]/quotas[1] > 0.99) {
               error = quota_name + " quota reached!";
             }
-            else if(quotas[1] > 0 && quotas[0]/quotas[1] > 0.8) {
+            else if(quotas[0]/quotas[1] > 0.8) {
               warning = quota_name + " quota using more than 80% of use";
             }
-            resolve({'name': quota_name, 'value': quotas[0], 'max': quotas[1]}, 'warning': warning, 'error': error);
+            resolve({'name': quota_name, 'value': quotas[0], 'max': quotas[1], 'warning': warning, 'error': error});
             //return {'name': req.param('id'), 'value': quotas[0], 'max': quotas[1]}
         });
     });

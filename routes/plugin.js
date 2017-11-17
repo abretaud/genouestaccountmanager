@@ -23,7 +23,8 @@ var plugins_info = [];
 for(var i=0;i<plugins.length;i++){
     plugins_modules[plugins[i].name] = require('../plugins/'+plugins[i].name);
     if(plugins[i].display_name === undefined) { plugins[i]['display_name'] = plugins[i].name; }
-    plugins_info.push({'name': plugins[i].name, 'url': '../plugin/' + plugins[i].name, 'display_name': plugins[i]['display_name']})
+    if(plugins[i].admin_only === undefined) { plugins[i]['admin_only'] = false; }
+    plugins_info.push({'name': plugins[i].name, 'url': '../plugin/' + plugins[i].name, 'display_name': plugins[i]['display_name'], 'admin_only': plugins[i]['admin_only']})
 }
 /**
 Plugins must provide functions:
@@ -69,12 +70,11 @@ router.get('/plugin/:id/:user', function(req, res) {
         user.is_admin = false;
       }
       else {
-          user.is_admin = true;
+        user.is_admin = true;
       }
       plugins_modules[req.param('id')].get_data(req.param('user'), user.uid).then(function(result){
-            res.send(result);
+          res.send(result);
       });
-
     });
 
   //res.send(plugins_modules[req.param('id')].get_data(req.param('user')));
@@ -96,14 +96,13 @@ router.post('/plugin/:id/:user', function(req, res) {
       user.is_admin = false;
     }
     else {
-        user.is_admin = true;
+      user.is_admin = true;
     }
     plugins_modules[req.param('id')].set_data(req.param('user'), req.body, user.uid).then(function(result){
-        res.send(result);
+      res.send(result);
     }, function(err){
-        res.status(400).send(err);
+      res.status(400).send(err);
     });
-
   });
 
 
@@ -117,63 +116,6 @@ router.post('/plugin/:id/:user', function(req, res) {
   }
   */
 
-});
-
-router.post('/plugin/:id/:user/activate', function(req, res) {
-  console.log("activate plugin");
-  var sess = req.session;
-  if(! sess.gomngr) {
-    res.status(401).send('Not authorized');
-    return;
-  }
-  users_db.findOne({_id: sess.gomngr}, function(err, user){
-    if(err || user == null){
-      res.status(404).send('User not found');
-      return;
-    }
-    if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
-      user.is_admin = false;
-    }
-    else {
-        user.is_admin = true;
-    }
-    plugins_modules[req.param('id')].activate(req.param('user'), req.body, user.uid).then(function(result){
-        res.send(result);
-    }, function(err){
-        res.status(400).send(err);
-    });
-
-  });
-  //res.send(plugins_modules[req.param('id')].activate(req.param('user'), req.body));
-});
-
-router.post('/plugin/:id/:user/deactivate', function(req, res) {
-  console.log("deactivate plugin");
-  var sess = req.session;
-  if(! sess.gomngr) {
-    res.status(401).send('Not authorized');
-    return;
-  }
-  users_db.findOne({_id: sess.gomngr}, function(err, user){
-    if(err || user == null){
-      res.status(404).send('User not found');
-      return;
-    }
-    if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
-      user.is_admin = false;
-    }
-    else {
-        user.is_admin = true;
-    }
-    plugins_modules[req.param('id')].deactivate(req.param('user'), req.body, user.uid).then(function(result){
-        res.send(result);
-    }, function(err){
-        res.status(400).send(err);
-    });
-  });
-
-
-  //res.send(plugins_modules[req.param('id')].deactivate(req.param('user')));
 });
 
 module.exports = router;

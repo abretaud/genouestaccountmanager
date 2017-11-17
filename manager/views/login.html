@@ -40,7 +40,7 @@
               <input ng-model="email" type="email" class="form-control" placeholder="Email" required autofocus>
               <input ng-change="update_userid()" ng-model="firstname" type="text" class="form-control" placeholder="First name" required>
               <input ng-change="update_userid()" ng-model="lastname" type="text" class="form-control" placeholder="Last name" required>
-              <input ng-model="userid" type="text" class="form-control" placeholder="User id" required>
+              <input ng-model="userid" type="text" class="form-control" placeholder="User id" required maxlength="12">
               <textarea ng-model="address" class="form-control" placeholder="Address" required autofocus></textarea>
               <input ng-model="lab" type="text" class="form-control" placeholder="Research unit, lab, ..." required>
               <input ng-model="responsible" type="text" class="form-control" placeholder="Supervisor/Manager name" required>
