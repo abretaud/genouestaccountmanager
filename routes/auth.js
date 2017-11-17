@@ -182,7 +182,7 @@ router.post('/u2f/auth/:id', function(req, res) {
         else {
             sess.gomngr = null;
             sess.u2f = null;
-            return res.send({result});
+            return res.send(result);
         }
     });
 
@@ -222,7 +222,7 @@ router.post('/u2f/register/:id', function(req, res) {
 
         }
         else{
-            return res.send({result});
+            return res.send(result);
         }
     });
 });
