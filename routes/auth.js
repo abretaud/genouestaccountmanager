@@ -320,7 +320,9 @@ router.post('/auth/:id', function(req, res) {
           attemps[user.uid] = { attemps: 0};
         }
         if(err) {
-          req.session.destroy();
+          if(req.session !== undefined){
+              req.session.destroy();
+          }
           attemps[user.uid]['attemps'] += 1;
           attemps[user.uid]['last'] = new Date();
           res.send({ user: null, msg: "Login error, remains "+(3-attemps[user.uid]['attemps'])+" attemps."});

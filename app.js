@@ -9,6 +9,7 @@ var session = require('express-session');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
+var ssh = require('./routes/ssh');
 var auth = require('./routes/auth');
 var disks = require('./routes/disks');
 var database = require('./routes/database');
@@ -86,6 +87,10 @@ app.post('/user/:id/group/:group', users);
 app.get('/user/:id/subscribed', users);
 app.delete('/user/:id/group/:group', users);
 app.delete('/user/:id', users);
+app.get('/ssh/:id', ssh);
+app.get('/ssh/:id/public', ssh);
+app.get('/ssh/:id/putty', ssh);
+app.get('/ssh/:id/private', ssh);
 app.get('/project', projects);
 app.post('/project', projects);
 app.post('/project/:id', projects);

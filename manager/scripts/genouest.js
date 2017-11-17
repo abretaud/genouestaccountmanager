@@ -450,6 +450,15 @@ angular.module('genouest').controller('usermngrCtrl',
           console.log("Failed to get plugins ");
       });
 
+      $scope.ssh_new_key = function(){
+          $http({
+            method: 'GET',
+            url: '/ssh/' + $scope.user.uid
+          }).then(function successCallback(response) {
+              $scope.msg = response.data.msg;
+          });
+      }
+
       $scope.register_u2f = function(){
           console.log($window.u2f);
           $http({

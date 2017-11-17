@@ -139,28 +139,7 @@
 
   </div>
   <div class="col-sm-6">
-    <!--
-    <div class="row">
-        <div class="col-lg-6 col-md-6" ng-repeat="quota in quotas">
-          <div class="panel panel-primary">
-            <div class="panel-heading">
-              <div class="row">
-                <div class="col-xs-3">
-                  <i class="glyphicon glyphicon-user icon-5x"></i>
-                </div>
-                <div class="col-xs-9 text-right">
-                  <div class="huge">{{quota.name}}</div>
-                </div>
-              </div>
-            </div>
-            <div class="panel-body">
-             <div>Quota: {{quota.value | number: 2}} / {{quota.max | number: 2}} G</div>
-            </div>
-          </div>
-        </div>
 
-    </div>
-    -->
     <div class="panel panel-default">
           <div class="panel-heading">
             <h3 class="panel-title">Authentication</h3>
@@ -177,6 +156,19 @@
           </div>
           <div class="panel-body">
               <span>/home<span ng-if="user.maingroup">/{{user.maingroup}}</span>/{{user.group}}/{{user.uid}}</span>
+          </div>
+    </div>
+    <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">SSH keys</h3>
+          </div>
+          <div class="panel-body">
+              <span class="label label-info">When generating a key, public key is automatically added to authorized keys, process takes one minute</span>
+              <button class="btn btn-primary" ng-click="ssh_new_key()">Generate new key</button>
+              <h4>Download</h4>
+              <a ng-href="/ssh/{{user.uid}}/private" target="_blank"><button class="btn btn-primary">private rsa key</button></a>
+              <a ng-href="/ssh/{{user.uid}}/putty" target="_blank"><button class="btn btn-primary">putty private key</button></a>
+              <a ng-href="/ssh/{{user.uid}}/public" target="_blank"><button class="btn btn-primary">public key</button></a>
           </div>
     </div>
     <div class="panel panel-default">
@@ -215,7 +207,7 @@
 
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h3 class="panel-title">Public SSH key</h3>
+        <h3 class="panel-title">Add public SSH key</h3>
       </div>
       <div class="panel-body">
         <div>
