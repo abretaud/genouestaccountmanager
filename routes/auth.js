@@ -312,6 +312,7 @@ router.post('/auth/:id', function(req, res) {
       // Skip auth
       res.send({ user: user, msg: '', double_auth: need_double_auth});
       res.end();
+      return;
     }
     else {
       goldap.bind(user.uid, req.param('password'), function(err, token) {
@@ -321,7 +322,7 @@ router.post('/auth/:id', function(req, res) {
         }
         if(err) {
           if(req.session !== undefined){
-              req.session.destroy();
+             req.session.destroy();
           }
           attemps[user.uid]['attemps'] += 1;
           attemps[user.uid]['last'] = new Date();
@@ -329,9 +330,12 @@ router.post('/auth/:id', function(req, res) {
           res.end();
           return;
         }
-        attemps[user.uid]['attemps'] = 0;
-        res.send({ user: user, msg: '', double_auth: need_double_auth});
-        res.end();
+        else{
+            attemps[user.uid]['attemps'] = 0;
+            res.send({ user: user, msg: '', double_auth: need_double_auth});
+            res.end();
+            return;
+        }
       });
     }
 
