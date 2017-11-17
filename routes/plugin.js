@@ -71,7 +71,7 @@ router.get('/plugin/:id/:user', function(req, res) {
       else {
           user.is_admin = true;
       }
-      plugins_modules[req.param('id')].get_data(req.param('user')).then(function(result){
+      plugins_modules[req.param('id')].get_data(req.param('user'), user.uid).then(function(result){
             res.send(result);
       });
 
@@ -98,7 +98,7 @@ router.post('/plugin/:id/:user', function(req, res) {
     else {
         user.is_admin = true;
     }
-    plugins_modules[req.param('id')].set_data(req.param('user'), req.body).then(function(result){
+    plugins_modules[req.param('id')].set_data(req.param('user'), req.body, user.uid).then(function(result){
         res.send(result);
     }, function(err){
         res.status(400).send(err);
@@ -137,7 +137,7 @@ router.post('/plugin/:id/:user/activate', function(req, res) {
     else {
         user.is_admin = true;
     }
-    plugins_modules[req.param('id')].activate(req.param('user'), req.body).then(function(result){
+    plugins_modules[req.param('id')].activate(req.param('user'), req.body, user.uid).then(function(result){
         res.send(result);
     }, function(err){
         res.status(400).send(err);
@@ -165,7 +165,7 @@ router.post('/plugin/:id/:user/deactivate', function(req, res) {
     else {
         user.is_admin = true;
     }
-    plugins_modules[req.param('id')].deactivate(req.param('user'), req.body).then(function(result){
+    plugins_modules[req.param('id')].deactivate(req.param('user'), req.body, user.uid).then(function(result){
         res.send(result);
     }, function(err){
         res.status(400).send(err);

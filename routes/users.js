@@ -703,14 +703,14 @@ router.get('/user/:id/activate', function(req, res) {
                         };
                         events_db.insert({'owner': session_user.uid,'date': new Date().getTime(), 'action': 'activate user ' + req.param('id') , 'logs': [user.uid+"."+fid+".update"]}, function(err){});
 
-                        var plugin_call = function(plugin_info, user, data){
+                        var plugin_call = function(plugin_info, userId, data, adminId){
                             return new Promise(function (resolve, reject){
-                                var res = plugins_modules[plugin_info.name].activate(user, data);
+                                var res = plugins_modules[plugin_info.name].activate(userId, data, adminId);
                                 resolve(res);
                             });
                         };
                         Promise.all(plugins_info.map(function(plugin_info){
-                            return plugin_call(plugin_info, user.uid, user);
+                            return plugin_call(plugin_info, user.uid, user, session_user.uid);
                         })).then(function(results){
                             return send_notif(fid, [], mailOptions);
                         }, function(err){
@@ -996,14 +996,14 @@ router.get('/user/:id/expire', function(req, res){
                 // Now remove from mailing list
                 try {
                   notif.remove(user.email, function(err){
-                      var plugin_call = function(plugin_info, user){
+                      var plugin_call = function(plugin_info, userId, user, adminId){
                           return new Promise(function (resolve, reject){
-                              var res = plugins_modules[plugin_info.name].deactivate(user);
+                              var res = plugins_modules[plugin_info.name].deactivate(userId, user, adminId);
                               resolve(res);
                           });
                       };
                       Promise.all(plugins_info.map(function(plugin_info){
-                          return plugin_call(plugin_info, user.uid);
+                          return plugin_call(plugin_info, user.uid, user, session_user.uid);
                       })).then(function(data){
                           res.send({message: 'Operation in progress', fid: fid, error: []});
                           res.end();
@@ -1279,14 +1279,14 @@ router.get('/user/:id/renew', function(req, res){
                     text: msg_activ, // plaintext body
                     html: msg_activ_html // html body
                   };
-                  var plugin_call = function(plugin_info, user, data){
+                  var plugin_call = function(plugin_info, userId, data, adminId){
                       return new Promise(function (resolve, reject){
-                          var res = plugins_modules[plugin_info.name].activate(user, data);
+                          var res = plugins_modules[plugin_info.name].activate(userId, data, adminId);
                           resolve(res);
                       });
                   };
                   Promise.all(plugins_info.map(function(plugin_info){
-                      return plugin_call(plugin_info, user.uid, user);
+                      return plugin_call(plugin_info, user.uid, user, session_user.uid);
                   })).then(function(results){
                       return send_notif(fid, [], mailOptions);
                   }, function(err){

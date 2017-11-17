@@ -51,36 +51,51 @@ var get_quota = function(quota) {
             if(quotas.length==1){
                 quotas.push(0);
             }
-            resolve({'name': quota_name, 'value': quotas[0], 'max': quotas[1]});
+            warning = null;
+            error = null;
+            if(quotas[1] > 0 && quotas[0]/quotas[1] > 0.99) {
+              error = quota_name + " quota reached!";
+            }
+            else if(quotas[1] > 0 && quotas[0]/quotas[1] > 0.8) {
+              warning = quota_name + " quota using more than 80% of use";
+            }
+            resolve({'name': quota_name, 'value': quotas[0], 'max': quotas[1]}, 'warning': warning, 'error': error);
             //return {'name': req.param('id'), 'value': quotas[0], 'max': quotas[1]}
         });
     });
     });
 };
 
-var get_user_info = function(user){
+var get_user_info = function(userId){
     return new Promise(function (resolve, reject){
     var quotas = [];
     var quota_name = null;
     var quota_names = [];
     for(var key in GENERAL_CONFIG.quota) {
-       quota_names.push({'quota_name': key, 'user': user});
+       quota_names.push({'quota_name': key, 'user': userId});
     }
     var res = Promise.all(quota_names.map(get_quota)).then(function(values){
-        resolve({'quotas': values});
+        var errors = [];
+        var warnings = [];
+        for(var i=0;i<values.length;i++) {
+            if(values[i].warning) { warnings.push(values[i].warning); }
+            if(values[i].error) { errors.push(values[i].error); }
+        }
+        resolve({'quotas': values, 'warnings': warnings, 'errors': errors});
     });
+
     });
 };
 
 
 module.exports = {
 
-    activate: function(user, data){
+    activate: function(userId, data, adminId){
         return new Promise(function (resolve, reject){
             resolve({'msg': 'nothing to do'});
         });
     },
-    deactivate: function(user){
+    deactivate: function(userId, data, adminId){
        return new Promise(function (resolve, reject){
             resolve({'msg': 'nothing to do'});
         });
@@ -106,11 +121,10 @@ module.exports = {
                  '</div>';
         return template;
     },
-    get_data: function(user){
-        return get_user_info(user);
+    get_data: function(userId, adminId){
+        return get_user_info(userId);
     },
-    set_data: function(user, data){
+    set_data: function(userId, data, adminId){
         return {'msg': 'nothing to do'};
     }
 }
-
