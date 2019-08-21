@@ -95,7 +95,7 @@ router.get('/user/:id/subscribed', function(req, res){
     }
     users_db.findOne({uid: req.param('id')}, function(err, user){
         if(!user) {
-            res.send({msg: 'User does not exists'})
+            res.send({msg: 'User does not exist'})
             res.end();
             return;
         }
@@ -151,7 +151,7 @@ router.delete('/group/:id', function(req, res){
         }
         groups_db.findOne({name: req.param('id')}, function(err, group){
           if(err || !group) {
-            res.status(403).send('Group does not exists');
+            res.status(403).send('Group does not exist');
             return;
           }
           users_db.find({'$or': [{'secondarygroups': req.param('id')}, {'group': req.param('id')}]}, function(err, users_in_group){
@@ -204,7 +204,7 @@ router.put('/group/:id', function(req, res){
     groups_db.findOne({name: req.param('id')}, function(err, group){
       var owner = req.param('owner');
       if(! group) {
-        res.status(404).send('Group does not exists');
+        res.status(404).send('Group does not exist');
         return;
       }
       events_db.insert({'owner': user.uid, 'date': new Date().getTime(), 'action': 'group owner modification ' + group.name + ' to ' +owner, 'logs': []}, function(err){});
@@ -629,7 +629,7 @@ router.get('/user/:id/activate', function(req, res) {
 
       users_db.findOne({uid: req.param('id')}, function(err, user){
         if(!user) {
-          res.status(403).send('User does not exists')
+          res.status(403).send('User does not exist')
           res.end();
           return;
         }
@@ -659,7 +659,7 @@ router.get('/user/:id/activate', function(req, res) {
               }
               if(!gfound) {
                 mingid = data[0].gid+1;
-                res.status(403).send('Group does not exists, please create it first')
+                res.status(403).send('Group does not exist, please create it first')
                 res.end();
                 return
               }
@@ -1056,7 +1056,7 @@ router.post('/user/:id/passwordreset', function(req, res){
       }
   users_db.findOne({uid: req.param('id')}, function(err, user){
     if(err || !user) {
-      res.status(404).send('User does not exists:'+req.param('id'));
+      res.status(404).send('User does not exist:'+req.param('id'));
       res.end();
       return;
     }
@@ -1094,7 +1094,7 @@ router.get('/user/:id/passwordreset', function(req, res){
   var key = Math.random().toString(36).substring(7);
   users_db.findOne({uid: req.param('id')}, function(err, user){
     if(err || !user) {
-      res.status(404).send('User does not exists');
+      res.status(404).send('User does not exist');
       res.end();
       return;
     }
@@ -1144,7 +1144,7 @@ router.get('/user/:id/passwordreset', function(req, res){
 router.get('/user/:id/passwordreset/:key', function(req, res){
   users_db.findOne({uid: req.param('id')}, function(err, user){
     if(err) {
-      res.status(404).send('User does not exists');
+      res.status(404).send('User does not exist');
       res.end();
       return;
     }
@@ -1451,7 +1451,7 @@ router.put('/user/:id', function(req, res) {
         //groups_db.findOne({'name': user.group}, function(err, group){
         groups_db.findOne({'name': req.param('group')}, function(err, group){
           if(err || group == null || group == undefined) {
-            res.status(403).send('Group '+req.param('group')+' does not exists, please create it first');
+            res.status(403).send('Group '+req.param('group')+' does not exist, please create it first');
             return;
           }
           if(session_user.is_admin){
@@ -1481,7 +1481,7 @@ router.put('/user/:id', function(req, res) {
               var fid = new Date().getTime();
               goldap.modify(user, fid, function(err){
                   if(err) {
-                    res.status(403).send('Group '+user.group+' does not exists, please create it first');
+                    res.status(403).send('Group '+user.group+' does not exist, please create it first');
                     return;
                   }
                   var script = "#!/bin/bash\n";
