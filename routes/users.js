@@ -224,7 +224,7 @@ router.post('/group/:id', function(req, res){
   }
   users_db.findOne({_id: sess.gomngr}, function(err, user){
     if(err || user == null){
-      res.status(404).send('User not found');
+      res.status(404).send('Owner not found');
       return;
     }
     if(GENERAL_CONFIG.admin.indexOf(user.uid) < 0){
