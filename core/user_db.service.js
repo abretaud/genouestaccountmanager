@@ -78,7 +78,7 @@ async function create_db_request(asked_db, user) {
                 '#UID#': user.uid,
                 '#NAME#': asked_db.name,
                 '#USAGE#': asked_db.usage,
-                '#EXP#': asked_db.expire
+                '#EXP#': new Date(asked_db.expire).toISOString().split('T')[0]
             }
         );
     } catch (error) {
